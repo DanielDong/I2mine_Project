@@ -8,7 +8,7 @@ import jxl.CellType;
 
 public class Test {
 	
-	public static void main(String[] args){
+//	public static void main(String[] args){
 //		// test code for creating a new workbook and sheet
 //		ExcelWriter excelWriter = new ExcelWriter();
 //		excelWriter.createSheet("output.xls", "firstSheet", 0);
@@ -26,5 +26,5 @@ public class Test {
 //		Date date = (Date)er.getCellValue(2, 0, CellType.DATE);
 //		System.out.println("string:"+str+"\ndouble:"+d+"\ndate:"+date.toGMTString());
 //		
-	}
+//	}
 }
