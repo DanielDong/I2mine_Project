@@ -75,86 +75,86 @@ public class GanttRender extends ApplicationFrame{
                new SimpleTimePeriod(date(28, Calendar.NOVEMBER, 2001),
                                     date(30, Calendar.NOVEMBER, 2001))));
 
-//        final TaskSeries s2 = new TaskSeries("Actual12");
-//        s2.add(new Task("Write Proposal",
-//               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
-//                                    date(5, Calendar.APRIL, 2001))));
-//        s2.add(new Task("Obtain Approval",
-//               new SimpleTimePeriod(date(9, Calendar.APRIL, 2001),
-//                                    date(9, Calendar.APRIL, 2001))));
-//        s2.add(new Task("Requirements Analysis",
-//               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
-//                                    date(15, Calendar.MAY, 2001))));
-//        s2.add(new Task("Design Phase",
-//               new SimpleTimePeriod(date(15, Calendar.MAY, 2001),
-//                                    date(17, Calendar.JUNE, 2001))));
-//        s2.add(new Task("Design Signoff",
-//               new SimpleTimePeriod(date(30, Calendar.JUNE, 2001),
-//                                    date(30, Calendar.JUNE, 2001))));
-//        s2.add(new Task("Alpha Implementation",
-//               new SimpleTimePeriod(date(1, Calendar.JULY, 2001),
-//                                    date(12, Calendar.SEPTEMBER, 2001))));
-//        s2.add(new Task("Design Review",
-//               new SimpleTimePeriod(date(12, Calendar.SEPTEMBER, 2001),
-//                                    date(22, Calendar.SEPTEMBER, 2001))));
-//        s2.add(new Task("Revised Design Signoff",
-//               new SimpleTimePeriod(date(25, Calendar.SEPTEMBER, 2001),
-//                                    date(27, Calendar.SEPTEMBER, 2001))));
-//        s2.add(new Task("Beta Implementation",
-//               new SimpleTimePeriod(date(27, Calendar.SEPTEMBER, 2001),
-//                                    date(30, Calendar.OCTOBER, 2001))));
-//        s2.add(new Task("Testing",
-//               new SimpleTimePeriod(date(31, Calendar.OCTOBER, 2001),
-//                                    date(17, Calendar.NOVEMBER, 2001))));
-//        s2.add(new Task("Final Implementation",
-//               new SimpleTimePeriod(date(18, Calendar.NOVEMBER, 2001),
-//                                    date(5, Calendar.DECEMBER, 2001))));
-//        s2.add(new Task("Signoff",
-//               new SimpleTimePeriod(date(10, Calendar.DECEMBER, 2001),
-//                                    date(11, Calendar.DECEMBER, 2001))));
-//        
-//        final TaskSeries s3 = new TaskSeries("Random12");
-//        s3.add(new Task("Write Proposal",
-//               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
-//                                    date(5, Calendar.APRIL, 2001))));
-//        s3.add(new Task("Obtain Approval",
-//               new SimpleTimePeriod(date(9, Calendar.APRIL, 2001),
-//                                    date(9, Calendar.APRIL, 2001))));
-//        s3.add(new Task("Requirements Analysis",
-//               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
-//                                    date(15, Calendar.MAY, 2001))));
-//        s3.add(new Task("Design Phase",
-//               new SimpleTimePeriod(date(15, Calendar.MAY, 2001),
-//                                    date(17, Calendar.JUNE, 2001))));
-//        s3.add(new Task("Design Signoff",
-//               new SimpleTimePeriod(date(30, Calendar.JUNE, 2001),
-//                                    date(30, Calendar.JUNE, 2001))));
-//        s3.add(new Task("Alpha Implementation",
-//               new SimpleTimePeriod(date(1, Calendar.JULY, 2001),
-//                                    date(12, Calendar.SEPTEMBER, 2001))));
-//        s3.add(new Task("Design Review",
-//               new SimpleTimePeriod(date(12, Calendar.SEPTEMBER, 2001),
-//                                    date(22, Calendar.SEPTEMBER, 2001))));
-//        s3.add(new Task("Revised Design Signoff",
-//               new SimpleTimePeriod(date(25, Calendar.SEPTEMBER, 2001),
-//                                    date(27, Calendar.SEPTEMBER, 2001))));
-//        s3.add(new Task("Beta Implementation",
-//               new SimpleTimePeriod(date(27, Calendar.SEPTEMBER, 2001),
-//                                    date(30, Calendar.OCTOBER, 2001))));
-//        s3.add(new Task("Testing",
-//               new SimpleTimePeriod(date(31, Calendar.OCTOBER, 2001),
-//                                    date(17, Calendar.NOVEMBER, 2001))));
-//        s3.add(new Task("Final Implementation",
-//               new SimpleTimePeriod(date(18, Calendar.NOVEMBER, 2001),
-//                                    date(5, Calendar.DECEMBER, 2001))));
-//        s3.add(new Task("Signoff",
-//               new SimpleTimePeriod(date(10, Calendar.DECEMBER, 2001),
-//                                    date(11, Calendar.DECEMBER, 2001))));
+        final TaskSeries s2 = new TaskSeries("Actual12");
+        s2.add(new Task("Write Proposal",
+               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
+                                    date(5, Calendar.APRIL, 2001))));
+        s2.add(new Task("Obtain Approval",
+               new SimpleTimePeriod(date(9, Calendar.APRIL, 2001),
+                                    date(9, Calendar.APRIL, 2001))));
+        s2.add(new Task("Requirements Analysis",
+               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
+                                    date(15, Calendar.MAY, 2001))));
+        s2.add(new Task("Design Phase",
+               new SimpleTimePeriod(date(15, Calendar.MAY, 2001),
+                                    date(17, Calendar.JUNE, 2001))));
+        s2.add(new Task("Design Signoff",
+               new SimpleTimePeriod(date(30, Calendar.JUNE, 2001),
+                                    date(30, Calendar.JUNE, 2001))));
+        s2.add(new Task("Alpha Implementation",
+               new SimpleTimePeriod(date(1, Calendar.JULY, 2001),
+                                    date(12, Calendar.SEPTEMBER, 2001))));
+        s2.add(new Task("Design Review",
+               new SimpleTimePeriod(date(12, Calendar.SEPTEMBER, 2001),
+                                    date(22, Calendar.SEPTEMBER, 2001))));
+        s2.add(new Task("Revised Design Signoff",
+               new SimpleTimePeriod(date(25, Calendar.SEPTEMBER, 2001),
+                                    date(27, Calendar.SEPTEMBER, 2001))));
+        s2.add(new Task("Beta Implementation",
+               new SimpleTimePeriod(date(27, Calendar.SEPTEMBER, 2001),
+                                    date(30, Calendar.OCTOBER, 2001))));
+        s2.add(new Task("Testing",
+               new SimpleTimePeriod(date(31, Calendar.OCTOBER, 2001),
+                                    date(17, Calendar.NOVEMBER, 2001))));
+        s2.add(new Task("Final Implementation",
+               new SimpleTimePeriod(date(18, Calendar.NOVEMBER, 2001),
+                                    date(5, Calendar.DECEMBER, 2001))));
+        s2.add(new Task("Signoff",
+               new SimpleTimePeriod(date(10, Calendar.DECEMBER, 2001),
+                                    date(11, Calendar.DECEMBER, 2001))));
+        
+        final TaskSeries s3 = new TaskSeries("Random12");
+        s3.add(new Task("Write Proposal",
+               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
+                                    date(5, Calendar.APRIL, 2001))));
+        s3.add(new Task("Obtain Approval",
+               new SimpleTimePeriod(date(9, Calendar.APRIL, 2001),
+                                    date(9, Calendar.APRIL, 2001))));
+        s3.add(new Task("Requirements Analysis",
+               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
+                                    date(15, Calendar.MAY, 2001))));
+        s3.add(new Task("Design Phase",
+               new SimpleTimePeriod(date(15, Calendar.MAY, 2001),
+                                    date(17, Calendar.JUNE, 2001))));
+        s3.add(new Task("Design Signoff",
+               new SimpleTimePeriod(date(30, Calendar.JUNE, 2001),
+                                    date(30, Calendar.JUNE, 2001))));
+        s3.add(new Task("Alpha Implementation",
+               new SimpleTimePeriod(date(1, Calendar.JULY, 2001),
+                                    date(12, Calendar.SEPTEMBER, 2001))));
+        s3.add(new Task("Design Review",
+               new SimpleTimePeriod(date(12, Calendar.SEPTEMBER, 2001),
+                                    date(22, Calendar.SEPTEMBER, 2001))));
+        s3.add(new Task("Revised Design Signoff",
+               new SimpleTimePeriod(date(25, Calendar.SEPTEMBER, 2001),
+                                    date(27, Calendar.SEPTEMBER, 2001))));
+        s3.add(new Task("Beta Implementation",
+               new SimpleTimePeriod(date(27, Calendar.SEPTEMBER, 2001),
+                                    date(30, Calendar.OCTOBER, 2001))));
+        s3.add(new Task("Testing",
+               new SimpleTimePeriod(date(31, Calendar.OCTOBER, 2001),
+                                    date(17, Calendar.NOVEMBER, 2001))));
+        s3.add(new Task("Final Implementation",
+               new SimpleTimePeriod(date(18, Calendar.NOVEMBER, 2001),
+                                    date(5, Calendar.DECEMBER, 2001))));
+        s3.add(new Task("Signoff",
+               new SimpleTimePeriod(date(10, Calendar.DECEMBER, 2001),
+                                    date(11, Calendar.DECEMBER, 2001))));
 
         final TaskSeriesCollection collection = new TaskSeriesCollection();
         collection.add(s1);
-//        collection.add(s2);
-//        collection.add(s3);
+        collection.add(s2);
+        collection.add(s3);
 
         return collection;
     }
