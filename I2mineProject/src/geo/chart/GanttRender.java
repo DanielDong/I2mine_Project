@@ -1,4 +1,4 @@
-package geo.chartUtil;
+package geo.chart;
 
 import java.util.Calendar;
 import java.util.Date;
