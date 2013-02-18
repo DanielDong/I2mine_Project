@@ -202,12 +202,12 @@ public class GanttRender extends ApplicationFrame{
      *
      * @param args  ignored.
      */
-    public static void main(final String[] args) {
-
-        final GanttRender demo = new GanttRender("Gantt Chart D 1");
-        demo.pack();
-        RefineryUtilities.centerFrameOnScreen(demo);
-        demo.setVisible(true);
-    }
+//    public static void main(final String[] args) {
+//
+//        final GanttRender demo = new GanttRender("Gantt Chart D 1");
+//        demo.pack();
+//        RefineryUtilities.centerFrameOnScreen(demo);
+//        demo.setVisible(true);
+//    }
 
 }
