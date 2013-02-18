@@ -1,6 +1,6 @@
 package geo.i2mine;
 
-import geo.Util.ExcelReader;
+import geo.excel.ExcelReader;
 
 import java.util.Date;
 
