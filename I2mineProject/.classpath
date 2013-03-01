@@ -5,6 +5,6 @@
 	<classpathentry kind="lib" path="lib/jxl.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.17.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.14.jar"/>
-	<classpathentry kind="lib" path="D:/eclipse-java-indigo-SR1-win32/eclipse/plugins/org.eclipse.swt.win32.win32.x86_3.7.2.v3740f.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.swt.sleak_1.0.0.200803140904.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
