@@ -5,6 +5,12 @@
 	<classpathentry kind="lib" path="lib/jxl.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon-1.0.17.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart-1.0.14.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kvmaalto/git/I2mine_Project/I2mineProject/lib/ajt-2.9.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kvmaalto/git/I2mine_Project/I2mineProject/lib/commons-math-1.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kvmaalto/git/I2mine_Project/I2mineProject/lib/Jama-1.0.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kvmaalto/git/I2mine_Project/I2mineProject/lib/javaml-0.1.7.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kvmaalto/git/I2mine_Project/I2mineProject/lib/libsvm.jar"/>
+	<classpathentry kind="lib" path="C:/Users/kvmaalto/git/I2mine_Project/I2mineProject/lib/weka.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.swt"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
