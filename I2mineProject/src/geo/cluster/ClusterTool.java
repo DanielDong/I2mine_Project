@@ -1,40 +1,41 @@
 package geo.cluster;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.clustering.evaluation.TraceScatterMatrix;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.tools.data.FileHandler;
 
 /**
- * This tutorial shows how to use a clustering algorithm to cluster a data set.
+ * Use a clustering algorithm (k-means) to cluster a data set.
+ * Once one cluster number satisfies requirements. Algorithm stops.
  * 
- * 
- * @author Thomas Abeel
+ * @author Shichao Dong
  * 
  */
 public class ClusterTool {
 
-	public static int CLUSTER_NUM = 3;
-    /**
-     * Tests the k-means algorithm with default parameter settings.
-     */
-    public static void main(String[] args) throws Exception {
-
-        /* Load a dataset */
-        Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
+	public static Dataset[] getClustersOfWorkphases(String fileName, int numOfWorkphases, String delimiter) throws IOException{
+		
+		 /* Load a dataset */
+        //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
+		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkphases, delimiter);
         
         int finalClusterNum = 0;
         boolean isBestResult = false;
-        for(int i = 3 ;i < data.size(); i++){
+        Dataset[] clusters = null; 
+        
+        System.out.println("data len:"+data.size());
+        		
+        for(int i = 2 ;i < data.size(); i++){
         	
         	System.out.println("i:"+i);
         	
         	Clusterer km = new KMeans(i);
-        	Dataset[] clusters = km.cluster(data);
+        	clusters = km.cluster(data);
         	
         	// Check each cluster to see if i clusters give best result
         	for(int j = 0; j < clusters.length; j++){
@@ -85,8 +86,13 @@ public class ClusterTool {
         	}
         }
         
-        System.out.println("best cluster num:"+finalClusterNum);
-        
-    }/* main */
+        //System.out.println("best cluster num:"+finalClusterNum);
+        return clusters;
+	}/* getClustersOfWorkphases */
+
+//    public static void main(String[] args) throws Exception {
+//    	Dataset[] ds = ClusterTool.getClustersOfWorkphases("workphase.txt",5, "\t");
+//    	System.out.println("best cluster num:"+ds.length);
+//    }/* main */
 
 }
