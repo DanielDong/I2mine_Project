@@ -3,6 +3,7 @@ package geo.cluster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -25,13 +26,13 @@ public class ClusterTool {
 		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkphases, delimiter);
         
         int finalClusterNum = 0;
-        boolean isBestResult = false;
+        boolean isBestResult = true; // by default, current cluster is good enough
         Dataset[] clusters = null; 
         
         System.out.println("data len:"+data.size());
         		
         for(int i = 2 ;i < data.size(); i++){
-        	
+        	isBestResult = true; 
         	System.out.println("i:"+i);
         	
         	Clusterer km = new KMeans(i);
@@ -39,22 +40,42 @@ public class ClusterTool {
         	
         	// Check each cluster to see if i clusters give best result
         	for(int j = 0; j < clusters.length; j++){
+        		//output current cluster
+        		for(int ci = 0; ci < clusters[j].size(); ci++){
+        			System.out.println("i:"+i+" "+clusters[j].get(ci));
+        		}
+        		System.out.println("==============");
         		
         		//This cluster only has one value, ignore
         		if(clusters[j].size() == 1){
         			continue;
         		}
         		
-        		//Find maximum distance in a cluster
+        		//Collect all the row ids of current cluster
         		double maxDist = 0;
         		ArrayList<Integer> excludeId = new ArrayList<Integer> ();
-        		for(int it = 0; it < clusters[j].size() - 1; it++){
-        			for(int jt = 0; jt < clusters[j].size(); jt++){
-        				double tmpDist = data.get(clusters[j].get(it).getID()).value(jt);
-        				excludeId.add(clusters[j].get(it).getID());
-        				maxDist = ( tmpDist> maxDist)? tmpDist:0;
+        		for(int id = 0; id < clusters[j].size(); id++){
+        			excludeId.add(clusters[j].get(id).getID());
+        		}
+        		
+        		//Output all row ids in current cluster
+        		System.out.println("all row ids in current cluster:");
+        		for(int ci = 0; ci < excludeId.size(); ci++){
+        			System.out.print(excludeId.get(ci)+" ");
+        		}
+        		
+        		//Sort the row id in ascending order
+        		Collections.sort(excludeId);
+        		
+        		//Find maximum distance in a cluster
+        		for(int it = 0; it < excludeId.size() - 1; it++){
+        			for(int jt = it + 1; jt < excludeId.size(); jt++){
+        				double tmpDist = data.get(excludeId.get(it)).value(excludeId.get(jt));
+        				//excludeId.add(clusters[j].get(it).getID());
+        				maxDist = ( tmpDist> maxDist)? tmpDist:maxDist;
         			}
         		}
+        		
         		
         		System.out.println("max dist:"+maxDist);
         		
@@ -75,9 +96,9 @@ public class ClusterTool {
         			isBestResult = false;
         		}
         		// This cluster is good enough
-        		else{
-        			isBestResult = true;
-        		}
+//        		else{
+//        			isBestResult = true;
+//        		}
         	}
         	
         	if(isBestResult == true){
@@ -90,9 +111,9 @@ public class ClusterTool {
         return clusters;
 	}/* getClustersOfWorkphases */
 
-//    public static void main(String[] args) throws Exception {
-//    	Dataset[] ds = ClusterTool.getClustersOfWorkphases("workphase.txt",5, "\t");
-//    	System.out.println("best cluster num:"+ds.length);
-//    }/* main */
+    public static void main(String[] args) throws Exception {
+    	Dataset[] ds = ClusterTool.getClustersOfWorkphases("workphase.txt",5, "\t");
+    	System.out.println("best cluster num:"+ds.length);
+    }/* main */
 
 }
