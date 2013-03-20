@@ -1,10 +1,14 @@
 package geo.excel;
 
+import geo.core.MachineOpInfo;
+import geo.core.WorkfaceState;
+import geo.core.WorkfaceWorkload;
+
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -102,15 +106,85 @@ public class ExcelReader {
 			
 			File outFile = new File(outFileName);
 			DataOutputStream dos = new DataOutputStream(new FileOutputStream(outFileName));
-			for(int i = 0; i < sheet.getRows(); i++){
-				for(int j = 0; j < sheet.getColumns(); j++){
-					dos.write((getCellValue(j, i, CellType.NUMBER).toString()+"\t").getBytes());
+			for(int row = 0; row < sheet.getRows(); row++){
+				for(int col = 0; col < sheet.getColumns(); col++){
+					dos.write((getCellValue(col, row, CellType.NUMBER).toString()+"\t").getBytes());
 				}
 				dos.write("\n".getBytes());
 			}
 		}
+		else
+			return false;
 		
 		return true;
+	}
+	
+	public MachineOpInfo readMachineOpInfo(String fileName){
+		
+		MachineOpInfo moi = null; 
+		boolean isLoadSuccessul = getWorkbook(fileName);
+		if(isLoadSuccessul == true){
+			
+			initWorkSheet(0);
+			// Row number indicates number of machines
+			moi = new MachineOpInfo(sheet.getRows());
+			
+			for(int row = 0; row < sheet.getRows(); row++){
+				
+				ArrayList<Double> singMachineOpInfo = new ArrayList<Double>();
+				// Read operation information of a machine
+				for(int col = 0; col < 2; col++){
+					singMachineOpInfo.add((Double) getCellValue(col, row, CellType.NUMBER));
+				}
+				// Add operation information of a machine into the MachineOpInfo
+				moi.addMachineOpInfo(singMachineOpInfo);
+			}// end for
+		}// end if
+		
+		return moi;
+	}
+	
+	public WorkfaceState readWorkfaceState(String fileName){
+		
+		WorkfaceState wfs = null;
+		boolean isLoadSuccessul = getWorkbook(fileName);
+		
+		if(isLoadSuccessul == true){
+			initWorkSheet(0);
+			// Currently, only one row and multiple columns.
+			// Column number indicates the number of workfaces
+			wfs = new WorkfaceState(sheet.getColumns());
+			for(int col = 0; col < sheet.getColumns(); col ++){
+				wfs.addWorkfaceState((Integer) getCellValue(col, 1, CellType.NUMBER));
+			}
+		}
+		
+		return wfs;
+	}
+	
+	public WorkfaceWorkload readWorkfaceWorkload(String fileName){
+		
+		WorkfaceWorkload ww = null;
+		boolean isLoadSuccessul = getWorkbook(fileName);
+		
+		if(isLoadSuccessul == true){
+			initWorkSheet(0);
+			// The number of rows indicates the number of machines
+			int numOfMachine = sheet.getRows();
+			// The number of rows indicates the number of workfaces
+			int numOfWorkface = sheet.getColumns(); 
+			
+			ww = new WorkfaceWorkload(numOfMachine, numOfWorkface);
+			ArrayList<Double> singleMachineWorkload = null;
+			for(int row = 0 ;row < numOfMachine; row++){
+				singleMachineWorkload = new ArrayList<Double>();
+				for(int col = 0; col < numOfWorkface; col++){
+					singleMachineWorkload.add((Double) getCellValue(col, row, CellType.NUMBER));
+				}
+				ww.addMachineWorkload(singleMachineWorkload);
+			}
+		}
+		return ww;
 	}
 	
 	// Test code for ExcelReader
@@ -126,7 +200,10 @@ public class ExcelReader {
 //				System.out.println();
 //			}
 //		}
-		er.convertExcelToText("workphase-distance.xls", "workphase-distance.txt");
+		er.convertExcelToText("workface-distance.xls", "workface-distance.txt");
+		er.convertExcelToText("workface-state.xls", "workface-state.txt");
+		er.convertExcelToText("workface-workload.xls", "workface-workload.txt");
+		er.convertExcelToText("machine-op-info.xls", "machine-op-info.txt");
 	}
 	
 }
