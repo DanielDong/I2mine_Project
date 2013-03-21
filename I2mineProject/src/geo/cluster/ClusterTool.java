@@ -78,6 +78,7 @@ public class ClusterTool {
         				maxDist = ( tmpDist> maxDist)? tmpDist:maxDist;
         			}
         		}
+        		excludeId.add(clusters[j].get(clusters[j].size() - 1).getID());
         		
         		System.out.println("max dist:"+maxDist);
         		
