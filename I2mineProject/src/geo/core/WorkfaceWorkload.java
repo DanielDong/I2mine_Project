@@ -35,4 +35,13 @@ public class WorkfaceWorkload {
 			this.workload.add(curWorkload);
 		return true;
 	}
+	
+	/***
+	 * Get the total workload from all workfaces of a machine
+	 * @param index The index of a machine
+	 * @return The workload in all workfaces of a machine
+	 */
+	public ArrayList<Double> getWorkloadOfMachine (int index){
+		return this.workload.get(index);
+	}
 }

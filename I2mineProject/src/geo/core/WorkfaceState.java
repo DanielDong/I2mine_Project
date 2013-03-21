@@ -23,4 +23,13 @@ public class WorkfaceState {
 			return false;
 		return true;
 	}
+	
+	/***
+	 * Get the workface state of a certain workface specified by <i>index</i>
+	 * @param index The index of a workface
+	 * @return the state of the workface specified by <i>index</i>
+	 */
+	public int getCerntainWorkfaceState(int index){
+		return this.workfaceState.get(index);
+	}
 }
