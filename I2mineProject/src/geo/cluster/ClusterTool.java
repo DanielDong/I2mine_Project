@@ -15,10 +15,11 @@ import net.sf.javaml.tools.data.FileHandler;
  * 
  * @author Shichao Dong
  * 
+ * @version 1.0
  */
 public class ClusterTool {
 
-	public static Dataset[] getClustersOfWorkphases(String fileName, int numOfWorkphases, String delimiter) throws IOException{
+	public static Dataset[] getClustersOfWorkfaces(String fileName, int numOfWorkphases, String delimiter) throws IOException{
 		
 		 /* Load a dataset */
         //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
@@ -105,7 +106,7 @@ public class ClusterTool {
 	}/* getClustersOfWorkphases */
 
     public static void main(String[] args) throws Exception {
-    	Dataset[] ds = ClusterTool.getClustersOfWorkphases("workface-distance.txt", 7, "\t");
+    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 7, "\t");
     	System.out.println("best cluster num:"+ds.length);
     	for(int i=0;i<ds.length;i++)
     		System.out.println(ds[i]);
