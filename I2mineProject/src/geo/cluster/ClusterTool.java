@@ -24,6 +24,15 @@ public class ClusterTool {
 		 /* Load a dataset */
         //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
 		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkphases, delimiter);
+		
+		System.out.println("=======================dataset========================");
+		for(int i = 0; i < data.size(); i++){
+			System.out.println(data.get(i)+":"+data.get(i).getClass().getName());
+			for(int j = 0; j< data.get(i).size(); j++)
+				System.out.print(data.get(i).value(j)+"-");
+			System.out.println();
+		}
+		System.out.println("=======================dataset========================");
         
         int finalClusterNum = 0;
         boolean isBestResult = false, flagForTwice = false;
@@ -35,10 +44,16 @@ public class ClusterTool {
         // Start with cluster number of 2 to num_of_workfaces/2 included
         for(int i = 2 ;i <= data.size()/2; i++){
         	
+        	isBestResult = false;
         	System.out.println("i:"+i);
         	
         	Clusterer km = new KMeans(i);
         	clusters = km.cluster(data);
+        	
+        	System.out.println("=======================cluster info========================");
+        	for(int tmp = 0; tmp < i; tmp++)
+        		System.out.println(clusters[tmp]);
+        	System.out.println("=======================cluster info========================");
         	
         	// Check each cluster to see if i clusters give best result
         	for(int j = 0; j < clusters.length; j++){
@@ -52,10 +67,15 @@ public class ClusterTool {
         		double maxDist = 0;
         		ArrayList<Integer> excludeId = new ArrayList<Integer> ();
         		for(int it = 0; it < clusters[j].size() - 1; it++){
-        			for(int jt = 0; jt < clusters[j].size(); jt++){
-        				double tmpDist = data.get(clusters[j].get(it).getID()).value(jt);
+        			for(int jt = it + 1; jt < clusters[j].size(); jt++){
+        				//double tmpDist = data.get(clusters[j].get(it).getID()).value(jt);
+        				
+        				System.out.print("row:"+clusters[j].get(it).getID() + " col:"+clusters[j].get(jt).getID());
+        				double tmpDist = data.get(clusters[j].get(it).getID()).value(clusters[j].get(jt).getID());
+        				System.out.println(" dist:"+tmpDist);
+        				
         				excludeId.add(clusters[j].get(it).getID());
-        				maxDist = ( tmpDist> maxDist)? tmpDist:0;
+        				maxDist = ( tmpDist> maxDist)? tmpDist:maxDist;
         			}
         		}
         		
@@ -66,10 +86,20 @@ public class ClusterTool {
         		for(int in = 0; in < data.size(); in++){
         			if(excludeId.contains(in) == false){
         				//Calculate distance between points outside this cluster with points in this cluster
-        				for(int jn = 0; jn< excludeId.size(); jn++){
+        				int jn = 0;
+        				for(; jn< excludeId.size(); jn++){
         					double cutDist = data.get(in).value(excludeId.get(jn));
+        					System.out.print("row: "+in+" col:"+excludeId.get(jn)+" ");
+        					// false means good cluster
+        					// true means bad cluster
         					isGoodCluster = (cutDist > maxDist)? false: true;
+        					System.out.print("cutDist:"+cutDist + " maxDist:"+maxDist + "> false, < true:"+isGoodCluster+"\n");
+        					if(isGoodCluster == true)
+        						break;
         				}
+        				// There are points outside which should be put inside
+        				if(jn < excludeId.size())
+        					break;
         			}
         		}
         		
@@ -90,6 +120,8 @@ public class ClusterTool {
         		//break;
         	}
         	
+        	System.out.println("finalClusterNum:"+finalClusterNum +" i:"+i);
+        	
         	// To make sure each time K-means gives best clusters for current cluster number, 
         	// Each cluster number is carried out twice
         	if(flagForTwice == false){
@@ -107,9 +139,13 @@ public class ClusterTool {
 
     public static void main(String[] args) throws Exception {
     	Dataset[] ds = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 7, "\t");
-    	System.out.println("best cluster num:"+ds.length);
-    	for(int i=0;i<ds.length;i++)
-    		System.out.println(ds[i]);
+    	if(ds == null)
+    		System.out.println("ds is null.");
+    	else{
+    		System.out.println("best cluster num:"+ds.length);
+	    	for(int i=0;i<ds.length;i++)
+	    		System.out.println(ds[i]);
+    	}
     }/* main */
 
 }
