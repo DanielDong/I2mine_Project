@@ -1,6 +1,7 @@
 package geo.excel;
 
 import geo.core.MachineOpInfo;
+import geo.core.WorkfaceDistance;
 import geo.core.WorkfaceState;
 import geo.core.WorkfaceWorkload;
 
@@ -119,6 +120,11 @@ public class ExcelReader {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @param fileName
+	 * @return
+	 */
 	public MachineOpInfo readMachineOpInfo(String fileName){
 		
 		MachineOpInfo moi = null; 
@@ -144,6 +150,11 @@ public class ExcelReader {
 		return moi;
 	}
 	
+	/**
+	 * 
+	 * @param fileName
+	 * @return
+	 */
 	public WorkfaceState readWorkfaceState(String fileName){
 		
 		WorkfaceState wfs = null;
@@ -162,6 +173,11 @@ public class ExcelReader {
 		return wfs;
 	}
 	
+	/**
+	 * 
+	 * @param fileName
+	 * @return
+	 */
 	public WorkfaceWorkload readWorkfaceWorkload(String fileName){
 		
 		WorkfaceWorkload ww = null;
@@ -186,6 +202,33 @@ public class ExcelReader {
 		}
 		return ww;
 	}
+	/**
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public WorkfaceDistance readWorkfaceDistance(String fileName){
+		
+		WorkfaceDistance wd = null;
+		boolean isLoadSuccessful = getWorkbook(fileName);
+		
+		if(isLoadSuccessful == true){
+			initWorkSheet(0);
+			// The number of rows/columns indicates the number of workfaces
+			int numberOfWorkface = sheet.getRows();
+			
+			wd = new WorkfaceDistance(numberOfWorkface);
+			ArrayList<Double> distanceOfEachWorkface = new ArrayList<Double>();
+			for(int row = 0; row < numberOfWorkface; row ++){
+				for(int col = 0; col < numberOfWorkface; col ++){
+					distanceOfEachWorkface.add((Double) getCellValue(col, row, CellType.NUMBER));
+				}
+				wd.addDistance(distanceOfEachWorkface);
+			}
+		}
+		
+		return wd;
+	}
 	
 	// Test code for ExcelReader
 	public static void main(String[] args) throws IOException{
@@ -204,6 +247,8 @@ public class ExcelReader {
 		er.convertExcelToText("workface-state.xls", "workface-state.txt");
 		er.convertExcelToText("workface-workload.xls", "workface-workload.txt");
 		er.convertExcelToText("machine-op-info.xls", "machine-op-info.txt");
+		
+		
 	}
 	
 }

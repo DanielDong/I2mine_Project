@@ -1,5 +1,10 @@
 package geo.cluster;
 
+import geo.core.MachineOpInfo;
+import geo.core.WorkfaceDistance;
+import geo.core.WorkfaceWorkload;
+import geo.excel.ExcelReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -139,6 +144,8 @@ public class ClusterTool {
 	}/* getClustersOfWorkphases */
 
     public static void main(String[] args) throws Exception {
+    	//***************start the grouping workface process********************
+    	System.out.println("***************start the grouping workface process********************");
     	Dataset[] ds = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 7, "\t");
     	if(ds == null)
     		System.out.println("ds is null.");
@@ -147,6 +154,22 @@ public class ClusterTool {
 	    	for(int i=0;i<ds.length;i++)
 	    		System.out.println(ds[i]);
     	}
+    	
+    	//***************start the sorting workface process********************
+    	System.out.println("***************start the sorting workface process********************");
+    	ExcelReader er = new ExcelReader();
+    	MachineOpInfo moi = er.readMachineOpInfo("machine-op-info.xls");
+    	WorkfaceWorkload workload = er.readWorkfaceWorkload("workface-workload.xls");
+    	ArrayList<ArrayList<Integer>> sortWorkfaces = SortTool.sortWorkfaces(ds, moi, workload);
+    	for(int i = 0; i < sortWorkfaces.size(); i++){
+    		System.out.println(sortWorkfaces.get(i));
+    	}
+    	
+    	//***************start the sorting region process********************
+    	System.out.println("***************start the sorting region process********************");
+    	WorkfaceDistance distance = er.readWorkfaceDistance("workface-distance.xls");
+    	SortTool.sortGroups(sortWorkfaces, moi, workload, distance);
+    	
     }/* main */
 
 }

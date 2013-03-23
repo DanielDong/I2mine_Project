@@ -24,6 +24,10 @@ Column A1, B1, C1... indicates workphase 1, workphase 2, workphase 3...
 3)machine-op-info:
 WHAT IS THE OR unit and MR unit, also P1, P2, P3...???
 both units are in meter/min
+OR	MR
+..	..
+..	..
+..	..
 
 
 4)workface-workload:
