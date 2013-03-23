@@ -37,15 +37,17 @@ public class ExcelReader {
 		try {
 			workbook = Workbook.getWorkbook(file);
 			isWorkbookExist = true;
+			System.out.println("Get workbook succeeds!"+isWorkbookExist);
 		} catch (BiffException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("BiffException:"+e.getMessage());
 			isWorkbookExist = false;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("IOException:"+e.getMessage());
 			isWorkbookExist = false;
 		}
+		System.out.println("Load status: "+isWorkbookExist);
 		
 		return isWorkbookExist;
 	}
@@ -216,15 +218,20 @@ public class ExcelReader {
 			initWorkSheet(0);
 			// The number of rows/columns indicates the number of workfaces
 			int numberOfWorkface = sheet.getRows();
+			System.out.println("number of rows in distance matrix:"+numberOfWorkface);
 			
 			wd = new WorkfaceDistance(numberOfWorkface);
 			ArrayList<Double> distanceOfEachWorkface = new ArrayList<Double>();
 			for(int row = 0; row < numberOfWorkface; row ++){
+				distanceOfEachWorkface = new ArrayList<Double>();
 				for(int col = 0; col < numberOfWorkface; col ++){
 					distanceOfEachWorkface.add((Double) getCellValue(col, row, CellType.NUMBER));
 				}
+				System.out.println("Row "+ row+" in distance matrix: "+ distanceOfEachWorkface);
 				wd.addDistance(distanceOfEachWorkface);
 			}
+		}else{
+			System.out.println("Load distance file failded!");
 		}
 		
 		return wd;

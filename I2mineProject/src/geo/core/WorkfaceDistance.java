@@ -23,7 +23,7 @@ public class WorkfaceDistance {
 	 * </p>
 	 */
 	public boolean addDistance(ArrayList<Double> singleWorkfaceToAll){
-		if((singleWorkfaceToAll.size() < this.numOfWorkface + 1) ||
+		if((singleWorkfaceToAll.size() < this.numOfWorkface ) ||
 				(this.distance.size() >= this.numOfWorkface)){
 			return false;
 		}
@@ -48,5 +48,17 @@ public class WorkfaceDistance {
 	 */
 	public double getDistBetweenTwoWorkfaces(int workface1, int workface2){
 		return this.distance.get(workface1).get(workface2);
+	}
+	
+	/**
+	 * Print out workface distance matrix
+	 */
+	public void printDistance(){
+		System.out.println("============print out distance matrix============");
+		System.out.println("distance row number:"+ this.distance.size());
+		for(int row = 0; row < this.distance.size(); row ++){
+			System.out.println(this.distance.get(row));
+		}
+		
 	}
 }

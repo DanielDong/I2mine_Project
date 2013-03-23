@@ -31,6 +31,7 @@ public class SortTool {
 		ArrayList<ArrayList<Double>> machineWaitTime = new ArrayList<ArrayList<Double>>();
 		
 		// compute time interval for each machine in all workfaces in current region
+		System.out.println("Number of machine:" + numberOfMachine);
 		for(int m = 0; m < numberOfMachine;m++){
 			// OR and MR
 			ArrayList<Double> curOpInfo = machineOpInfo.getCertainMachineOpInfo(m);
@@ -47,11 +48,16 @@ public class SortTool {
 				preWaitTime = machineTimeInterval.get((m - 1) * 2 + 1);
 			}
 			
+			System.out.println("=============SORTED workfaces:=============");
+			for(int sw = 0; sw < sortedWorkfacesInOneRegion.size(); sw++)
+				System.out.print(sortedWorkfacesInOneRegion.get(sw)+"  ");
+			System.out.println();
+			
 			for(int w = 0; w < sortedWorkfacesInOneRegion.size() - 1; w++){
 				
 				double curProTime = curWorkload.get(sortedWorkfacesInOneRegion.get(w))/curOpInfo.get(0);
 				double curMovTime = distance.getDistBetweenTwoWorkfaces(
-						sortedWorkfacesInOneRegion.get(w), sortedWorkfacesInOneRegion.get(w) + 1)/curOpInfo.get(1);
+						sortedWorkfacesInOneRegion.get(w), sortedWorkfacesInOneRegion.get(w + 1))/curOpInfo.get(1);
 				double timeOfCur = curProTime + curMovTime;
 				// processing time from 1st procedure to last - 1 procedure
 				curTimeInterval.add(curProTime);
@@ -77,7 +83,7 @@ public class SortTool {
 				
 			}// end w
 			// processing time for last procedure
-			curTimeInterval.add(curWorkload.get(sortedWorkfacesInOneRegion.size() - 1)/curOpInfo.get(0));
+			curTimeInterval.add(curWorkload.get(sortedWorkfacesInOneRegion.get(sortedWorkfacesInOneRegion.size() - 1))/curOpInfo.get(0));
 			
 			// add time interval for current machine into machineTimeInterval
 			machineTimeInterval.add(curTimeInterval);
@@ -86,8 +92,9 @@ public class SortTool {
 		
 		// print out machineTimeInterval in the format of "time_interval, wait_time [, time_interval, wait_time]"
 		for(int n = 0; n < machineTimeInterval.size(); n++){
+			
 			if(n % 2 == 0){
-				System.out.println("Time_interval:");
+				System.out.println("MACHINE: "+ n / 2 +"\nTime_interval:");
 			}else{
 				System.out.println("Wait_time:");
 			}

@@ -168,6 +168,7 @@ public class ClusterTool {
     	//***************start the sorting region process********************
     	System.out.println("***************start the sorting region process********************");
     	WorkfaceDistance distance = er.readWorkfaceDistance("workface-distance.xls");
+    	distance.printDistance();
     	SortTool.sortGroups(sortWorkfaces, moi, workload, distance);
     	
     }/* main */
