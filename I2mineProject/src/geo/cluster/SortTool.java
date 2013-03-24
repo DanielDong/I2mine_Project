@@ -167,35 +167,72 @@ public class SortTool {
 				System.out.println("=================current regionTime 2 ==============");
 				System.out.println(regionTime12);
 				
+				// ************** start processing region1 -> region2********************
 				int lastWorkfaceOfRegion11 = sortedWorkfaces.get(region11).get(sortedWorkfaces.get(region11).size() - 1);
 				int firstWorkfaceOfRegion12 = sortedWorkfaces.get(region12).get(0);
 				double dist11_12 = distance.getDistBetweenTwoWorkfaces(lastWorkfaceOfRegion11, firstWorkfaceOfRegion12);
+				System.out.println("DISTANCE between(1->2): "+lastWorkfaceOfRegion11+"------->"+firstWorkfaceOfRegion12);
+				System.out.println("Distance is(1->2): "+ dist11_12);
+				System.out.println("Region11 time: "+regionTime11);
 				
-				// ************** start processing region1 -> region2********************
+				System.out.print("tmpTotalTime11_12 value: ");
+				System.out.println("\nEach step of each tmpTotalTime11_12: ");
 				double maxTotalTime11_12 = 0, tmpTotalTime11_12 = 0;
 				for(int sep1 = 0; sep1 < numberOfMachine; sep1 ++){
 					for(int m1 = 0; m1 <= sep1; m1 ++){
 						tmpTotalTime11_12 += regionTime11.get(m1);
+						System.out.print(regionTime11.get(m1) + " ");
 					}
 					for(int m2 = sep1; m2 < numberOfMachine; m2 ++){
 						tmpTotalTime11_12 += regionTime12.get(m2);
+						System.out.print(regionTime12.get(m2) + " ");
 					}
 					tmpTotalTime11_12 += dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep1).get(1);
+					System.out.print((dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep1).get(1)));
+					System.out.println("\n---------Done for each step for tmpTotalTime11_12");
+					
+					
 					maxTotalTime11_12 = (maxTotalTime11_12 > tmpTotalTime11_12) ? maxTotalTime11_12 : tmpTotalTime11_12; 
+					System.out.print(tmpTotalTime11_12 + " ");
+					tmpTotalTime11_12 = 0;
 				}// sep1
+				System.out.println();
 				
 				// ************** start processing region2 -> region1********************
+				int lastWorkfaceOfRegion21 = sortedWorkfaces.get(region12).get(sortedWorkfaces.get(region12).size() - 1);
+				int firstWorkfaceOfRegion22 = sortedWorkfaces.get(region11).get(0);
+				double dist21_22 = distance.getDistBetweenTwoWorkfaces(lastWorkfaceOfRegion21, firstWorkfaceOfRegion22);
+				System.out.println("DISTANCE between(2->1): "+lastWorkfaceOfRegion21+"------->"+firstWorkfaceOfRegion22);
+				System.out.println("Distance is(2->1): "+ dist21_22);
+				System.out.println("Region12 time: "+regionTime12);
+				
+				System.out.print("tmpTotalTime12_11 value: ");
 				double maxTotalTime12_11 = 0, tmpTotalTime12_11 = 0;
+				System.out.println("\nEach step of each tmpTotalTime12_11: ");
 				for(int sep2 = 0; sep2 < numberOfMachine; sep2 ++){
-					for(int m1 = 0; m1 < sep2; m1 ++){
+					
+					for(int m1 = 0; m1 <= sep2; m1 ++){
 						tmpTotalTime12_11 += regionTime12.get(m1);
+						System.out.print(regionTime12.get(m1) + " ");
 					}
 					for(int m2 = sep2; m2 < numberOfMachine; m2 ++){
 						tmpTotalTime12_11 += regionTime11.get(m2);
+						System.out.print(regionTime11.get(m2) + " ");
 					}
-					tmpTotalTime12_11 += dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep2).get(1);
+					tmpTotalTime12_11 += dist21_22 / machineOpInfo.getCertainMachineOpInfo(sep2).get(1);
+					System.out.print((dist21_22 / machineOpInfo.getCertainMachineOpInfo(sep2).get(1)));
+					System.out.println("\n---------Done for each step for tmpTotalTime12_11");
+					
 					maxTotalTime12_11 = (maxTotalTime12_11 > tmpTotalTime12_11) ? maxTotalTime12_11 : tmpTotalTime12_11;
+					System.out.print(tmpTotalTime12_11 + " ");
+					tmpTotalTime12_11 = 0;
 				}
+				System.out.println();
+				
+				
+				System.out.println("===============================current region pair===============================");
+				System.out.println("WORKFACE: "+sortedWorkfaces.get(region11)+"------>"+sortedWorkfaces.get(region12));
+				System.out.println("TIME DURATION: "+maxTotalTime11_12+"------->"+maxTotalTime12_11);
 				
 				// region2 should be ahead of region1
 				boolean containsRegion11 = sortGroups.contains(sortedWorkfaces.get(region11));
@@ -203,13 +240,24 @@ public class SortTool {
 				System.out.println("containsRegion11: " + containsRegion11 + " containsRegion12: " + containsRegion12);
 				System.out.println("indexOf region11: " + sortGroups.indexOf(sortedWorkfaces.get(region11)) + 
 						" indexOf region12: " + sortGroups.indexOf(sortedWorkfaces.get(region12)));
-				if(maxTotalTime12_11 > maxTotalTime11_12){
+				if(maxTotalTime12_11 < maxTotalTime11_12){
 					if(containsRegion11 == true){
 						if(containsRegion12 == true){
-							sortGroups.remove(sortedWorkfaces.get(region12));
-							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region11)), sortedWorkfaces.get(region12));
+							int indexOf1 = sortGroups.indexOf(sortedWorkfaces.get(region11));
+							int indexOf2 = sortGroups.indexOf(sortedWorkfaces.get(region12));
+							if(indexOf1 < indexOf2){
+								sortGroups.remove(sortedWorkfaces.get(region12));
+								sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region11)), sortedWorkfaces.get(region12));
+							}
 						}else{
 							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region11)), sortedWorkfaces.get(region12));
+						}
+					}else{
+						if(containsRegion12 == true){
+							sortGroups.add(sortedWorkfaces.get(region11));
+						}else{
+							sortGroups.add(sortedWorkfaces.get(region12));
+							sortGroups.add(sortedWorkfaces.get(region11));
 						}
 					}
 				}
@@ -217,8 +265,12 @@ public class SortTool {
 				else{
 					if(containsRegion11 == true){
 						if(containsRegion12 == true){
-							sortGroups.remove(sortedWorkfaces.get(region11));
-							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region12)), sortedWorkfaces.get(region11));
+							int indexOf1 = sortGroups.indexOf(sortedWorkfaces.get(region11));
+							int indexOf2 = sortGroups.indexOf(sortedWorkfaces.get(region12));
+							if(indexOf2 < indexOf1){
+								sortGroups.remove(sortedWorkfaces.get(region11));
+								sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region12)), sortedWorkfaces.get(region11));
+							}
 						}else{
 							sortGroups.add(sortedWorkfaces.get(region12));
 						}
@@ -286,6 +338,7 @@ public class SortTool {
 						// moving time from work face id1 to work face id2
 						tmpTotalTime1 += dist12/machineOpInfo.getCertainMachineOpInfo(sep1).get(1);
 						maxTotalTime1 = (tmpTotalTime1 > maxTotalTime1) ? tmpTotalTime1 : maxTotalTime1;
+						tmpTotalTime1 = 0;
 					}// end sep1
 					
 					// ********* compute workface id2-id1******************
@@ -304,10 +357,12 @@ public class SortTool {
 						// moving time from work face id1 to work face id2
 						tmpTotalTime2 += dist12/machineOpInfo.getCertainMachineOpInfo(sep2).get(1);
 						maxTotalTime2 = (tmpTotalTime2 > maxTotalTime2) ? tmpTotalTime2 : maxTotalTime2;
+						tmpTotalTime2 = 0;
 					}// end sep2
 					
 					// maxTotalTime1 indidates (w-id1, w-id2)
 					// now sequecnce should be (w-id2, w-id1)
+					
 					boolean containId1 = workfaceSeq.contains(id1);
 					boolean containId2 = workfaceSeq.contains(id2);
 					
