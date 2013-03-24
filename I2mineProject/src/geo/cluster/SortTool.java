@@ -369,8 +369,12 @@ public class SortTool {
 					if(maxTotalTime1 > maxTotalTime2){
 						if(containId1 == true){
 							if(containId2 == true){
-								workfaceSeq.remove(new Integer(id2));
-								workfaceSeq.add(workfaceSeq.indexOf(id1), id2);
+								int indexOf1 = workfaceSeq.indexOf(id1);
+								int indexOf2 = workfaceSeq.indexOf(id2);
+								if(indexOf1 < indexOf2){
+									workfaceSeq.remove(new Integer(id2));
+									workfaceSeq.add(workfaceSeq.indexOf(id1), id2);
+								}
 							}
 							//first-time emergence of id2
 							else{
