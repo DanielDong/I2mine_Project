@@ -111,7 +111,7 @@ public class SortTool {
 	 * @param distance
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Integer>> sortGroups (ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> sortGroups(ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		int numberOfMachine = machineOpInfo.getMachineNum();
 		
@@ -179,14 +179,26 @@ public class SortTool {
 				System.out.println("\nEach step of each tmpTotalTime11_12: ");
 				double maxTotalTime11_12 = 0, tmpTotalTime11_12 = 0;
 				for(int sep1 = 0; sep1 < numberOfMachine; sep1 ++){
-					for(int m1 = 0; m1 <= sep1; m1 ++){
-						tmpTotalTime11_12 += regionTime11.get(m1);
-						System.out.print(regionTime11.get(m1) + " ");
+					
+					tmpTotalTime11_12 += regionTime11.get(0);
+					for(int m1 = 1; m1 <= sep1; m1 ++){
+						tmpTotalTime11_12 += regionTimeInfo11.get(m1 * 2).get(regionTimeInfo11.get(m1 * 2).size() - 1);
 					}
-					for(int m2 = sep1; m2 < numberOfMachine; m2 ++){
-						tmpTotalTime11_12 += regionTime12.get(m2);
-						System.out.print(regionTime12.get(m2) + " ");
+					
+					tmpTotalTime11_12 += regionTime11.get(sep1);
+					for(int m2 = sep1 + 1; m2 < numberOfMachine; m2++){
+						tmpTotalTime11_12 += regionTimeInfo11.get(m2 * 2).get(regionTimeInfo11.get(m2 * 2).size() - 1);
 					}
+					//---------------------------------------------
+//					for(int m1 = 0; m1 <= sep1; m1 ++){
+//						tmpTotalTime11_12 += regionTime11.get(m1);
+//						System.out.print(regionTime11.get(m1) + " ");
+//					}
+//					for(int m2 = sep1; m2 < numberOfMachine; m2 ++){
+//						tmpTotalTime11_12 += regionTime12.get(m2);
+//						System.out.print(regionTime12.get(m2) + " ");
+//					}
+					//----------------------------------------------
 					tmpTotalTime11_12 += dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep1).get(1);
 					System.out.print((dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep1).get(1)));
 					System.out.println("\n---------Done for each step for tmpTotalTime11_12");
@@ -211,14 +223,25 @@ public class SortTool {
 				System.out.println("\nEach step of each tmpTotalTime12_11: ");
 				for(int sep2 = 0; sep2 < numberOfMachine; sep2 ++){
 					
-					for(int m1 = 0; m1 <= sep2; m1 ++){
-						tmpTotalTime12_11 += regionTime12.get(m1);
-						System.out.print(regionTime12.get(m1) + " ");
+					tmpTotalTime12_11 += regionTime12.get(0);
+					for(int m1 = 1; m1 <= sep2; m1 ++){
+						tmpTotalTime12_11 += regionTimeInfo12.get(m1 * 2).get(regionTimeInfo12.get(m1 * 2).size() - 1);
 					}
-					for(int m2 = sep2; m2 < numberOfMachine; m2 ++){
-						tmpTotalTime12_11 += regionTime11.get(m2);
-						System.out.print(regionTime11.get(m2) + " ");
+					tmpTotalTime12_11 += regionTime12.get(sep2);
+					for(int m2 = sep2 + 1; m2 < numberOfMachine; m2 ++){
+						tmpTotalTime12_11 += regionTimeInfo12.get(m2 * 2).get(regionTimeInfo12.get(m2 * 2).size() - 1);
 					}
+					
+					//-----------------------------------------------
+//					for(int m1 = 0; m1 <= sep2; m1 ++){
+//						tmpTotalTime12_11 += regionTime12.get(m1);
+//						System.out.print(regionTime12.get(m1) + " ");
+//					}
+//					for(int m2 = sep2; m2 < numberOfMachine; m2 ++){
+//						tmpTotalTime12_11 += regionTime11.get(m2);
+//						System.out.print(regionTime11.get(m2) + " ");
+//					}
+					//-----------------------------------------------
 					tmpTotalTime12_11 += dist21_22 / machineOpInfo.getCertainMachineOpInfo(sep2).get(1);
 					System.out.print((dist21_22 / machineOpInfo.getCertainMachineOpInfo(sep2).get(1)));
 					System.out.println("\n---------Done for each step for tmpTotalTime12_11");
@@ -292,6 +315,7 @@ public class SortTool {
 		}
 		return sortGroups;
 	}
+	
 	/**
 	 * 
 	 * @param clusterGroups
