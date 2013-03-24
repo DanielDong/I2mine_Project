@@ -171,6 +171,7 @@ public class ClusterTool {
     	distance.printDistance();
     	SortTool.sortGroups(sortWorkfaces, moi, workload, distance);
     	
+    	
     }/* main */
 
 }

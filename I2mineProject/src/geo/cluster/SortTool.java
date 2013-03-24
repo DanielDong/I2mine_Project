@@ -113,16 +113,131 @@ public class SortTool {
 	 */
 	public static ArrayList<ArrayList<Integer>> sortGroups (ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
-		
-		ArrayList<ArrayList<Double>> regionTimeInfo = computeMachineTimeIntervalInOneRegion(sortedWorkfaces.get(0), machineOpInfo, workload, distance);
+		int numberOfMachine = machineOpInfo.getMachineNum();
 		
 		// iterate through each pair of regions
-		for(int region1 = 0; region1 < sortedWorkfaces.size() - 1; region1 ++){
-			for(int region2 = 0; region2 < sortedWorkfaces.size(); region2 ++){
-				
+		for(int region11 = 0; region11 < sortedWorkfaces.size() - 1; region11 ++){
+			// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
+			ArrayList<ArrayList<Double>> regionTimeInfo11 = computeMachineTimeIntervalInOneRegion
+					(sortedWorkfaces.get(region11), machineOpInfo, workload, distance);
+			System.out.println("==========current sorted workfaces 1 in <sortGroups>==========");
+			System.out.println(sortedWorkfaces.get(region11));
+			
+			// ***************compute MACHINE TIME for region11***************
+			ArrayList<Double> regionTime11 = new ArrayList<Double>(numberOfMachine);
+			for(int r11 = 0; r11 < numberOfMachine; r11 ++){
+				double tmpMachineTime = 0;
+				// compute processing time and moving time for machine r11 for all the procedures
+				for(int i = 0; i < regionTimeInfo11.get(r11 * 2).size(); i++){
+					tmpMachineTime += regionTimeInfo11.get(r11 * 2).get(i);
+				}
+				// compute wait time for machine r11 for all the procedures
+				for(int j = 0; j < regionTimeInfo11.get(r11 * 2 + 1).size(); j++){
+					tmpMachineTime += regionTimeInfo11.get(r11 * 2 + 1).get(j);
+				}
+				regionTime11.add(tmpMachineTime);
 			}
-		}
+			System.out.println("=================current regionTime 1 ==============");
+			System.out.println("Original region time number:"+regionTimeInfo11.size());
+			System.out.println(regionTime11);
+			
+			for(int region12 = region11 + 1; region12 < sortedWorkfaces.size(); region12 ++){
+				// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
+				ArrayList<ArrayList<Double>> regionTimeInfo12 = computeMachineTimeIntervalInOneRegion
+						(sortedWorkfaces.get(region12), machineOpInfo, workload, distance);
+				System.out.println("==========current sorted workfaces 2 in <sortGroups>==========");
+				System.out.println("Original region time number:"+regionTimeInfo12.size());
+				System.out.println(sortedWorkfaces.get(region12));
+				
+				// ***************compute MACHINE TIME for region12***************
+				ArrayList<Double> regionTime12 = new ArrayList<Double>(numberOfMachine);
+				for (int r12 = 0; r12 < numberOfMachine; r12 ++){
+					double tmpMachineTime = 0;
+					// compute processing time and moving time for machine r12 for all the procedures
+					for(int i = 0; i < regionTimeInfo12.get(r12 * 2).size(); i++){
+						tmpMachineTime += regionTimeInfo12.get(r12 * 2).get(i);
+					}
+					// compute wait time for machine r12 for all the procedures
+					for(int j = 0; j < regionTimeInfo12.get(r12 * 2 + 1).size(); j++){
+						tmpMachineTime += regionTimeInfo12.get(r12 * 2 + 1).get(j);
+					}
+					regionTime12.add(tmpMachineTime);
+				}
+				
+				System.out.println("=================current regionTime 2 ==============");
+				System.out.println(regionTime12);
+				
+				int lastWorkfaceOfRegion11 = sortedWorkfaces.get(region11).get(sortedWorkfaces.get(region11).size() - 1);
+				int firstWorkfaceOfRegion12 = sortedWorkfaces.get(region12).get(0);
+				double dist11_12 = distance.getDistBetweenTwoWorkfaces(lastWorkfaceOfRegion11, firstWorkfaceOfRegion12);
+				
+				// ************** start processing region1 -> region2********************
+				double maxTotalTime11_12 = 0, tmpTotalTime11_12 = 0;
+				for(int sep1 = 0; sep1 < numberOfMachine; sep1 ++){
+					for(int m1 = 0; m1 <= sep1; m1 ++){
+						tmpTotalTime11_12 += regionTime11.get(m1);
+					}
+					for(int m2 = sep1; m2 < numberOfMachine; m2 ++){
+						tmpTotalTime11_12 += regionTime12.get(m2);
+					}
+					tmpTotalTime11_12 += dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep1).get(1);
+					maxTotalTime11_12 = (maxTotalTime11_12 > tmpTotalTime11_12) ? maxTotalTime11_12 : tmpTotalTime11_12; 
+				}// sep1
+				
+				// ************** start processing region2 -> region1********************
+				double maxTotalTime12_11 = 0, tmpTotalTime12_11 = 0;
+				for(int sep2 = 0; sep2 < numberOfMachine; sep2 ++){
+					for(int m1 = 0; m1 < sep2; m1 ++){
+						tmpTotalTime12_11 += regionTime12.get(m1);
+					}
+					for(int m2 = sep2; m2 < numberOfMachine; m2 ++){
+						tmpTotalTime12_11 += regionTime11.get(m2);
+					}
+					tmpTotalTime12_11 += dist11_12 / machineOpInfo.getCertainMachineOpInfo(sep2).get(1);
+					maxTotalTime12_11 = (maxTotalTime12_11 > tmpTotalTime12_11) ? maxTotalTime12_11 : tmpTotalTime12_11;
+				}
+				
+				// region2 should be ahead of region1
+				boolean containsRegion11 = sortGroups.contains(sortedWorkfaces.get(region11));
+				boolean containsRegion12 = sortGroups.contains(sortedWorkfaces.get(region12));
+				System.out.println("containsRegion11: " + containsRegion11 + " containsRegion12: " + containsRegion12);
+				System.out.println("indexOf region11: " + sortGroups.indexOf(sortedWorkfaces.get(region11)) + 
+						" indexOf region12: " + sortGroups.indexOf(sortedWorkfaces.get(region12)));
+				if(maxTotalTime12_11 > maxTotalTime11_12){
+					if(containsRegion11 == true){
+						if(containsRegion12 == true){
+							sortGroups.remove(sortedWorkfaces.get(region12));
+							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region11)), sortedWorkfaces.get(region12));
+						}else{
+							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region11)), sortedWorkfaces.get(region12));
+						}
+					}
+				}
+				// region1 should be ahead of region2
+				else{
+					if(containsRegion11 == true){
+						if(containsRegion12 == true){
+							sortGroups.remove(sortedWorkfaces.get(region11));
+							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region12)), sortedWorkfaces.get(region11));
+						}else{
+							sortGroups.add(sortedWorkfaces.get(region12));
+						}
+					}else{
+						if(containsRegion12 == true){
+							sortGroups.add(sortGroups.indexOf(sortedWorkfaces.get(region12)), sortedWorkfaces.get(region11));
+						}else{
+							sortGroups.add(sortedWorkfaces.get(region11));
+							sortGroups.add(sortedWorkfaces.get(region12));
+						}
+					}
+				}// for - region12
+			}
+		}// for - region11
 		
+		System.out.println("=============print out sort groups===============");
+		for(int sg = 0; sg < sortGroups.size(); sg ++){
+			System.out.println(sortGroups.get(sg));
+		}
 		return sortGroups;
 	}
 	/**
@@ -154,7 +269,7 @@ public class SortTool {
 					double dist12 = clusterGroups[i].get(w1).value(id2);
 					
 					
-					// ********* computer workface id1-id2******************
+					// ********* compute workface id1-id2******************
 					double tmpTotalTime1 = 0, maxTotalTime1 = 0;
 					// sorting algorithm
 					for(int sep1 = 0; sep1 < numOfProcedure; sep1 ++){
@@ -173,7 +288,7 @@ public class SortTool {
 						maxTotalTime1 = (tmpTotalTime1 > maxTotalTime1) ? tmpTotalTime1 : maxTotalTime1;
 					}// end sep1
 					
-					// ********* computer workface id2-id1******************
+					// ********* compute workface id2-id1******************
 					double tmpTotalTime2 = 0, maxTotalTime2 = 0;
 					for(int sep2 = 0; sep2 <numOfProcedure; sep2 ++){
 						// all procedures (all machines)
