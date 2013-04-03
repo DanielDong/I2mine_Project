@@ -81,15 +81,38 @@ public class ClusterTool {
 		}
 		
 		// Initial grouping 
-		ArrayList<Integer> groupingPoint = new ArrayList<Integer>();
+		ArrayList<ArrayList<HashSet<Integer>>> groupingList = new ArrayList<ArrayList<HashSet<Integer>>>(); 
+		int lastGroupingIndex1 = 0, lastGroupingIndex2 = 0;
+		ArrayList<HashSet<Integer>> groupingPoint = new ArrayList<HashSet<Integer>>();
 		for(int z = 0; z < meanDiffDistList.size() - 1; z++){
 			
 			// Grouping between original elements (z + n) and (z + 1 + n)
 			if(meanDiffDistList.get(z) >= diffDistanceList.get(z + n -1) 
 					&& meanDiffDistList.get(z + 1) < diffDistanceList.get( z + 1 + n - 1)){
-				groupingPoint.add(z + n);
+				//groupingPoint.add(z + n);
+				
+			    HashSet<Integer> tmpGroupingSet = new HashSet<Integer>();
+				for(int i = lastGroupingIndex1; i < z + n + 1; i++){
+					tmpGroupingSet.add(originalDistanceList.get(i).from);
+					tmpGroupingSet.add(originalDistanceList.get(i).to);
+				}
+				
+				lastGroupingIndex1 = z + n + 1;
+			}
+			else if(meanDiffDistList.get(z) < diffDistanceList.get(z + n -1) 
+					&& meanDiffDistList.get(z + 1) >= diffDistanceList.get( z + 1 + n - 1)){
+				//groupingPoint.add(z + n - 1);
+				HashSet<Integer> tmpGroupingSet = new HashSet<Integer>();
+				for(int i = lastGroupingIndex2; i < z + n; i ++){
+					tmpGroupingSet.add(originalDistanceList.get(i).from);
+					tmpGroupingSet.add(originalDistanceList.get(i).to);
+				}
+				
+				lastGroupingIndex2 = z + n - 1;
 			}
 		}
+		
+		
 		
 		System.out.println("=============Display grouping points=================");
 		System.out.println(groupingPoint);
@@ -101,7 +124,7 @@ public class ClusterTool {
 			while(groupingPoint.size() > 0){
 				ArrayList<DistanceUnit> singleGroup = new ArrayList<DistanceUnit>(); 
 				from = to;
-				to = groupingPoint.remove(0);
+				to = 0;//groupingPoint.remove(0);
 				for(from = from + 1; from <= to; from ++){
 					singleGroup.add(originalDistanceList.get(from));
 				}
@@ -266,6 +289,7 @@ public class ClusterTool {
         return finalClusters;
 	}/* getClustersOfWorkphases */
 
+	
 	// Using zhen's way to cluster
 	public static void main(String[] args) throws Exception {
 		//***************start the grouping workface process********************
