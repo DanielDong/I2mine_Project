@@ -2,16 +2,13 @@ package geo.cluster;
 
 import geo.core.DUComparator;
 import geo.core.DistanceUnit;
-import geo.core.MachineOpInfo;
-import geo.core.WorkfaceDistance;
-import geo.core.WorkfaceWorkload;
-import geo.excel.ExcelReader;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import net.sf.javaml.clustering.Clusterer;
@@ -82,13 +79,21 @@ public class ClusterTool {
 		
 		// Initial grouping 
 		ArrayList<ArrayList<HashSet<Integer>>> groupingList = new ArrayList<ArrayList<HashSet<Integer>>>(); 
-		int lastGroupingIndex1 = 0, lastGroupingIndex2 = 0;
-		ArrayList<HashSet<Integer>> groupingPoint = new ArrayList<HashSet<Integer>>();
+		int lastGroupingIndex1 = 0;
+		// ****************************************************************************
+		// ArrayList<HashSet<Integer>> groupingPoint = new ArrayList<HashSet<Integer>>();
+		// ****************************************************************************
+		System.out.println("meanDiffDistList size -1:"+ (meanDiffDistList.size() - 1));
 		for(int z = 0; z < meanDiffDistList.size() - 1; z++){
-			
+			System.out.println("z value:"+z);
 			// Grouping between original elements (z + n) and (z + 1 + n)
 			if(meanDiffDistList.get(z) >= diffDistanceList.get(z + n -1) 
 					&& meanDiffDistList.get(z + 1) < diffDistanceList.get( z + 1 + n - 1)){
+				System.out.println("old lastGroupingIndex1: "+ lastGroupingIndex1 + "(z + n + 1):" + (z + n + 1));
+				if(lastGroupingIndex1 == (z + n + 1) || lastGroupingIndex1 > (z + n + 1)){
+					continue;
+				}
+				System.out.println("split point between "+(z + n) + " and "+ (z + 1 + n) + "(z = "+z+")");
 				//groupingPoint.add(z + n);
 				
 			    HashSet<Integer> tmpGroupingSet = new HashSet<Integer>();
@@ -97,70 +102,139 @@ public class ClusterTool {
 					tmpGroupingSet.add(originalDistanceList.get(i).to);
 				}
 				
+				if(groupingList.size() > 0){
+					// For each level
+					for(int i = 0; i < groupingList.size(); i++){
+						ArrayList<HashSet<Integer>> tmpLevel = groupingList.get(i);
+						boolean isOver = false;
+						// For each group in level (i)
+						for(int j = 0; j < tmpLevel.size(); j++){
+							HashSet<Integer> tmpGroup = tmpLevel.get(j);
+							boolean hasCommonValue = isIntersect(tmpGroupingSet, tmpGroup);
+							if(hasCommonValue == true){
+								Iterator<Integer> iterator = tmpLevel.get(tmpLevel.size() - 1).iterator();
+								while(iterator.hasNext()){
+									int tmpWorkface = iterator.next();
+									tmpGroupingSet.add(tmpWorkface);
+								}
+								tmpLevel.add(tmpGroupingSet);
+								isOver = true;
+								break;
+							}
+							// Add a new level
+							else{
+								ArrayList<HashSet<Integer>> newLevel = new ArrayList<HashSet<Integer>>();
+								newLevel.add(tmpGroupingSet);
+								groupingList.add(newLevel);
+							}
+						}
+						if(isOver == true){
+							break;
+						}
+					}
+				}
+				// groupList is empty
+				else{
+					ArrayList<HashSet<Integer>> tmpLevel = new ArrayList<HashSet<Integer>>();
+					tmpLevel.add(tmpGroupingSet);
+					groupingList.add(tmpLevel);
+				}
+				
 				lastGroupingIndex1 = z + n + 1;
+				System.out.println("new lastGroupingIndex1: "+ lastGroupingIndex1);
 			}
+			// Grouping between original elements (z + n - 1) and (z + n)
 			else if(meanDiffDistList.get(z) < diffDistanceList.get(z + n -1) 
 					&& meanDiffDistList.get(z + 1) >= diffDistanceList.get( z + 1 + n - 1)){
+				System.out.println("old lastGroupingIndex1: "+ lastGroupingIndex1 + "(z + n - 1):" + (z + n - 1));
+				if(lastGroupingIndex1 == (z + n - 1) ||lastGroupingIndex1 > (z + n - 1)){
+					continue;
+				}
+				System.out.println("split point between "+(z + n - 1) + " and "+ (z + n) + "(z = "+z+")");
 				//groupingPoint.add(z + n - 1);
 				HashSet<Integer> tmpGroupingSet = new HashSet<Integer>();
-				for(int i = lastGroupingIndex2; i < z + n; i ++){
+				for(int i = lastGroupingIndex1; i < z + n ; i ++){
 					tmpGroupingSet.add(originalDistanceList.get(i).from);
 					tmpGroupingSet.add(originalDistanceList.get(i).to);
 				}
-				
-				lastGroupingIndex2 = z + n - 1;
+				//*************************************
+				if(groupingList.size() > 0){
+					// For each level
+					for(int i = 0; i < groupingList.size(); i++){
+						ArrayList<HashSet<Integer>> tmpLevel = groupingList.get(i);
+						boolean isOver = false;
+						// For each group in level (i)
+						for(int j = 0; j < tmpLevel.size(); j++){
+							HashSet<Integer> tmpGroup = tmpLevel.get(j);
+							boolean hasCommonValue = isIntersect(tmpGroupingSet, tmpGroup);
+							if(hasCommonValue == true){
+								Iterator<Integer> iterator = tmpLevel.get(tmpLevel.size() - 1).iterator();
+								while(iterator.hasNext()){
+									int tmpWorkface = iterator.next();
+									tmpGroupingSet.add(tmpWorkface);
+								}
+								tmpLevel.add(tmpGroupingSet);
+								isOver = true;
+								break;
+							}
+							// Add a new level
+							else{
+								ArrayList<HashSet<Integer>> newLevel = new ArrayList<HashSet<Integer>>();
+								newLevel.add(tmpGroupingSet);
+								groupingList.add(newLevel);
+							}
+						}
+						if(isOver == true){
+							break;
+						}
+					}
+				}
+				// groupList is empty
+				else{
+					ArrayList<HashSet<Integer>> tmpLevel = new ArrayList<HashSet<Integer>>();
+					tmpLevel.add(tmpGroupingSet);
+					groupingList.add(tmpLevel);
+				}
+				//*************************************
+				lastGroupingIndex1 = z + n - 1;
+				System.out.println("new lastGroupingIndex1: "+ lastGroupingIndex1);
 			}
 		}
-		
 		
 		
 		System.out.println("=============Display grouping points=================");
-		System.out.println(groupingPoint);
-		
 		// Only there is at least 1 grouping point, then progress
-		ArrayList<ArrayList<DistanceUnit>> initialGrouping = new ArrayList<ArrayList<DistanceUnit>>();
-		if(groupingPoint.size() >= 1){
-			int from = -1, to = -1;
-			while(groupingPoint.size() > 0){
-				ArrayList<DistanceUnit> singleGroup = new ArrayList<DistanceUnit>(); 
-				from = to;
-				to = 0;//groupingPoint.remove(0);
-				for(from = from + 1; from <= to; from ++){
-					singleGroup.add(originalDistanceList.get(from));
+		if(groupingList.size() > 0){
+			// Iterate over each level
+			for(int i = 0; i < groupingList.get(i).size(); i++){
+				System.out.println("=====level "+i+"======");
+				// List all workface groups on level (i)
+				for(int j = 0; j < groupingList.get(i).size(); j++){
+					System.out.println(groupingList.get(i).get(j));
 				}
-				initialGrouping.add(singleGroup);
 			}
-			// Add the last group
-			ArrayList<DistanceUnit> singleGroup = new ArrayList<DistanceUnit>();
-			from = to + 1;
-			for(; from < originalDistanceList.size(); from ++){
-				singleGroup.add(originalDistanceList.get(from));
-			}
-			initialGrouping.add(singleGroup);
-			
-			// Get the initial grouping of workfaces
-			ArrayList<Set<Integer>> initialWorkfaceGrouping = new ArrayList<Set<Integer>> ();
-			
-			for(int numOfSingleGroup = 0; numOfSingleGroup < initialGrouping.size(); numOfSingleGroup ++){
-				HashSet<Integer> set = new HashSet<Integer>();
-				for(int numOfDu = 0; numOfDu < initialGrouping.get(numOfSingleGroup).size(); numOfDu ++){
-					set.add(initialGrouping.get(numOfSingleGroup).get(numOfDu).from);
-					set.add(initialGrouping.get(numOfSingleGroup).get(numOfDu).to);
-				}
-				initialWorkfaceGrouping.add(set);
-			}
-			
-			// Display grouping of workfaces 
-			for(int tmp = 0; tmp < initialWorkfaceGrouping.size(); tmp ++){
-				System.out.println("Group of workfaces "+tmp+" :" + initialWorkfaceGrouping.get(tmp));
-			}
-			
-		}else{
-			System.out.println("-------No Grouping Point AT ALL-----");
-			return null;
+		}
+		return null;
+	}
+	/**
+	 * 
+	 * @param set1
+	 * @param set2
+	 * @return
+	 */
+	public static boolean isIntersect(HashSet<Integer> set1, HashSet<Integer> set2){
+		if(set1 == null || set2 == null){
+			return false;
 		}
 		
-		return null;
+		Iterator<Integer> iterator = set2.iterator();
+		while(iterator.hasNext()){
+			int value = iterator.next();
+			if(set1.contains(value)){
+				return true;
+			}
+		}
+		return false;
 	}
 	/**
 	 * 
@@ -294,8 +368,7 @@ public class ClusterTool {
 	public static void main(String[] args) throws Exception {
 		//***************start the grouping workface process********************
     	System.out.println("***************start the grouping workface process********************");
-    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces_zhen("workface-distance.txt", 20
-    			, "\t");
+    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces_zhen("workface-distance.txt", 20, "\t");
     	if(ds == null)
     		System.out.println("ds is null.");
     	else{
