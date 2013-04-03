@@ -152,7 +152,7 @@ public class ClusterTool {
 		/* Load a dataset */
         //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
 		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkphases, delimiter);
-		
+		System.out.println("data size: "+data.size());
 		System.out.println("=======================dataset========================");
 		for(int i = 0; i < data.size(); i++){
 			System.out.println(data.get(i)+":"+data.get(i).getClass().getName());
@@ -270,7 +270,8 @@ public class ClusterTool {
 	public static void main(String[] args) throws Exception {
 		//***************start the grouping workface process********************
     	System.out.println("***************start the grouping workface process********************");
-    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces_zhen("workface-distance.txt", 7, "\t");
+    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces_zhen("workface-distance.txt", 20
+    			, "\t");
     	if(ds == null)
     		System.out.println("ds is null.");
     	else{
@@ -280,38 +281,38 @@ public class ClusterTool {
     	}
 	}
 	
-	/*
+	
 	// Using k-means to cluster
-    public static void main(String[] args) throws Exception {
-    	//***************start the grouping workface process********************
-    	System.out.println("***************start the grouping workface process********************");
-    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 7, "\t");
-    	if(ds == null)
-    		System.out.println("ds is null.");
-    	else{
-    		System.out.println("best cluster num:"+ds.length);
-	    	for(int i=0;i<ds.length;i++)
-	    		System.out.println(ds[i]);
-    	}
+//    public static void main(String[] args) throws Exception {
+//    	//***************start the grouping workface process********************
+//    	System.out.println("***************start the grouping workface process********************");
+//    	Dataset[] ds = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 20, "\t");
+//    	if(ds == null)
+//    		System.out.println("ds is null.");
+//    	else{
+//    		System.out.println("best cluster num:"+ds.length);
+//	    	for(int i=0;i<ds.length;i++)
+//	    		System.out.println(ds[i]);
+//    	}
+//    	
+//    	//***************start the sorting workface process********************
+//    	System.out.println("***************start the sorting workface process********************");
+//    	ExcelReader er = new ExcelReader();
+//    	MachineOpInfo moi = er.readMachineOpInfo("machine-op-info.xls");
+//    	WorkfaceWorkload workload = er.readWorkfaceWorkload("workface-workload.xls");
+//    	ArrayList<ArrayList<Integer>> sortWorkfaces = SortTool.sortWorkfaces(ds, moi, workload);
+//    	for(int i = 0; i < sortWorkfaces.size(); i++){
+//    		System.out.println(sortWorkfaces.get(i));
+//    	}
+//    	
+//    	//***************start the sorting region process********************
+//    	System.out.println("***************start the sorting region process********************");
+//    	WorkfaceDistance distance = er.readWorkfaceDistance("workface-distance.xls");
+//    	distance.printDistance();
+//    	SortTool.sortGroups(sortWorkfaces, moi, workload, distance);
     	
-    	//***************start the sorting workface process********************
-    	System.out.println("***************start the sorting workface process********************");
-    	ExcelReader er = new ExcelReader();
-    	MachineOpInfo moi = er.readMachineOpInfo("machine-op-info.xls");
-    	WorkfaceWorkload workload = er.readWorkfaceWorkload("workface-workload.xls");
-    	ArrayList<ArrayList<Integer>> sortWorkfaces = SortTool.sortWorkfaces(ds, moi, workload);
-    	for(int i = 0; i < sortWorkfaces.size(); i++){
-    		System.out.println(sortWorkfaces.get(i));
-    	}
     	
-    	//***************start the sorting region process********************
-    	System.out.println("***************start the sorting region process********************");
-    	WorkfaceDistance distance = er.readWorkfaceDistance("workface-distance.xls");
-    	distance.printDistance();
-    	SortTool.sortGroups(sortWorkfaces, moi, workload, distance);
-    	
-    	
-    }*/
+//    }
     /* main */
 
 }

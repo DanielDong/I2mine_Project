@@ -250,10 +250,12 @@ public class ExcelReader {
 //				System.out.println();
 //			}
 //		}
-		er.convertExcelToText("workface-distance.xls", "workface-distance.txt");
-		er.convertExcelToText("workface-state.xls", "workface-state.txt");
-		er.convertExcelToText("workface-workload.xls", "workface-workload.txt");
-		er.convertExcelToText("machine-op-info.xls", "machine-op-info.txt");
+		
+		er.convertExcelToText("DistanceMatrix.xls", "workface-distance.txt");
+//		er.convertExcelToText("workface-distance.xls", "workface-distance.txt");
+//		er.convertExcelToText("workface-state.xls", "workface-state.txt");
+//		er.convertExcelToText("workface-workload.xls", "workface-workload.txt");
+//		er.convertExcelToText("machine-op-info.xls", "machine-op-info.txt");
 		
 		
 	}
