@@ -112,10 +112,17 @@ public class ClusterTool {
 							HashSet<Integer> tmpGroup = tmpLevel.get(j);
 							boolean hasCommonValue = isIntersect(tmpGroupingSet, tmpGroup);
 							if(hasCommonValue == true){
+								System.out.println("tmpGroupingSet.size:"+tmpGroupingSet.size()+" tmpGroup.size:"+tmpGroup.size());
+								
 								Iterator<Integer> iterator = tmpLevel.get(tmpLevel.size() - 1).iterator();
 								while(iterator.hasNext()){
 									int tmpWorkface = iterator.next();
 									tmpGroupingSet.add(tmpWorkface);
+								}
+								// All the workfaces have been grouped, need to stop grouping process
+								if(tmpLevel.get(tmpLevel.size() - 1).size() == tmpGroupingSet.size()){
+									isOver = true;
+									break;
 								}
 								tmpLevel.add(tmpGroupingSet);
 								isOver = true;
@@ -168,10 +175,18 @@ public class ClusterTool {
 							HashSet<Integer> tmpGroup = tmpLevel.get(j);
 							boolean hasCommonValue = isIntersect(tmpGroupingSet, tmpGroup);
 							if(hasCommonValue == true){
+								System.out.println("tmpGroupingSet.size:"+tmpGroupingSet.size()+" tmpGroup.size:"+tmpGroup.size());
+								
 								Iterator<Integer> iterator = tmpLevel.get(tmpLevel.size() - 1).iterator();
 								while(iterator.hasNext()){
 									int tmpWorkface = iterator.next();
 									tmpGroupingSet.add(tmpWorkface);
+								}
+								
+								// All the workfaces have been grouped, need to stop grouping process
+								if(tmpLevel.get(tmpLevel.size() - 1).size() == tmpGroupingSet.size()){
+									isOver = true;
+									break;
 								}
 								tmpLevel.add(tmpGroupingSet);
 								isOver = true;
