@@ -324,7 +324,7 @@ public class SortTool {
 	 * @return
 	 */
  	public static ArrayList<ArrayList<Integer>> sortWorkfaces (Dataset[] clusterGroups, MachineOpInfo machineOpInfo, WorkfaceWorkload workload){
-		
+ 		
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		// The number of groups after clustering
 		int len = clusterGroups.length;
