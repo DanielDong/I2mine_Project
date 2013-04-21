@@ -30,6 +30,303 @@ import net.sf.javaml.tools.data.FileHandler;
  */
 public class ClusterTool {
 	
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_zhen_new(String fileName, int numOfWorkphases, String delimiter) throws IOException{
+		
+		/* Load a dataset */
+	      //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
+			Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkphases, delimiter);
+			for(int i = 0; i < data.size(); i ++){
+				System.out.println(data.get(i));
+			}
+			
+			// Get original distance list
+			ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();
+			for(int row = 0; row < data.size(); row ++){
+				//System.out.println("row size: " + data.get(row).size());
+				for(int col = row + 1; col < data.get(row).size(); col ++){
+					 
+					DistanceUnit du = new DistanceUnit();
+					du.distance = data.get(row).get(col);
+					du.from = row + 1;
+					du.to = col + 1;
+					
+					originalDistanceList.add(du);
+				}
+			}
+			
+			// Sort distance list in ascending order
+			DUComparator comparator = new DUComparator();
+			Collections.sort(originalDistanceList, comparator);
+			System.out.println("=====================sorted distance list===================");
+			for(int i = 0; i < originalDistanceList.size(); i++){
+				System.out.println(originalDistanceList.get(i).distance + " ");
+			}
+			
+			ArrayList<ArrayList<DistanceUnit>> groupDisList = new ArrayList<ArrayList<DistanceUnit>>();
+			int start = 0, end = 0;
+			boolean startFixed = false, endFixed = false;
+			for(int i = 0; i < originalDistanceList.size() - 1; i++){
+				if(startFixed == false){
+					startFixed = true;
+					start = i;
+				}
+				
+				if(originalDistanceList.get(i).distance == originalDistanceList.get(i + 1).distance){
+					continue;
+				}else{
+					end = i;
+					endFixed = true;
+				}
+				
+				if(endFixed == true){
+					ArrayList<DistanceUnit> tmpList = new ArrayList<DistanceUnit>();
+					for(; start <= end; start ++){
+						tmpList.add(originalDistanceList.get(start));
+					}
+					groupDisList.add(tmpList);
+					startFixed = false;
+					endFixed = false;
+					start = end + 1;
+				}
+			}
+			
+			System.out.println("=======Display grouped distance units=====================");
+			System.out.println("distance unit size:" + originalDistanceList.size());
+			System.out.println("group size:" + groupDisList.size());
+			for(int i = 0; i < groupDisList.size(); i ++){
+				for(int j = 0; j < groupDisList.get(i).size(); j ++){
+					System.out.print(groupDisList.get(i).get(j).distance + "(" + (groupDisList.get(i).get(j).from) + "," + 
+							(groupDisList.get(i).get(j).to) + ") ");
+				}
+				System.out.println();
+			}
+			
+			// *****************Start to create workface grouping using brackets*****************
+			StringBuilder wfSeq = new StringBuilder();
+			// Record if a workface has been processed
+			int[] workProcessed = new int[numOfWorkphases + 1];
+			for(int i = 0; i <= numOfWorkphases; i++){
+				workProcessed[i] = -1;
+			}
+			
+			// Iterate through sorted distance list
+			// For each distance list
+			for(int i = 0; i < groupDisList.size(); i ++){
+				// For each distance unit in a specific distance list
+				for(int j = 0; j < groupDisList.get(i).size(); j ++){
+					int wf1 = groupDisList.get(i).get(j).from;
+					int wf2 = groupDisList.get(i).get(j).to;
+					
+					// Both workfaces are un-processed
+					if(workProcessed[wf1] == -1 && workProcessed[wf2] == -1){
+						if(wfSeq.length() == 0){
+							wfSeq.append("(");
+							wfSeq.append(wf1);
+							wfSeq.append(",");
+							wfSeq.append(wf2);
+							wfSeq.append(")");
+						}else{
+							wfSeq.append(",(");
+							wfSeq.append(wf1);
+							wfSeq.append(",");
+							wfSeq.append(wf2);
+							wfSeq.append(")");
+						}
+						
+						workProcessed[wf1] = (int) groupDisList.get(i).get(j).distance;
+						workProcessed[wf2] = (int) groupDisList.get(i).get(j).distance;
+						System.out.println("wf1:" + wf1 + " wf2:" + wf2);
+						System.out.println(wfSeq);
+						continue;
+					}
+					
+					// One workface has been processed, the other is un-processed
+					int proWf = 0, unProWf = 0;
+					if(workProcessed[wf1] == -1 && workProcessed[wf2] != -1){
+						proWf = wf2;
+						unProWf = wf1;
+					}
+					
+					if(workProcessed[wf1] != -1 && workProcessed[wf2] == -1){
+						proWf = wf1;
+						unProWf = wf2;
+					}
+					
+					if(proWf != 0 && unProWf != 0){
+						int distance = (int) groupDisList.get(i).get(j).distance;
+						// Insert workface on the same level (same distance)
+						if(distance == workProcessed[proWf]){
+							wfSeq.insert(getWorkfaceIndex(wfSeq, String.valueOf(proWf)), String.valueOf(unProWf) + ",");
+						}
+						// Insert workface on the different level (different distance)
+						else{
+							int iStart = getWorkfaceIndex(wfSeq, String.valueOf(proWf));
+							int bracketCount = 0;
+							
+							// Count the number of left - brackets
+							while(iStart >= 0){
+								if((wfSeq.charAt(iStart) == '(') || (wfSeq.charAt(iStart) == ')')){
+									bracketCount ++;
+								}
+								if((wfSeq.charAt(iStart) == '(' && iStart == 0) || (wfSeq.charAt(iStart) == '(' && wfSeq.charAt(iStart - 1) == ',')){
+									break;
+								}
+								
+								iStart --;
+							}
+							
+							// Find the position to insert workface 'unProWf'
+							int iEnd = iStart;
+							while(iEnd < wfSeq.length()){
+								if(wfSeq.charAt(iEnd) == ')'){
+									bracketCount --;
+								}
+								
+								if(bracketCount == 0){
+									break;
+								}
+								
+								iEnd ++;
+							}
+//							System.out.println(wfSeq);
+//							System.out.println(String.valueOf(unProWf));
+//							System.out.println(wfSeq.length() + "*" + iEnd + "*");//+ wfSeq.charAt(iEnd));///////
+							wfSeq.insert(iStart, "(");
+							if((iEnd + 2) == wfSeq.length()){
+								wfSeq.append("," + unProWf + ")");
+							}else{
+								//System.out.println(wfSeq.length());
+								wfSeq.insert(iEnd + 2, "," + unProWf + ")");
+							}
+							
+						}
+						workProcessed[unProWf] = (int) groupDisList.get(i).get(j).distance;
+						System.out.println("wf1:" + wf1 + " wf2:" + wf2);
+						System.out.println(wfSeq);
+						continue;
+					}
+					
+					// Both are processed already
+					// ..........................
+					ArrayList<Integer> ret1 = getGroupStartEnd(wfSeq, String.valueOf(wf1));
+					ArrayList<Integer> ret2 = getGroupStartEnd(wfSeq, String.valueOf(wf2));
+					int startOf1 = ret1.get(0), endOf1 = ret1.get(1);
+					int startOf2 = ret2.get(0), endOf2 = ret2.get(1);
+					
+					if(startOf1 == startOf2){
+						continue;
+					}
+					
+					String subStr1 = wfSeq.substring(startOf1, endOf1 + 1);
+					String subStr2 = wfSeq.substring(startOf2, endOf2 + 1);
+					
+					// Get sub workface sequence
+					if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
+						subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
+					}
+					
+					if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
+						subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
+					}
+					System.out.println("after excluding brackets...");
+					
+					// Delete useless sub workfaces
+					if(startOf1 > startOf2){
+						// Delete extra comma so startOf -1 instead of startOf
+						wfSeq = wfSeq.delete(startOf1 - 1, endOf1 + 1);
+						wfSeq = wfSeq.delete(startOf2 - 1, endOf2 + 1);
+					}else{
+						wfSeq = wfSeq.delete(startOf2 - 1, endOf2 + 1);
+						wfSeq = wfSeq.delete(startOf1 - 1, endOf1 + 1);
+					}
+					wfSeq.append(",(");
+					wfSeq.append(subStr1);
+					wfSeq.append(",");
+					wfSeq.append(subStr2);
+					wfSeq.append(")");
+					System.out.println("after appending...");
+					System.out.println("wf1:" + wf1 + " wf2:" + wf2);
+					
+					System.out.println(wfSeq);
+					System.out.println("wf1 start:"+startOf1 + " wf1 end:"+endOf1);
+					System.out.println("wf2 start:"+startOf2 + " wf2 end:"+endOf2);
+					System.out.println(wfSeq);
+				}						
+			}
+		System.out.println(wfSeq.toString());
+		return null;
+	}
+	
+	static ArrayList<Integer> getGroupStartEnd(StringBuilder wfSeq, String wf){
+		int start = getWorkfaceIndex(wfSeq, wf);
+		int bracketCount = 0;
+		while(start >= 0){
+			if((wfSeq.charAt(start) == '(') || (wfSeq.charAt(start) == ')')){
+				bracketCount ++;
+			}
+			
+			
+			if((wfSeq.charAt(start) == '(' && start == 0) || ((wfSeq.charAt(start) == '(') && (wfSeq.charAt(start - 1) == ','))){
+				break;
+			}
+			System.out.println("start...");
+			start --;
+		}
+
+		int end = start + 1;
+		while(end < wfSeq.length()){
+			if(wfSeq.charAt(end) == ')'){
+				bracketCount --;
+			}
+			
+			if(bracketCount == 0){
+				break;
+			}
+			System.out.println("end...");
+			end ++;
+		}
+		ArrayList<Integer> indexList = new ArrayList<Integer>();
+		indexList.add(start);
+		indexList.add(end);
+		System.out.println("done....");
+		return indexList;
+	}
+	
+	static int getWorkfaceIndex(StringBuilder sb, String substr){
+		
+		//System.out.println("getWorkfaceIndex sb:"+sb);
+		//System.out.println("substr:"+substr);
+		int tmpIndex = sb.indexOf(substr);
+		int tmp = tmpIndex + 1;
+		while(tmp < sb.length()){
+			
+			while((sb.charAt(tmpIndex - 1) >= '0' && sb.charAt(tmpIndex - 1) <= '9')){
+				tmpIndex = sb.indexOf(substr, tmpIndex + 1);
+			} 
+			tmp = tmpIndex + 1;
+			
+			if(tmp > 0){
+				while(sb.charAt(tmp) >= '0' && sb.charAt(tmp) <= '9'){
+					tmp ++;
+				}
+				
+				if(substr.compareTo(sb.substring(tmpIndex, tmp)) == 0){
+					return tmpIndex;
+				}else{
+					tmpIndex = sb.indexOf(substr, tmpIndex + 1);
+					tmp = tmpIndex + 1;
+				}
+			}
+		}
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * 
 	 * @param fileName
@@ -431,207 +728,7 @@ public class ClusterTool {
 		//System.out.println("FINAL total workface seq:" + finalResultList.get(0));
 		return finalResultList;
 	}
-//	public static Dataset[] getClustersOfWorkfaces_zhen(String fileName, int numOfWorkphases, String delimiter) throws IOException{
-//		
-//		/* Load a dataset */
-//        //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
-//		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkphases, delimiter);
-//		
-//		// Get original distance list
-//		ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();
-//		for(int row = 0; row < data.size(); row ++){
-//			for(int col = row; col < data.get(row).size(); col ++){
-//				
-//				DistanceUnit du = new DistanceUnit();
-//				du.distance = data.get(row).get(col);
-//				du.from = row;
-//				du.to = col;
-//				
-//				originalDistanceList.add(du);
-//			}
-//		}
-//		
-//		// Sort distance list in ascending order
-//		DUComparator comparator = new DUComparator();
-//		Collections.sort(originalDistanceList, comparator);
-//		System.out.println("=====================sorted distance list===================");
-//		for(int i = 0; i < originalDistanceList.size(); i++){
-//			System.out.println(originalDistanceList.get(i).distance + " ");
-//		}
-//		
-//		// Get difference list from original distance list
-//		ArrayList<Double> diffDistanceList = new ArrayList<Double>();
-//		for(int n = 0; n < originalDistanceList.size() - 1; n ++){
-//			diffDistanceList.add(originalDistanceList.get(n + 1).distance - originalDistanceList.get(n).distance);
-//		}
-//		
-//		// Get mean difference distance list, set n to 2
-//		int n = 2;
-//		// N's range [2, size_of_distance_list]
-//		ArrayList<Double> meanDiffDistList = new ArrayList<Double>();
-//		// Iteration number is (size_of_distance_list + 1 - n)
-//		for(int i = 0; i < diffDistanceList.size() + 1 - n; i++ ){
-//			double sum = 0;
-//			for(int sub = i; sub < i + n; sub ++ ){
-//				sum += diffDistanceList.get(sub);
-//			}
-//			meanDiffDistList.add(sum / n);
-//		}
-//		
-//		// Initial grouping 
-//		ArrayList<ArrayList<HashSet<Integer>>> groupingList = new ArrayList<ArrayList<HashSet<Integer>>>(); 
-//		int lastGroupingIndex1 = 0;
-//		// ****************************************************************************
-//		// ArrayList<HashSet<Integer>> groupingPoint = new ArrayList<HashSet<Integer>>();
-//		// ****************************************************************************
-//		System.out.println("meanDiffDistList size -1:"+ (meanDiffDistList.size() - 1));
-//		for(int z = 0; z < meanDiffDistList.size() - 1; z++){
-//			System.out.println("z value:"+z);
-//			// Grouping between original elements (z + n) and (z + 1 + n)
-//			if(meanDiffDistList.get(z) >= diffDistanceList.get(z + n -1) 
-//					&& meanDiffDistList.get(z + 1) < diffDistanceList.get( z + 1 + n - 1)){
-//				System.out.println("old lastGroupingIndex1: "+ lastGroupingIndex1 + "(z + n + 1):" + (z + n + 1));
-//				if(lastGroupingIndex1 == (z + n + 1) || lastGroupingIndex1 > (z + n + 1)){
-//					continue;
-//				}
-//				System.out.println("split point between "+(z + n) + " and "+ (z + 1 + n) + "(z = "+z+")");
-//				//groupingPoint.add(z + n);
-//				
-//			    HashSet<Integer> tmpGroupingSet = new HashSet<Integer>();
-//				for(int i = lastGroupingIndex1; i < z + n + 1; i++){
-//					tmpGroupingSet.add(originalDistanceList.get(i).from);
-//					tmpGroupingSet.add(originalDistanceList.get(i).to);
-//				}
-//				
-//				if(groupingList.size() > 0){
-//					// For each level
-//					for(int i = 0; i < groupingList.size(); i++){
-//						ArrayList<HashSet<Integer>> tmpLevel = groupingList.get(i);
-//						boolean isOver = false;
-//						// For each group in level (i)
-//						for(int j = 0; j < tmpLevel.size(); j++){
-//							HashSet<Integer> tmpGroup = tmpLevel.get(j);
-//							boolean hasCommonValue = isIntersect(tmpGroupingSet, tmpGroup);
-//							if(hasCommonValue == true){
-//								System.out.println("tmpGroupingSet.size:"+tmpGroupingSet.size()+" tmpGroup.size:"+tmpGroup.size());
-//								
-//								Iterator<Integer> iterator = tmpLevel.get(tmpLevel.size() - 1).iterator();
-//								while(iterator.hasNext()){
-//									int tmpWorkface = iterator.next();
-//									tmpGroupingSet.add(tmpWorkface);
-//								}
-//								// All the workfaces have been grouped, need to stop grouping process
-//								if(tmpLevel.get(tmpLevel.size() - 1).size() == tmpGroupingSet.size()){
-//									isOver = true;
-//									break;
-//								}
-//								tmpLevel.add(tmpGroupingSet);
-//								isOver = true;
-//								break;
-//							}
-//							// Add a new level
-//							else{
-//								ArrayList<HashSet<Integer>> newLevel = new ArrayList<HashSet<Integer>>();
-//								newLevel.add(tmpGroupingSet);
-//								groupingList.add(newLevel);
-//							}
-//						}
-//						if(isOver == true){
-//							break;
-//						}
-//					}
-//				}
-//				// groupList is empty
-//				else{
-//					ArrayList<HashSet<Integer>> tmpLevel = new ArrayList<HashSet<Integer>>();
-//					tmpLevel.add(tmpGroupingSet);
-//					groupingList.add(tmpLevel);
-//				}
-//				
-//				lastGroupingIndex1 = z + n + 1;
-//				System.out.println("new lastGroupingIndex1: "+ lastGroupingIndex1);
-//			}
-//			// Grouping between original elements (z + n - 1) and (z + n)
-//			else if(meanDiffDistList.get(z) < diffDistanceList.get(z + n -1) 
-//					&& meanDiffDistList.get(z + 1) >= diffDistanceList.get( z + 1 + n - 1)){
-//				System.out.println("old lastGroupingIndex1: "+ lastGroupingIndex1 + "(z + n + 1):" + (z + n + 1));
-//				if(lastGroupingIndex1 == (z + n + 1) ||lastGroupingIndex1 > (z + n + 1)){
-//					continue;
-//				}
-//				System.out.println("split point between "+(z + n) + " and "+ (z + n + 1) + "(z = "+z+")");
-//				//groupingPoint.add(z + n - 1);
-//				HashSet<Integer> tmpGroupingSet = new HashSet<Integer>();
-//				for(int i = lastGroupingIndex1; i < z + n +	1 ; i ++){
-//					tmpGroupingSet.add(originalDistanceList.get(i).from);
-//					tmpGroupingSet.add(originalDistanceList.get(i).to);
-//				}
-//				//*************************************
-//				if(groupingList.size() > 0){
-//					// For each level
-//					for(int i = 0; i < groupingList.size(); i++){
-//						ArrayList<HashSet<Integer>> tmpLevel = groupingList.get(i);
-//						boolean isOver = false;
-//						// For each group in level (i)
-//						for(int j = 0; j < tmpLevel.size(); j++){
-//							HashSet<Integer> tmpGroup = tmpLevel.get(j);
-//							boolean hasCommonValue = isIntersect(tmpGroupingSet, tmpGroup);
-//							if(hasCommonValue == true){
-//								System.out.println("tmpGroupingSet.size:"+tmpGroupingSet.size()+" tmpGroup.size:"+tmpGroup.size());
-//								
-//								Iterator<Integer> iterator = tmpLevel.get(tmpLevel.size() - 1).iterator();
-//								while(iterator.hasNext()){
-//									int tmpWorkface = iterator.next();
-//									tmpGroupingSet.add(tmpWorkface);
-//								}
-//								
-//								// All the workfaces have been grouped, need to stop grouping process
-//								if(tmpLevel.get(tmpLevel.size() - 1).size() == tmpGroupingSet.size()){
-//									isOver = true;
-//									break;
-//								}
-//								tmpLevel.add(tmpGroupingSet);
-//								isOver = true;
-//								break;
-//							}
-//							// Add a new level
-//							else{
-//								ArrayList<HashSet<Integer>> newLevel = new ArrayList<HashSet<Integer>>();
-//								newLevel.add(tmpGroupingSet);
-//								groupingList.add(newLevel);
-//							}
-//						}
-//						if(isOver == true){
-//							break;
-//						}
-//					}
-//				}
-//				// groupList is empty
-//				else{
-//					ArrayList<HashSet<Integer>> tmpLevel = new ArrayList<HashSet<Integer>>();
-//					tmpLevel.add(tmpGroupingSet);
-//					groupingList.add(tmpLevel);
-//				}
-//				//*************************************
-//				lastGroupingIndex1 = z + n + 1;
-//				System.out.println("new lastGroupingIndex1: "+ lastGroupingIndex1);
-//			}
-//		}
-//		
-//		
-//		System.out.println("=============Display grouping points=================");
-//		// Only there is at least 1 grouping point, then progress
-//		if(groupingList.size() > 0){
-//			// Iterate over each level
-//			for(int i = 0; i < groupingList.get(i).size(); i++){
-//				System.out.println("=====level "+i+"======");
-//				// List all workface groups on level (i)
-//				for(int j = 0; j < groupingList.get(i).size(); j++){
-//					System.out.println(groupingList.get(i).get(j));
-//				}
-//			}
-//		}
-//		return null;
-//	}
+
 
 	/**
 	 * 
@@ -786,7 +883,7 @@ public class ClusterTool {
 	public static void main(String[] args) throws Exception {
 		//***************start the grouping workface process********************
     	System.out.println("***************start the grouping workface process********************");
-    	ArrayList<ArrayList<Integer>> ds = ClusterTool.getClustersOfWorkfaces_zhen("workface-distance.txt", 20, "\t");
+    	ArrayList<ArrayList<Integer>> ds = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t");
     	if(ds == null)
     		System.out.println("ds is null.");
     	else{
