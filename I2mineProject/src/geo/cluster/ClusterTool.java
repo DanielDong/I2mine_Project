@@ -221,13 +221,53 @@ public class ClusterTool {
 					String subStr2 = wfSeq.substring(startOf2, endOf2 + 1);
 					
 					// Get sub workface sequence
-					if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
-						subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
+					boolean isChanged = false;
+					for(int tmpJ = 0; tmpJ < j; tmpJ ++){
+						int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
+						if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
+							isChanged = true;
+							if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
+								subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
+							}
+						}
+						if(isChanged == true){
+							break;
+						}
+						tmpWorkface = groupDisList.get(i).get(tmpJ).to;
+						if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
+							isChanged = true;
+							if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
+								subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
+							}
+						}
+						if(isChanged == true){
+							break;
+						}
+					}
+					isChanged = false;
+					for(int tmpJ = 0; tmpJ < j; tmpJ ++){
+						int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
+						if(getWorkfaceIndex(new StringBuilder(subStr2), String.valueOf(tmpWorkface)) != -1){
+							isChanged = true;
+							if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
+								subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
+							}
+						}
+						if(isChanged == true){
+							break;
+						}
+						tmpWorkface = groupDisList.get(i).get(tmpJ).to;
+						if(getWorkfaceIndex(new StringBuilder(subStr2), String.valueOf(tmpWorkface)) != -1){
+							isChanged = true;
+							if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
+								subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
+							}
+						}
+						if(isChanged == true){
+							break;
+						}
 					}
 					
-					if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
-						subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
-					}
 					System.out.println("after excluding brackets...");
 					
 					// Delete useless sub workfaces
@@ -297,6 +337,10 @@ public class ClusterTool {
 		//System.out.println("getWorkfaceIndex sb:"+sb);
 		//System.out.println("substr:"+substr);
 		int tmpIndex = sb.indexOf(substr);
+		if(tmpIndex == -1){
+			return -1;
+		}
+		
 		int tmp = tmpIndex + 1;
 		while(tmp < sb.length()){
 			
@@ -318,7 +362,8 @@ public class ClusterTool {
 				}
 			}
 		}
-		return -1;
+		return tmpIndex;
+		
 	}
 	
 	
