@@ -165,9 +165,10 @@ public class ClusterTool {
 							
 							// Count the number of left - brackets
 							while(iStart >= 0){
-								if((wfSeq.charAt(iStart) == '(') || (wfSeq.charAt(iStart) == ')')){
+								if((wfSeq.charAt(iStart) == '(')){// || (wfSeq.charAt(iStart) == ')')){
 									bracketCount ++;
 								}
+								
 								if((wfSeq.charAt(iStart) == '(' && iStart == 0) || (wfSeq.charAt(iStart) == '(' && wfSeq.charAt(iStart - 1) == ',')){
 									break;
 								}
@@ -175,22 +176,45 @@ public class ClusterTool {
 								iStart --;
 							}
 							
-							// Find the position to insert workface 'unProWf'
-							int iEnd = iStart;
-							while(iEnd < wfSeq.length()){
-								if(wfSeq.charAt(iEnd) == ')'){
-									bracketCount --;
+							int tmpBraCnt = bracketCount;
+							int tmpStart = iStart + 1;
+							while(wfSeq.charAt(tmpStart) == '('){
+								tmpStart ++;
+							}
+							
+							while(tmpStart < wfSeq.length()){
+								if(wfSeq.charAt(tmpStart) == ')'){
+									tmpBraCnt --;
 								}
-								
-								if(bracketCount == 0){
+								if(wfSeq.charAt(tmpStart) == '('){
+									tmpBraCnt ++;
+								}
+								if(tmpBraCnt == 0){
 									break;
 								}
-								
-								iEnd ++;
+								tmpStart ++;
 							}
-//							System.out.println(wfSeq);
-//							System.out.println(String.valueOf(unProWf));
-//							System.out.println(wfSeq.length() + "*" + iEnd + "*");//+ wfSeq.charAt(iEnd));///////
+							
+							// Find the position to insert workface 'unProWf'
+							int iEnd = iStart;
+//							while(iEnd < wfSeq.length()){
+//								if(wfSeq.charAt(iEnd) == ')'){
+//									bracketCount --;
+//								}
+//								
+//								if(bracketCount == 0){
+//									break;
+//								}
+//								
+//								iEnd ++;
+//							}
+							iEnd = tmpStart;
+							
+							//System.out.println(wfSeq);
+							System.out.println("bracket count:"+bracketCount + " iStart:"+iStart + " val:"+wfSeq.charAt(iStart));
+							System.out.println(String.valueOf(unProWf));
+							System.out.println(wfSeq.length() + "*" + iEnd + "*");//+ wfSeq.charAt(iEnd));///////
+							
 							wfSeq.insert(iStart, "(");
 							if((iEnd + 2) == wfSeq.length()){
 								wfSeq.append("," + unProWf + ")");
@@ -217,6 +241,11 @@ public class ClusterTool {
 						continue;
 					}
 					
+					System.out.println("Both wf1:" + wf1 + " wf2:" + wf2);
+					System.out.println("startOf1:"+startOf1 + " endOf1:"+endOf1);
+					System.out.println("startOf2:"+startOf2 + " endOf2:"+endOf2);
+					System.out.println("wf len:"+wfSeq.length());
+					
 					String subStr1 = wfSeq.substring(startOf1, endOf1 + 1);
 					String subStr2 = wfSeq.substring(startOf2, endOf2 + 1);
 					
@@ -224,6 +253,7 @@ public class ClusterTool {
 					boolean isChanged = false;
 					for(int tmpJ = 0; tmpJ < j; tmpJ ++){
 						int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
+						System.out.println("Temp wf(f):"+tmpWorkface);
 						if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
 							isChanged = true;
 							if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
@@ -234,6 +264,7 @@ public class ClusterTool {
 							break;
 						}
 						tmpWorkface = groupDisList.get(i).get(tmpJ).to;
+						System.out.println("Temp wf(t):"+tmpWorkface);
 						if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
 							isChanged = true;
 							if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
@@ -244,6 +275,7 @@ public class ClusterTool {
 							break;
 						}
 					}
+					
 					isChanged = false;
 					for(int tmpJ = 0; tmpJ < j; tmpJ ++){
 						int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
@@ -272,12 +304,66 @@ public class ClusterTool {
 					
 					// Delete useless sub workfaces
 					if(startOf1 > startOf2){
-						// Delete extra comma so startOf -1 instead of startOf
-						wfSeq = wfSeq.delete(startOf1 - 1, endOf1 + 1);
-						wfSeq = wfSeq.delete(startOf2 - 1, endOf2 + 1);
+						if(endOf1 + 1 < wfSeq.length()){
+							if(startOf1 > 0){
+								// Delete extra comma so startOf -1 instead of startOf
+								wfSeq = wfSeq.delete(startOf1 - 1, endOf1 + 1);
+							}else{
+								wfSeq = wfSeq.delete(startOf1, endOf1 + 2);
+							}
+						}
+						else{
+							if(startOf1 > 0){
+								wfSeq = wfSeq.delete(startOf1 - 1, wfSeq.length());
+							}else{
+								wfSeq = wfSeq.delete(startOf1, wfSeq.length());
+							}
+						}
+							
+						if(endOf2 + 1 < wfSeq.length()){
+							if(startOf2 > 0){
+								wfSeq = wfSeq.delete(startOf2 - 1, endOf2 + 1);
+							}else{
+								wfSeq = wfSeq.delete(startOf2, endOf2 + 2);
+							}
+						}
+						else{
+							if(startOf2 > 0){
+								wfSeq = wfSeq.delete(startOf2 - 1, wfSeq.length());
+							}else{
+								wfSeq = wfSeq.delete(startOf2, wfSeq.length());
+							}
+						}
 					}else{
-						wfSeq = wfSeq.delete(startOf2 - 1, endOf2 + 1);
-						wfSeq = wfSeq.delete(startOf1 - 1, endOf1 + 1);
+						if(endOf2 + 1 < wfSeq.length()){
+							if(startOf2 > 0){
+								wfSeq = wfSeq.delete(startOf2 - 1, endOf2 + 1);
+							}else{
+								wfSeq = wfSeq.delete(startOf2, endOf2 + 2);
+							}
+						}
+						else{
+							if(startOf2 > 0){
+								wfSeq = wfSeq.delete(startOf2 - 1, wfSeq.length());
+							}else{
+								wfSeq = wfSeq.delete(startOf2, wfSeq.length());
+							}
+						}
+						
+						if(endOf1 + 1 < wfSeq.length()){
+							if(startOf1 > 0){
+								wfSeq = wfSeq.delete(startOf1 - 1, endOf1 + 1);
+							}else{
+								wfSeq = wfSeq.delete(startOf1, endOf1 + 2);
+							}
+						}
+						else{
+							if(startOf1 > 0){
+								wfSeq = wfSeq.delete(startOf1 - 1, wfSeq.length());
+							}else{
+								wfSeq = wfSeq.delete(startOf1, wfSeq.length());
+							}
+						}
 					}
 					wfSeq.append(",(");
 					wfSeq.append(subStr1);
@@ -301,10 +387,9 @@ public class ClusterTool {
 		int start = getWorkfaceIndex(wfSeq, wf);
 		int bracketCount = 0;
 		while(start >= 0){
-			if((wfSeq.charAt(start) == '(') || (wfSeq.charAt(start) == ')')){
+			if((wfSeq.charAt(start) == '(')){//|| (wfSeq.charAt(start) == ')')){
 				bracketCount ++;
 			}
-			
 			
 			if((wfSeq.charAt(start) == '(' && start == 0) || ((wfSeq.charAt(start) == '(') && (wfSeq.charAt(start - 1) == ','))){
 				break;
@@ -312,19 +397,40 @@ public class ClusterTool {
 			System.out.println("start...");
 			start --;
 		}
-
-		int end = start + 1;
-		while(end < wfSeq.length()){
-			if(wfSeq.charAt(end) == ')'){
-				bracketCount --;
+		
+		int tmpBraCnt = bracketCount;
+		int tmpStart = start;
+		while(wfSeq.charAt(tmpStart) == '('){
+			tmpStart ++;
+		}
+		
+		System.out.println("Bra Cnt for("+ wf+"):"+bracketCount);
+		while(tmpStart < wfSeq.length()){
+			if(wfSeq.charAt(tmpStart) == ')'){
+				tmpBraCnt --;
 			}
-			
-			if(bracketCount == 0){
+			if(wfSeq.charAt(tmpStart) == '('){
+				tmpBraCnt ++;
+			}
+			if(tmpBraCnt == 0){
 				break;
 			}
-			System.out.println("end...");
-			end ++;
+			tmpStart ++;
 		}
+		
+
+		int end = tmpStart;
+//		while(end < wfSeq.length()){
+//			if(wfSeq.charAt(end) == ')'){
+//				bracketCount --;
+//			}
+//			
+//			if(bracketCount == 0){
+//				break;
+//			}
+//			System.out.println("end...");
+//			end ++;
+//		}
 		ArrayList<Integer> indexList = new ArrayList<Integer>();
 		indexList.add(start);
 		indexList.add(end);
@@ -344,9 +450,15 @@ public class ClusterTool {
 		int tmp = tmpIndex + 1;
 		while(tmp < sb.length()){
 			
-			while((sb.charAt(tmpIndex - 1) >= '0' && sb.charAt(tmpIndex - 1) <= '9')){
+			while(tmpIndex > 0 && (sb.charAt(tmpIndex - 1) >= '0' && sb.charAt(tmpIndex - 1) <= '9')){
 				tmpIndex = sb.indexOf(substr, tmpIndex + 1);
-			} 
+			}
+			
+			// No substr in sb
+			if(tmpIndex == -1){
+				return -1;
+			}
+			
 			tmp = tmpIndex + 1;
 			
 			if(tmp > 0){
