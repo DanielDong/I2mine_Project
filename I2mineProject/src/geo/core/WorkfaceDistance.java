@@ -34,7 +34,7 @@ public class WorkfaceDistance {
 	
 	/**
 	 * Get the number of workfaces.
-	 * @return The number of the workfaces
+	 * @return The number of workfaces
 	 */
 	public int getNumOfWorkface(){
 		return this.numOfWorkface;
@@ -54,11 +54,11 @@ public class WorkfaceDistance {
 	 * Print out workface distance matrix
 	 */
 	public void printDistance(){
-		System.out.println("============print out distance matrix============");
-		System.out.println("distance row number:"+ this.distance.size());
+		System.out.println("============START -- PRINT OUT DISTANCE MATRIX============");
+		System.out.println("DISTANCE Row Number:"+ this.distance.size());
 		for(int row = 0; row < this.distance.size(); row ++){
 			System.out.println(this.distance.get(row));
 		}
-		
+		System.out.println("============END -- PRINT OUT DISTANCE MATRIX============");
 	}
 }

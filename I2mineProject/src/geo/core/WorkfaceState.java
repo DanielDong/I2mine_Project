@@ -15,6 +15,11 @@ public class WorkfaceState {
 		this.workfaceState = new ArrayList<Integer> (this.numOfWorkface);
 	}
 	
+	/**
+	 * Add workface state into the workface state array
+	 * @param state State of current workface Note: workface state needs to be added in order
+	 * @return false workface state array is complete; true state is inserted into the workface state array successfully
+	 */
 	public boolean addWorkfaceState(int state){
 		
 		if(this.workfaceState.size() < this.numOfWorkface){

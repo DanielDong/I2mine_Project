@@ -8,7 +8,6 @@ public class WorkfaceWorkload {
 	private int numOfMachine = 0, numOfWorkface = 0;
 	
 	/**
-	 * 
 	 * @param machineNum The number of machines
 	 * @param workfaceNum The number of workfaces
 	 */
@@ -18,14 +17,27 @@ public class WorkfaceWorkload {
 		workload = new ArrayList<ArrayList<Double>>(this.numOfWorkface);
 	}
 	
+	/**
+	 * Get the total machine number
+	 * @return the number of machine
+	 */
 	public int getMachineNum(){
 		return this.numOfMachine;
 	}
 	
+	/**
+	 * Get total workface number
+	 * @return the number of workface
+	 */
 	public int getWorkfaceNum(){
 		return this.numOfWorkface;
 	}
 	
+	/**
+	 * Insert workloads for all machines from one workface into machine workload array
+	 * @param curWorkload workloads for all work machines from one workface
+	 * @return false machine workload array is already complete; true workloads are added successfully
+	 */
 	public boolean addMachineWorkload(ArrayList<Double> curWorkload){
 		
 		if((this.workload.size() >= this.numOfMachine) || (curWorkload.size() < this.numOfMachine)){
@@ -37,7 +49,7 @@ public class WorkfaceWorkload {
 	}
 	
 	/***
-	 * Get the total workload from all workfaces of a machine
+	 * Get the total workload from all workfaces of a machine (machine indexed from 0)
 	 * @param index The index of a machine
 	 * @return The workload in all workfaces of a machine
 	 */
