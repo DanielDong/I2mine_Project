@@ -116,6 +116,7 @@ public class ExcelReader {
 				}
 				dos.write("\n".getBytes());
 			}
+			dos.close();
 		}
 		else
 			return false;
