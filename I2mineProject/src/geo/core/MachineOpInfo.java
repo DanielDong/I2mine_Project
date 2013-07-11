@@ -40,4 +40,15 @@ public class MachineOpInfo {
 		return true;
 	}
 	
+	/**
+	 * Print out machine operation information
+	 */
+	public String outputMachineOpInfo(){
+		StringBuilder msgOp = new StringBuilder();
+		for(int i = 0; i < opInfo.size(); i ++){
+			msgOp.append(opInfo.get(i).get(0) + "	" + opInfo.get(i).get(1) + "\n");
+		}
+		return msgOp.toString();
+	}
+	
 }

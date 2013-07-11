@@ -56,4 +56,15 @@ public class WorkfaceWorkload {
 	public ArrayList<Double> getWorkloadOfMachine (int index){
 		return this.workload.get(index);
 	}
+	
+	/**
+	 * Output workface workload information
+	 */
+	public String OutputWorkload(){
+		StringBuilder msgWorkload = new StringBuilder();
+		for(int i = 0; i < workload.size(); i ++){
+			msgWorkload.append(workload.get(i) + "\n");
+		}
+		return msgWorkload.toString();
+	}
 }
