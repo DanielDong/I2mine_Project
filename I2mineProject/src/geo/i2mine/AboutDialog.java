@@ -1,34 +1,22 @@
-//package geo.i2mine;
+package geo.i2mine;
 //
 //import org.eclipse.swt.layout.FillLayout;
 //import org.eclipse.swt.layout.FormAttachment;
-//import org.eclipse.swt.layout.FormData;
-//import org.eclipse.swt.layout.FormLayout;
-//import org.eclipse.swt.widgets.Button;
-//import org.eclipse.swt.widgets.Display;
-//import org.eclipse.swt.widgets.Group;
-//import org.eclipse.swt.widgets.Shell;
-//import org.eclipse.swt.SWT;
-//import org.eclipse.swt.custom.CLabel;
-//import org.eclipse.swt.custom.CTabFolder;
-//import org.eclipse.swt.custom.CTabItem;
-//import org.eclipse.swt.events.SelectionAdapter;
-//import org.eclipse.swt.events.SelectionEvent;
-//
-//
-///**
-//* This code was edited or generated using CloudGarden's Jigloo
-//* SWT/Swing GUI Builder, which is free for non-commercial
-//* use. If Jigloo is being used commercially (ie, by a corporation,
-//* company or business for any purpose whatever) then you
-//* should purchase a license for each developer using Jigloo.
-//* Please visit www.cloudgarden.com for details.
-//* Use of Jigloo implies acceptance of these licensing terms.
-//* A COMMERCIAL LICENSE HAS NOT BEEN PURCHASED FOR
-//* THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
-//* LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
-//*/
-//public class AboutDialog extends org.eclipse.swt.widgets.Dialog {
+
+
+/**
+* This code was edited or generated using CloudGarden's Jigloo
+* SWT/Swing GUI Builder, which is free for non-commercial
+* use. If Jigloo is being used commercially (ie, by a corporation,
+* company or business for any purpose whatever) then you
+* should purchase a license for each developer using Jigloo.
+* Please visit www.cloudgarden.com for details.
+* Use of Jigloo implies acceptance of these licensing terms.
+* A COMMERCIAL LICENSE HAS NOT BEEN PURCHASED FOR
+* THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
+* LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
+*/
+public class AboutDialog{// extends org.eclipse.swt.widgets.Dialog {
 //
 //	private Shell dialogShell;
 //	private Button okButton;
@@ -118,4 +106,4 @@
 //		}
 //	}
 //	
-//}
+}

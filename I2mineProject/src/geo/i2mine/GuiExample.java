@@ -1,4 +1,4 @@
-//package geo.i2mine;
+package geo.i2mine;
 //
 //import org.eclipse.swt.layout.FillLayout;
 //import org.eclipse.swt.layout.FormAttachment;
@@ -32,7 +32,7 @@
 //* THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
 //* LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
 //*/
-//public class GuiExample extends org.eclipse.swt.widgets.Composite {
+public class GuiExample{// extends org.eclipse.swt.widgets.Composite {
 //	private Button goButton;
 //	private CCombo addressCombo;
 //	private Browser browser;
@@ -213,4 +213,4 @@
 //		go();
 //	}
 //
-//}
+}

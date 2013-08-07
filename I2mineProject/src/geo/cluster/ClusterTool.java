@@ -12,6 +12,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -43,8 +46,9 @@ public class ClusterTool {
 	 * @param delimiter The delimiter between two consecutive distance cells.
 	 * @return 
 	 * @throws IOException
+	 * @throws URISyntaxException 
 	 */
-	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException{
+	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException, URISyntaxException{
 		
 		  /* Load a dataset */
 	      //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
@@ -1330,6 +1334,7 @@ public class ClusterTool {
 		ArrayList<Double> singleWorkloadInfo = null;
 		try{
 			String curLine = null;
+			//br = new BufferedReader(new InputStreamReader(ClusterTool.class.getResourceAsStream("/workface-distance.txt")));
 			br = new BufferedReader(new FileReader("workface-distance.txt"));
 			while((curLine = br.readLine()) != null){
 				
