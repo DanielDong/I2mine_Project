@@ -12,13 +12,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Stack;
 
 import net.sf.javaml.clustering.Clusterer;
@@ -38,6 +37,8 @@ import net.sf.javaml.tools.data.FileHandler;
 public class ClusterTool {
 	
 	public static int LEVEL = -1;
+	public enum Parentheses {FIRST_LEVEL, SECOND_LEVEL, THIRD_LEVEL, FORTH_LEVEL, FIFTH_LEVEL,  NONE};
+	public static Parentheses parenClearLevel;
 	
 	/**
 	 * This method clusters workfaces whose workface distances are stored in the <i>fileName</i> parameter.
@@ -309,44 +310,6 @@ public class ClusterTool {
 					
 					// Get sub workface sequence to decide whether subStr1 and subStr2 on the same level or not
 					boolean isChanged = false;
-//					for(int tmpJ = 0; tmpJ < j; tmpJ ++){
-//						int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
-//						int tmpWorkface1 = groupDisList.get(i).get(tmpJ).to;
-//						
-//						if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1 && 
-//								getWorkfaceIndex(new StringBuilder(subStr2), String.valueOf(tmpWorkface)) != -1){
-//							isChanged = true;
-//							if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
-//								subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
-//							}
-//							
-//							if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
-//								subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
-//							}
-//						}
-//						
-//						if(isChanged == true)
-//							break;
-//						
-//						if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface1)) != -1 && 
-//								getWorkfaceIndex(new StringBuilder(subStr2), String.valueOf(tmpWorkface1)) != -1){
-//							isChanged = true;
-//							if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
-//								subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
-//							}
-//							
-//							if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
-//								subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
-//							}
-//						}
-//						
-//						if(isChanged == true)
-//							break;
-//					}
-					
-					
-					
-					
 					
 					for(int tmpJ = 0; tmpJ < j; tmpJ ++){
 						
@@ -487,6 +450,17 @@ public class ClusterTool {
 						wfSeq.append(subStr2);
 						wfSeq.append(")");
 					}else{
+						
+						boolean isNeededOuterBrackets = needOuterBrackets(subStr1);
+						if(isNeededOuterBrackets){
+							subStr1 = "(" + subStr1 + ")";
+						}
+						
+						isNeededOuterBrackets = needOuterBrackets(subStr2);
+						if(isNeededOuterBrackets){
+							subStr2 = "(" + subStr2 + ")";
+						}
+						
 						wfSeq.append("(");
 						wfSeq.append(subStr1);
 						wfSeq.append(",");
@@ -514,7 +488,19 @@ public class ClusterTool {
 			StringBuilder msgWf = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
 			msgWf.append("\n Workface Sequence based on distance sorting: " + wfSeq.toString() + "\n");
 			LogTool.log(LEVEL, msgWf.toString());
-		
+			
+			// Try to eliminate parentheses
+			wfSeq = processParenLevel(wfSeq, parenClearLevel);
+			
+			// Register log info -- print out workfaces based on distance sorting		
+			StringBuilder msgWfProcessed = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+			msgWf.append("\n Workface Sequence based on distance sorting(processed): " + msgWfProcessed.toString() + "\n");
+			LogTool.log(LEVEL, msgWfProcessed.toString());
+			
+			//System.exit(0);/////////////////////////////////////
+			
+			
+			//wfSeq = new StringBuilder("(9,10,11,12,13,1,2,3,4,5,6,7,8,14,15,16,17,18,19,20)");
 		// **********START TO SORT CLUSETERS*********
 		
 		// bracketStack stack to store the index value of brackets.
@@ -650,6 +636,53 @@ public class ClusterTool {
 		return finalSortedWorkfaceRet;
 		//return finalSortedWorkfaceRet;
 	}
+	/**
+	 * Allocate workface workload when there are multiple operating machines
+	 * @param numOfMachines The number of operating machines
+	 */
+	public static void getClustersOfWorkfacesMultipleMachines(int numOfMachines, ArrayList<Integer> sortedWorkfaceList){
+		
+		// Split sorted workfaces by only one group of operating machines into "numOfMachines" segments. 
+		int numOfGroups = (sortedWorkfaceList.size() % numOfMachines) == 0 ?(sortedWorkfaceList.size() / numOfMachines):((sortedWorkfaceList.size() / numOfMachines) + 1);
+		ArrayList<ArrayList<Integer>> groupOfWorkface = new ArrayList<ArrayList<Integer>>();
+		for(int i = 0; i < numOfGroups; i ++){
+			ArrayList<Integer> curGroup = new ArrayList<Integer>();
+			// The last group may contain less than "numOfMachines" workfaces
+			for(int j = 0 + i * numOfMachines; j < numOfMachines + numOfMachines * i && j < sortedWorkfaceList.size(); j ++){
+				curGroup.add(sortedWorkfaceList.get(j));
+			}
+			groupOfWorkface.add(curGroup);
+		}
+		
+		// Compute operating time of each segment
+		// TODO
+	}
+	
+	/**
+	 * decide if outer brackets are needed to put outside the wfList
+	 * @param wfList workface list to process
+	 * @return false if no brackets are needed; otherwise true
+	 */
+	private static boolean needOuterBrackets(String wfList){
+		boolean isNeeded = true;
+		Stack<ParenLevel> stack = new Stack<ParenLevel>();
+		for(int i = 0; i < wfList.length(); i ++){
+			if(wfList.charAt(i) == '('){
+				stack.push(new ParenLevel('(', 0, i));
+			}else if(wfList.charAt(i) == ')'){
+				if(i == wfList.length() - 1){
+					ParenLevel firstBracket = stack.pop();
+					if(firstBracket.index == 0){
+						isNeeded = false;
+						break;
+					}
+				}else{
+					stack.pop();
+				}
+			}
+		}
+		return isNeeded;
+	} 
 	
 	/**
 	 * 
@@ -1313,11 +1346,83 @@ public class ClusterTool {
         return finalClusters;
 	}/* getClustersOfWorkphases */
 
+	/**
+	 * Get rid of parentheses based on the clearLevel argument.
+	 * @param workface Workfaces sorted based on distance and grouped using parentheses
+	 * @param clearLevel Level of parentheses to be eliminated
+	 * @return processed workface list grouped using parentheses 
+	 */
+	public static StringBuilder processParenLevel (StringBuilder workface, Parentheses clearLevel){
+		//System.out.println("...in processParenLevel...." + clearLevel);
+		int proLoop = 0;
+		if(clearLevel == Parentheses.FIRST_LEVEL)
+			proLoop =1;
+		else if(clearLevel == Parentheses.SECOND_LEVEL)
+			proLoop = 2;
+		else if(clearLevel == Parentheses.THIRD_LEVEL)
+			proLoop = 3;
+		else if(clearLevel == Parentheses.NONE)
+			proLoop = 0;
+		
+		StringBuilder tmpWfList = workface;
+		while(proLoop-- > 0)
+			tmpWfList = processFirstParenLevel(tmpWfList);
+		
+		return tmpWfList;
+	}
 	
+	private static StringBuilder processFirstParenLevel(StringBuilder workface){
+		//System.out.println("...in processFirstParenLevel....");
+		ArrayList<ParenLevel> parenLevelList = new ArrayList<ParenLevel>(); 
+		int maxLevel = -1, tmpLevel = 0;
+		for(int i = 0; i < workface.length(); i ++){
+			if(workface.charAt(i) == '('){
+				tmpLevel ++;
+				parenLevelList.add(new ParenLevel('(', tmpLevel, i));
+			}else if(workface.charAt(i) == ')'){
+				tmpLevel --;
+				parenLevelList.add(new ParenLevel(')', tmpLevel, i));
+			}
+			
+			if(tmpLevel > maxLevel)
+				maxLevel = tmpLevel;
+		}
+		
+		for(int i = parenLevelList.size() - 1; i >= 0; i--){
+			ParenLevel tmpPL = parenLevelList.get(i);
+			// Find the left parenthesis with the max level
+			if(tmpPL.serialNum == maxLevel){
+				// Find the matched right parenthesis
+				ParenLevel tmpPL1 = parenLevelList.get(i + 1);
+				workface.deleteCharAt(tmpPL1.index);
+				workface.deleteCharAt(tmpPL.index);
+			}
+		}
+		
+		// Display parenthesis index and count
+//		for(ParenLevel p : parenLevelList){
+//			System.out.println(p.val + " SrlNum: " + p.serialNum + " Index: " + p.index);
+//		}
+//		System.out.println("list size: " + parenLevelList.size() + " maxLevel: " + maxLevel);
+		//System.out.println("deleted-first-level parentheses workface: " + workface);
+		return workface;
+	}
+	
+	private static class ParenLevel{
+		public char val;
+		public int serialNum;
+		public int index;
+		
+		public ParenLevel(char curChar, int tmpSrlNum, int tmpIndex){
+			val = curChar; serialNum = tmpSrlNum; index = tmpIndex;
+		}
+	}
 	// Using zhen's way to cluster
 	public static void main(String[] args) throws Exception {
 		
 		// Determine whether to output debug info or not
+		
+		
 //		ClusterTool.LEVEL = LogTool.LEVEL_OPEN;
 //		SortTool.LEVEL = LogTool.LEVEL_OPEN;
 		ClusterTool.LEVEL = LogTool.LEVEL_CLOSE;
@@ -1325,9 +1430,72 @@ public class ClusterTool {
 		
 		//***************start the grouping workface process********************
 		//Dataset[] dss = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 20, "\t");
+		int isSortedOrNot = 1;
+		System.out.println("Sort workfaces or not(1 for yes, 2 for No from 1 to 20, 3 for No from 20 to 1):");
+		Scanner s = new Scanner(System.in);
+		String str = s.nextLine();
+		if(str.equals("1")){
+			isSortedOrNot = 1;
+		}else if(str.equals("2")){
+			isSortedOrNot = 2;
+		}
+		else if(str.equals("3")){
+			isSortedOrNot = 3;
+		}
+		else{
+			System.out.println("Please choose 1, 2 or 3.");
+			System.exit(-1);
+		}
 		
 		
+		System.out.println("Choose the level of parentheses you want to exclude:\n" +
+				"	0 No parentheses excluded.\n" +
+				"	1 First level parentheses excluded.\n" +
+				"	2 Second level parentheses excluded.\n" +
+				"	3 Third level parentheses excluded.\n");
+		//Scanner s = new Scanner(System.in);
+		int level = -1;
+		level = s.nextInt();
+		switch(level){
+			case 0:
+				ClusterTool.parenClearLevel = ClusterTool.Parentheses.NONE;
+				break;
+			case 1:
+				ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIRST_LEVEL;
+				break;
+			case 2:
+				ClusterTool.parenClearLevel = ClusterTool.Parentheses.SECOND_LEVEL;
+				break;
+			case 3:
+				ClusterTool.parenClearLevel = ClusterTool.Parentheses.THIRD_LEVEL;
+				break;
+			case 4:
+				ClusterTool.parenClearLevel = ClusterTool.Parentheses.FORTH_LEVEL;
+				break;
+			case 5:
+				ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIFTH_LEVEL;
+				break;
+			default:
+					System.out.println("Please choose a valid level number.");
+					System.exit(-1);
+		}
+		s.close();
+		// Indicate the level of parentheses to get rid of -- by default, no parentheses to get rid of.
+		//ClusterTool.parenClearLevel = ClusterTool.Parentheses.NONE;
+		// Indicate the level of parentheses to get rid of -- first level parentheses(inner-est) to get rid of.
+		//ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIRST_LEVEL;
+		// Indicate the level of parentheses to get rid of -- second level parentheses to get rid of.
+		//ClusterTool.parenClearLevel = ClusterTool.Parentheses.SECOND_LEVEL;
+		//Indicate the level of parentheses to get rid of -- third level parentheses to get rid of.
+		//ClusterT
+		//ClusterTool.parenClearLevel = ClusterTool.Parentheses.THIRD_LEVEL;
+		//Indicate the level of parentheses to get rid of -- third level parentheses to get rid of.
+		//ClusterTool.parenClearLevel = ClusterTool.Parentheses.FORTH_LEVEL;
+		//Indicate the level of parentheses to get rid of -- third level parentheses to get rid of.
+	    //ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIFTH_LEVEL;
 		
+	    
+	    
 		// Read in workface distance information
 		WorkfaceDistance distance = new WorkfaceDistance(20);
 		BufferedReader br = null;
@@ -1409,8 +1577,31 @@ public class ClusterTool {
 		msgOutputWorkload.append(workload.OutputWorkload());
 		LogTool.log(LEVEL, msgOutputWorkload.toString());
 		
-		// Start cluster & sort workface 
-    	ArrayList<Integer> ds = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", opInfo, workload, distance);
+		
+		
+		
+		
+		// Start cluster & sort workface  *********************************************************
+		ArrayList<Integer> ds = null;
+		if(isSortedOrNot == 1){
+			 ds = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", opInfo, workload, distance);
+		}else{
+			ds = new ArrayList<Integer>();
+			if(isSortedOrNot == 3)
+				for(int iRandom = 0; iRandom < 20; iRandom ++){
+					//ds.add(iRandom + 1);
+					ds.add(20 - iRandom );
+				}
+			else
+				for(int iRandom = 0; iRandom < 20; iRandom ++){
+					ds.add(iRandom + 1);
+//					ds.add(20 - iRandom );
+				}
+		}
+		
+		
+		
+		
     	
     	// Register log info -- Display initial sorted workfaces after using getClustersOfWorkfaces_zhen_new method
     	StringBuilder msgInitialSortedWf = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
@@ -1418,8 +1609,11 @@ public class ClusterTool {
     		msgInitialSortedWf.append("\nds is null.\n");
     	else{
     		msgInitialSortedWf.append("\nbest cluster num: " + ds.size() + " -- ");
-	    	for(int i=0;i<ds.size();i++)
+    		//System.out.println("best cluster num: ");
+	    	for(int i=0;i<ds.size();i++){
 	    		msgInitialSortedWf.append(ds.get(i) + " ");
+	    		//System.out.print(ds.get(i) + " ");
+	    	}
 	    	msgInitialSortedWf.append("\n");
     	}
     	LogTool.log(LEVEL, msgInitialSortedWf.toString());
@@ -1438,7 +1632,8 @@ public class ClusterTool {
     		for(int iWorkface = 0; iWorkface < ds.size() - 1; iWorkface ++){
     			
     			curDist = distance.getDistBetweenTwoWorkfaces(ds.get(iWorkface) - 1, ds.get(iWorkface + 1) - 1);
-    			curWorkload = workload.getWorkloadOfMachine(iMachine).get(iWorkface);
+//    			curWorkload = workload.getWorkloadOfMachine(iMachine).get(iWorkface);
+    			curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(iWorkface) - 1);
     			
     			curOpTime = curWorkload / curOpRate;
     			curMovTime = curDist / curMovRate;
@@ -1446,13 +1641,22 @@ public class ClusterTool {
     			curMachineOpMoveTime.add(curOpTime);
     			curMachineOpMoveTime.add(curMovTime);
     			
+    			
+    			
     		}
     		
-    		curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(opInfo.getMachineNum() - 1) - 1);
+    		curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(workload.getWorkfaceNum() - 1) - 1);
     		curOpTime = curWorkload / curOpRate;
     		curMachineOpMoveTime.add(curOpTime);
     		opMoveTimeTotal.add(curMachineOpMoveTime);
     	}
+    	
+    	// Output operating time *********************************************************
+//    	System.out.print("Op and Move Time: ");
+//    	for(int k = 0; k < opMoveTimeTotal.size(); k ++){
+//    		System.out.println(opMoveTimeTotal.get(k));
+//    	}
+//    	System.out.println();
     	
     	//Register log info -- Display the machine operating time and moving time in accordance with the sorted workfaces
     	StringBuilder msgDisplayOpMovInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());

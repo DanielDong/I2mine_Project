@@ -304,7 +304,7 @@ public class ExcelExtract {
 			
 			try{
 				colId = Integer.valueOf(colNum);
-				if(colId > headingList.size()){
+				if(colId > headingList.size() + 1){
 					System.err.println("Please choose a valid colmun number.");
 					System.exit(-1);
 				}
