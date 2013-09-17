@@ -39,6 +39,13 @@ public class ExcelWriter {
 		return true;
 	}
 	
+	/**
+	 * Create an excel workbook.
+	 * @param workbookName Workbook name for the new execl workbook.
+	 * @param sheetName Sheetname for the working sheet in the <i>workbookName</i> workbook.
+	 * @param position Indicates which sheet to work on.
+	 * @return
+	 */
 	public boolean createSheet(String workbookName, String sheetName, int position){
 		boolean isWorkbookCreated = createNewWorkbook(workbookName);
 		if(isWorkbookCreated == false){
@@ -57,6 +64,13 @@ public class ExcelWriter {
 		}
 	}
 	
+	/**
+	 * Add label(String) to current working sheet.
+	 * @param col Specify the cell column.
+	 * @param row Specify the cell row.
+	 * @param value Specify the label value.
+	 * @return True if adding succeeds, otherwise false.
+	 */
 	public boolean addLabelToSheet(int col, int row, String value){
 		
 		boolean isAdd = false;
@@ -78,6 +92,13 @@ public class ExcelWriter {
 		return isAdd;
 	}
 	
+	/**
+	 * Add number value to current working sheet.
+	 * @param col Specify the cell column.
+	 * @param row Specify the cell row.
+	 * @param value Specify the label value.
+	 * @return True if adding succeeds, otherwise false.
+	 */
 	public boolean addNumberToSheet(int col, int row, double value){
 		
 		boolean isAdd = false;
@@ -100,6 +121,10 @@ public class ExcelWriter {
 		return isAdd;
 	}
 	
+	/**
+	 * Close current working workbook.
+	 * @return True if closing succeeds, otherwise false.
+	 */
 	public boolean closeWorkbook(){
 		if(workBook == null){
 			return false;
@@ -109,17 +134,19 @@ public class ExcelWriter {
 				workBook.close();
 				return true;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return false;
 			} catch (WriteException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return false;
 			}
 		}
 	}
 	
+	/**
+	 * To see if current workbook is closed or not.
+	 * @return True if workbook state is closed, otherwise false.
+	 */
 	public boolean isWorkbookClosed(){
 		return true;
 	}

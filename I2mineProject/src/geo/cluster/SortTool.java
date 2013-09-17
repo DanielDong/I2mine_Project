@@ -7,6 +7,12 @@ import geo.util.LogTool;
 import java.util.ArrayList;
 import net.sf.javaml.core.Dataset;
 
+/**
+ * This class provides functions for computing machines' operating time, sorting workfaces and workface groups, etc.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class SortTool {
 	
 	// Determine if output the debug info or not

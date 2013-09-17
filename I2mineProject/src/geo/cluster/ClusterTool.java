@@ -30,8 +30,7 @@ import net.sf.javaml.tools.data.FileHandler;
  * This class provides methods to cluster a data set.
  * Once one cluster number satisfies requirements. Algorithm stops.
  * 
- * @author Shichao Dong
- * 
+ * @author Dong
  * @version 1.0
  */
 public class ClusterTool {
@@ -637,7 +636,7 @@ public class ClusterTool {
 	 * Allocate workface workload when there are multiple groups of operating machines
 	 * @param numOfMachines The number of operating machines
 	 */
-	
+	@Deprecated
 	public static void getClustersOfWorkfacesMultipleMachines(int numOfMachines, ArrayList<Integer> sortedWorkfaceList){
 		
 		// Split sorted workfaces by only one group of operating machines into "numOfMachines" segments. 
@@ -1182,7 +1181,7 @@ public class ClusterTool {
 		return false;
 	}
 	/**
-	 * @deprecated This method is currently obsolete. Please refer to {@link #getClustersOfWorkfaces_zhen_new(String fileName, int numOfWorkphases, String delimiter)}
+	 * @deprecated This method is currently obsolete. Please refer to {@link #getClustersOfWorkfaces_zhen_new(String, int, String, MachineOpInfo, WorkfaceWorkload, WorkfaceDistance)}
 	 * @param fileName
 	 * @param numOfWorkphases
 	 * @param delimiter
@@ -1309,7 +1308,7 @@ public class ClusterTool {
 	}/* getClustersOfWorkphases */
 
 	/**
-	 * Get rid of parentheses based on the clearLevel argument.
+	 * Get rid of parentheses based on the <i>clearLevel</i> argument.
 	 * @param workface Workfaces sorted based on distance and grouped using parentheses
 	 * @param clearLevel Level of parentheses to be eliminated
 	 * @return processed workface list grouped using parentheses 

@@ -10,10 +10,16 @@ package geo.core;
  */
 public class DistanceUnit {
 	
-	// from workface
+	/**
+	 * <i>from</i> workface
+	 */
 	public int from;
-	// to workface
+	/**
+	 * <i>to</i> workface
+	 */
 	public int to;
-	// distance between from and to workfaces
+	/**
+	 * distance between <i>from</i> and <i>to</i> workfaces
+	 */
 	public double distance;
 }
