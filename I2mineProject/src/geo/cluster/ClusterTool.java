@@ -489,15 +489,17 @@ public class ClusterTool {
 			msgWf.append("\n Workface Sequence based on distance sorting: " + wfSeq.toString() + "\n");
 			LogTool.log(LEVEL, msgWf.toString());
 			
+			
+			
 			// Try to eliminate parentheses
 			wfSeq = processParenLevel(wfSeq, parenClearLevel);
 			
 			// Register log info -- print out workfaces based on distance sorting		
 			StringBuilder msgWfProcessed = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-			msgWf.append("\n Workface Sequence based on distance sorting(processed): " + msgWfProcessed.toString() + "\n");
+			msgWfProcessed.append("\n Workface Sequence based on distance sorting(processed): " + wfSeq.toString() + "\n");
 			LogTool.log(LEVEL, msgWfProcessed.toString());
 			
-			//System.exit(0);/////////////////////////////////////
+//			System.exit(0);/////////////////////////////////////
 			
 			
 			//wfSeq = new StringBuilder("(9,10,11,12,13,1,2,3,4,5,6,7,8,14,15,16,17,18,19,20)");
@@ -574,7 +576,7 @@ public class ClusterTool {
 					//Register log info
 					StringBuilder msgBeforeAfterGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
 					msgBeforeAfterGroups.append("\nbefore sort groups: " + curSortGroup + "\n");
-					tmpSortGroupRet = SortTool.sortGroups(curSortGroup, opInfo, workload, distance1);
+					tmpSortGroupRet = SortTool.sortGroups_new(curSortGroup, opInfo, workload, distance1);
 					msgBeforeAfterGroups.append("\nafter sort groups: " + tmpSortGroupRet + "\n");
 					ArrayList<Integer> tmpSortedGroupRet = new ArrayList<Integer>();
 					
@@ -599,7 +601,7 @@ public class ClusterTool {
 					dataSet[0] = data;
 					ArrayList<ArrayList<Integer>> tmpPara = new ArrayList<ArrayList<Integer>>();
 					tmpPara.add(curSortList);
-					tmpSortGroupRet = SortTool.sortWorkfaces(dataSet, tmpPara, opInfo, workload);
+					tmpSortGroupRet = SortTool.sortWorkfaces_new(dataSet, tmpPara, opInfo, workload);
 					msgBeforeAfterGroups.append("after sort workfaces: " + tmpSortGroupRet + "\n");
 					LogTool.log(LEVEL, msgBeforeAfterGroups.toString());
 					totalSortedGroup.push(tmpSortGroupRet.get(0));
@@ -607,22 +609,25 @@ public class ClusterTool {
 				ci ++;
 			}
 			else if(wfSeq.charAt(ci) >= '0' && wfSeq.charAt(ci) <= '9'){
-				int tmpIndex = ci + 1;
-				while(wfSeq.charAt(tmpIndex) >= '0' && wfSeq.charAt(tmpIndex) <= '9'){
-					tmpIndex ++;
-				}
-				totalSortedGroup.push(Integer.valueOf(wfSeq.subSequence(ci, tmpIndex).toString()));
-				//Register log info
-				StringBuilder msgReadinInt = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgReadinInt.append("\nRead in another integer: " + totalSortedGroup + "\n");
-				LogTool.log(LEVEL, msgReadinInt.toString());
-				
-				ci = tmpIndex;
+					int tmpIndex = ci + 1;
+					while(wfSeq.charAt(tmpIndex) >= '0' && wfSeq.charAt(tmpIndex) <= '9'){
+						tmpIndex ++;
+					}
+					totalSortedGroup.push(Integer.valueOf(wfSeq.subSequence(ci, tmpIndex).toString()));
+					//Register log info
+					StringBuilder msgReadinInt = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+					msgReadinInt.append("\nRead in another integer: " + totalSortedGroup + "\n");
+					LogTool.log(LEVEL, msgReadinInt.toString());
+					
+					ci = tmpIndex;
 			}else{
 				// Current character is comma, advance ci one step forward
 				ci ++;
 			}
 		}
+		
+		
+		
 		
 		ArrayList<Integer> finalSortedWorkfaceRet = new ArrayList<Integer>();
 		while(totalSortedGroup.empty() == false){
@@ -655,7 +660,7 @@ public class ClusterTool {
 		}
 		
 		// Compute operating time of each segment
-		// TODO
+		// TODO--Undone
 	}
 	
 	/**
@@ -1068,7 +1073,7 @@ public class ClusterTool {
 					ArrayList<ArrayList<Integer>> tmpSortedWorkfaceGroups = new ArrayList<ArrayList<Integer>>();
 					tmpSortedWorkfaceGroups.add(corFirstLevelGroup);
 					tmpSortedWorkfaceGroups.add(cor2ndLevelWf);
-					ArrayList<ArrayList<Integer>> ret2ndGroups = SortTool.sortGroups(tmpSortedWorkfaceGroups, machineOpInfo, workload, distance);
+					ArrayList<ArrayList<Integer>> ret2ndGroups = SortTool.sortGroups_new(tmpSortedWorkfaceGroups, machineOpInfo, workload, distance);
 					
 					ArrayList<Integer> result1List = ret2ndGroups.get(0);
 					result1List.addAll(ret2ndGroups.get(1));
@@ -1136,7 +1141,7 @@ public class ClusterTool {
 						ArrayList<ArrayList<Integer>> tmpFinalResult = new ArrayList<ArrayList<Integer>>();
 						tmpFinalResult.add(workfaceGroup1);
 						tmpFinalResult.add(workfaceGroup2);
-						tmpFinalResult = SortTool.sortGroups(tmpFinalResult, machineOpInfo, workload, distance);
+						tmpFinalResult = SortTool.sortGroups_new(tmpFinalResult, machineOpInfo, workload, distance);
 						
 						finalFirstLevelWorkfaceSort.remove(workfaceGroup1);
 						finalFirstLevelWorkfaceSort.remove(workfaceGroup2);
@@ -1185,7 +1190,7 @@ public class ClusterTool {
 		
 		if(finalFirstLevelWorkfaceSort.size() > 1){
 			
-			finalFirstLevelWorkfaceSort = SortTool.sortGroups(finalFirstLevelWorkfaceSort, machineOpInfo, workload, distance);
+			finalFirstLevelWorkfaceSort = SortTool.sortGroups_new(finalFirstLevelWorkfaceSort, machineOpInfo, workload, distance);
 			ArrayList<Integer> finalWorkfaceList = finalFirstLevelWorkfaceSort.get(0);
 			for(int fIndex = 1; fIndex < finalFirstLevelWorkfaceSort.size(); fIndex ++){
 				finalWorkfaceList.addAll(finalFirstLevelWorkfaceSort.get(fIndex));
@@ -1361,6 +1366,10 @@ public class ClusterTool {
 			proLoop = 2;
 		else if(clearLevel == Parentheses.THIRD_LEVEL)
 			proLoop = 3;
+		else if(clearLevel == Parentheses.FORTH_LEVEL)
+			proLoop = 4;
+		else if(clearLevel == Parentheses.FIFTH_LEVEL)
+			proLoop = 5;
 		else if(clearLevel == Parentheses.NONE)
 			proLoop = 0;
 		
@@ -1368,6 +1377,7 @@ public class ClusterTool {
 		while(proLoop-- > 0)
 			tmpWfList = processFirstParenLevel(tmpWfList);
 		
+		System.out.println("=============processed parenthasis=============\n" + tmpWfList);
 		return tmpWfList;
 	}
 	
@@ -1423,10 +1433,10 @@ public class ClusterTool {
 		// Determine whether to output debug info or not
 		
 		
-//		ClusterTool.LEVEL = LogTool.LEVEL_OPEN;
-//		SortTool.LEVEL = LogTool.LEVEL_OPEN;
-		ClusterTool.LEVEL = LogTool.LEVEL_CLOSE;
-		SortTool.LEVEL = LogTool.LEVEL_CLOSE;
+		ClusterTool.LEVEL = LogTool.LEVEL_OPEN;
+		SortTool.LEVEL = LogTool.LEVEL_OPEN;
+//		ClusterTool.LEVEL = LogTool.LEVEL_CLOSE;
+//		SortTool.LEVEL = LogTool.LEVEL_CLOSE;
 		
 		//***************start the grouping workface process********************
 		//Dataset[] dss = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 20, "\t");
