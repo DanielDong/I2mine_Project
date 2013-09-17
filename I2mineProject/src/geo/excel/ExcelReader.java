@@ -21,6 +21,12 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
+/**
+ * This class provides utility functions for reading data from excel files.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class ExcelReader {
 	
 	public Workbook workbook = null;

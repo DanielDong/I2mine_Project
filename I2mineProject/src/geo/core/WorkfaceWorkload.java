@@ -2,6 +2,12 @@ package geo.core;
 
 import java.util.ArrayList;
 
+/**
+ * This class loads workface workloads for all workfaces from file.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class WorkfaceWorkload {
 	
 	private ArrayList<ArrayList<Double>> workload = null;

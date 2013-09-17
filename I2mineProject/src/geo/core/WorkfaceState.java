@@ -2,6 +2,12 @@ package geo.core;
 
 import java.util.ArrayList;
 
+/**
+ * This class stores workface state of current workfaces.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class WorkfaceState {
 	
 	private ArrayList<Integer> workfaceState = null;

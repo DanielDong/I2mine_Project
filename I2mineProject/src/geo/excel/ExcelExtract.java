@@ -19,6 +19,12 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
+/**
+ * This class provides utility functions({@link #getCellValue(int, int, CellType)} etc.) for processing excel files.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class ExcelExtract {
 
 	public static int LEVEL = LogTool.LEVEL_OPEN;
@@ -26,9 +32,6 @@ public class ExcelExtract {
 	private ArrayList<Integer> extractData = null;
 	private Workbook workbook = null;
 	private Sheet sheet = null;
-	/**
-	 * @param args
-	 */
 	
 	public ExcelExtract(){
 		extractData = new ArrayList<Integer>();
@@ -36,7 +39,7 @@ public class ExcelExtract {
 	
 	/**
 	 * Initiate the workbook for data extraction
-	 * @param workbookName workbook for data extraction
+	 * @param workbookName Workbook for data extraction
 	 * @return true for successful initiation; otherwise false 
 	 */
 	public boolean initWorkbook(String workbookName){
@@ -61,7 +64,7 @@ public class ExcelExtract {
 	}
 	
 	/**
-	 * Initiate sheet
+	 * Initiate sheet.
 	 * @param pos postion for sheet
 	 */
 	public void initSheet(int pos){
@@ -176,14 +179,7 @@ public class ExcelExtract {
 					}
 					
 				}
-//				else{
-//					if(tmpStartCol != -1)
-//						nonNum ++;
-//				}
 			}//end inner for
-			
-//			// Print out tmpStartCol, tmpEndCol and nonNum for each line
-//			System.out.println(i + ":	" + tmpStartCol + "	" + tmpEndCol + "	" + nonNum);
 			
 			// After each line, check for wider start column and end column index
 			if(tmpEndCol > tmpStartCol){
@@ -250,6 +246,7 @@ public class ExcelExtract {
 	/**
 	 * Extract certain attribute in a certain row
 	 */
+	@Deprecated
 	public void extractCertainAttribute(){
 		
 		String instructMsg = "Choose the attribute: \n" +
@@ -290,9 +287,6 @@ public class ExcelExtract {
 				case 3:
 					ret = searchSheet("Working months per year");
 					break;
-//				case 4:
-//					ret = searchSheet("Mechanical availability");
-//					break;
 				default:
 					System.out.println("The number you choose is not in the valid number list.");
 					System.exit(-1);
@@ -324,6 +318,7 @@ public class ExcelExtract {
 	/**
 	 * 
 	 */
+	@Deprecated
 	public ArrayList<String> checkForUnit(String checkVal){
 		return getNumUnit(checkVal);
 	}
@@ -331,6 +326,7 @@ public class ExcelExtract {
 	/**
 	 * 
 	 */
+	@Deprecated
 	public ArrayList<String> searchSheet(String searchStr){
 		
 		ArrayList<String> ret = new ArrayList<String>();
@@ -388,6 +384,7 @@ public class ExcelExtract {
 	 * Read in and return a unit list from a text file named "Unit.txt"
 	 * @return
 	 */
+	@Deprecated
 	public static ArrayList<String> getUnitList(){
 		ArrayList<String> unitList = new ArrayList<String>();
 		
@@ -415,6 +412,7 @@ public class ExcelExtract {
 		return unitList;
 	}
 	
+	@Deprecated
 	public static float compareCellContent(String str1, String str2){
 		
 		if(str1 == null || str2 == null)
@@ -440,6 +438,7 @@ public class ExcelExtract {
 	 * @param cellVal cell contents
 	 * @return an ArrayList containing only two elements(first is the number and second is the unit) or null
 	 */
+	@Deprecated
 	public static ArrayList<String> getNumUnit(String cellVal){
 		ArrayList<String> ret = null;
 		ArrayList<String> unitList = getUnitList();
@@ -460,6 +459,7 @@ public class ExcelExtract {
 		return ret;
 	}
 	
+	@Deprecated
 	public ArrayList<String> getColHeadings(){
 		int rowNum = getRowNum();
 		int colNum = getColNum();

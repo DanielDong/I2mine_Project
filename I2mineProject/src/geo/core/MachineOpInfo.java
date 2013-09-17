@@ -2,6 +2,14 @@ package geo.core;
 
 import java.util.ArrayList;
 
+/**
+ * This class stores operating and moving rate for each machine.
+ * It also provides utility functions to easily get and set machine 
+ * operating information.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class MachineOpInfo {
 	private int numOfMachine;
 	private ArrayList<ArrayList<Double>> opInfo = null;
@@ -29,7 +37,7 @@ public class MachineOpInfo {
 	
 	/**
 	 * Add machine operation information to machine operation information array
-	 * @param curOpInfo
+	 * @param curOpInfo Current machine operating information.
 	 * @return true if machine operation information is added successfully, otherwise false
 	 */
 	public boolean addMachineOpInfo(ArrayList<Double> curOpInfo){

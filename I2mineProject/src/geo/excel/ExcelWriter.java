@@ -12,6 +12,12 @@ import jxl.write.WriteException;
 import jxl.write.biff.RowsExceededException;
 import jxl.write.Number;
 
+/**
+ * This class provides utility functions for writing data to excel files.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class ExcelWriter {
 	
 	private WritableWorkbook workBook = null;

@@ -2,6 +2,12 @@ package geo.core;
 
 import java.util.ArrayList;
 
+/**
+ * This class loads the distance matrix of all the workfaces from file. 
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class WorkfaceDistance {
 	
 	private int numOfWorkface;
