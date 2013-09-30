@@ -4,7 +4,10 @@ import geo.core.MachineOpInfo;
 import geo.core.WorkfaceDistance;
 import geo.core.WorkfaceWorkload;
 import geo.util.LogTool;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import net.sf.javaml.core.Dataset;
 
 /**
@@ -47,18 +50,18 @@ public class SortTool {
 		for(int m = 0; m < numberOfMachine;m++){
 			// OR and MR
 			ArrayList<Double> curOpInfo = machineOpInfo.getCertainMachineOpInfo(m);
-			ArrayList<Double> curWorkload = workload.getWorkloadOfMachine(m);
+			ArrayList<Double> curWorkload = workload.getWorkloadOfMachine(m);// Contain operate info and move info
 			ArrayList<Double> curTimeInterval = new ArrayList<Double>();
 			ArrayList<Double> curWaitTime = new ArrayList<Double>();
 			
 			// time interval of previous machine in current region
 			// in the format of "pro_time, mov_time [, WAIT_time], pro_time, mov_time[, WAIT_time] ..." 
-			ArrayList<Double> preMachineTimeInterval = null;
-			ArrayList<Double> preWaitTime = null;
-			if(m != 0){
-				preMachineTimeInterval = machineTimeInterval.get((m - 1) * 2);
-				preWaitTime = machineTimeInterval.get((m - 1) * 2 + 1);
-			}
+//			ArrayList<Double> preMachineTimeInterval = null;
+//			ArrayList<Double> preWaitTime = null;
+//			if(m != 0){
+//				preMachineTimeInterval = machineTimeInterval.get((m - 1) * 2);
+//				preWaitTime = machineTimeInterval.get((m - 1) * 2 + 1);
+//			}
 			
 			// Register log info
 			StringBuilder msgSortedWf = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
@@ -72,10 +75,10 @@ public class SortTool {
 				
 				// sortedWorkfacesInOneRegion.get(w) gets the real index for workface, e.g., 1, 2, 3, ..., 20
 				// The needed index is 0 based
-				double curProTime = curWorkload.get((sortedWorkfacesInOneRegion.get(w)) - 1)/curOpInfo.get(0);
+				double curProTime = curWorkload.get(sortedWorkfacesInOneRegion.get(w) - 1)/curOpInfo.get(0);
 				double curMovTime = distance.getDistBetweenTwoWorkfaces(
 						sortedWorkfacesInOneRegion.get(w) - 1, sortedWorkfacesInOneRegion.get(w + 1) - 1)/curOpInfo.get(1);
-				double timeOfCur = curProTime + curMovTime;
+//				double timeOfCur = curProTime + curMovTime;
 				// processing time from 1st procedure to last - 1 procedure
 				curTimeInterval.add(curProTime);
 				// moving time
@@ -84,23 +87,82 @@ public class SortTool {
 				if(m == 0){
 					curWaitTime.add(0.0);
 				}else{
-					int indexOfPre = (w + 1) * 2;
-					double timeOfPre = preMachineTimeInterval.get(indexOfPre) + preMachineTimeInterval.get(indexOfPre - 1);  
-					timeOfPre += preWaitTime.get(w);
+					// No wait time before first workface of a permutation
+//					if(w != 0){
+						
+						// Compute previous machines' time
+						double timeOfPres = 0, timeOfCurs = 0;
+						for(int k = 0; k < m; k ++){
+							// Only take the first 
+							if(k != m - 1){
+								timeOfPres += machineTimeInterval.get(2 * k).get(0); // Only add the operational time for first workface
+							}else{
+								ArrayList<Double> preMachineTimeInterval = machineTimeInterval.get(2 * k); // Get operational time of machine k
+								ArrayList<Double> preWaitTime = machineTimeInterval.get(2 * k + 1); // Get wait time of machine k
+								for(int j = 0; j <= w + 1; j ++){
+									if(j != w + 1){
+										timeOfPres += preMachineTimeInterval.get(j * 2); // Operational time
+										
+										if(j == 0){
+											timeOfCurs = timeOfPres;
+										}
+										
+										timeOfPres += preMachineTimeInterval.get(j * 2 + 1); // Moving time
+										timeOfPres += preWaitTime.get(j); // Wait time
+									}
+									// Only add operational time, no move time, no wait time added
+									else{
+										timeOfPres +=  preMachineTimeInterval.get(j * 2); // Operational time
+									}
+								}// end for
+							}
+						}// end for
+						
+						// Compute current machines' time
+						for(int k = 0; k <= w; k ++){
+							if(k != w){
+//								System.out.println("k:" + k + " w:" + w + " m:" + m);
+								timeOfCurs += curTimeInterval.get(k * 2); // Add operational time
+								timeOfCurs += curTimeInterval.get(k * 2 + 1); // Add moving time
+								timeOfCurs += curWaitTime.get(k); // Add waiting time
+							}
+							else{
+								timeOfCurs += curTimeInterval.get(k * 2); // Add operational time
+								timeOfCurs += curTimeInterval.get(k * 2 + 1); // Add moving time
+							}
+						}
+						
+						//Wait time is needed
+						if(timeOfPres > timeOfCurs){
+							curWaitTime.add(timeOfPres - timeOfCurs);
+						}
+						// No wait time is needed
+						else{
+							curWaitTime.add(0.0);
+						}
+						
+//					}
+						
 					
-					// WAIT time is needed
-					if(timeOfPre > timeOfCur){
-						curWaitTime.add(timeOfPre - timeOfCur);
-					}
-					// No WAIT time is needed, can start process right away
-					else{
-						curWaitTime.add(0.0);
-					}
+					
+					
+//					int indexOfPre = (w + 1) * 2;
+//					double timeOfPre = preMachineTimeInterval.get(indexOfPre) + preMachineTimeInterval.get(indexOfPre - 1);  
+//					timeOfPre += preWaitTime.get(w);
+//					
+//					// WAIT time is needed
+//					if(timeOfPre > timeOfCur){
+//						curWaitTime.add(timeOfPre - timeOfCur);
+//					}
+//					// No WAIT time is needed, can start process right away
+//					else{
+//						curWaitTime.add(0.0);
+//					}
 				}
 				
 			}// end for(w)
 			// processing time for last procedure
-			curTimeInterval.add(curWorkload.get(sortedWorkfacesInOneRegion.get(sortedWorkfacesInOneRegion.size() - 1))/curOpInfo.get(0));
+			curTimeInterval.add(curWorkload.get(sortedWorkfacesInOneRegion.get(sortedWorkfacesInOneRegion.size() - 1) - 1)/curOpInfo.get(0));
 			
 			// add time interval for current machine into machineTimeInterval
 			machineTimeInterval.add(curTimeInterval);
@@ -171,20 +233,65 @@ public class SortTool {
 			ArrayList<ArrayList<Double>> curRegionTime = computeMachineTimeIntervalInOneRegion
 					(curWorkfaceList, machineOpInfo, workload, distance);
 			
+			
+			//============================================================================
+			if(curWorkfaceList.size() == 20){
+				System.out.println("20 workfaces:");
+				for(int kk = 0; kk < curWorkfaceList.size(); kk ++){
+					System.out.print(curWorkfaceList.get(kk) + " ");
+				}
+			}System.out.println();
+			
+			
 			// Sum each machine's first operating time on each workface
 			for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
 				curTotalTime += curRegionTime.get(k * 2).get(0);
+				
+				//============================================================================
+				if(curWorkfaceList.size() == 20){
+					if(k == 0)
+						System.out.print("op time: ");
+					System.out.print(curRegionTime.get(k * 2).get(0) + " ");
+				}
 			}
+			System.out.println();
+			
 			// Sum last machine's operating time
 			ArrayList<Double> lastMachineTimeInterval = curRegionTime.get(curRegionTime.size() - 2);
 			for(int m = 0; m < lastMachineTimeInterval.size(); m ++){
 				curTotalTime += lastMachineTimeInterval.get(m);
+				
+				//============================================================================
+				if(curWorkfaceList.size() == 20){
+					if(m == 0)
+						System.out.print("last op/mv time: ");
+					System.out.print(lastMachineTimeInterval.get(m) + " ");
+				}
 			}
+			System.out.println();
+			
 			// Sum last machine's waiting time
 			ArrayList<Double> lastMachineWaitTime = curRegionTime.get(curRegionTime.size() - 1);
 			for(int n = 0; n < lastMachineWaitTime.size(); n ++){
 				curTotalTime += lastMachineWaitTime.get(n);
+				
+				//============================================================================
+				if(curWorkfaceList.size() == 20){
+					if(n == 0)
+						System.out.print("last wait time: ");
+					System.out.print(lastMachineWaitTime.get(n) + " ");
+				}
 			}
+			System.out.println();
+			
+//			if(curWorkfaceList.contains(10) && curWorkfaceList.contains(11) && curWorkfaceList.contains(12) || curWorkfaceList.contains(20)){
+//				for(int s = 0; s < curWorkfaceList.size(); s ++){
+//					System.out.print(curWorkfaceList.get(s) + " ");
+//				}
+//				System.out.println("	time: " + curTotalTime);
+//				
+//			}
+			
 			
 			if(curTotalTime < minTotalTime){
 				minTotalTime = curTotalTime;
@@ -193,16 +300,68 @@ public class SortTool {
 					
 					minGroupList.add(curGroupPerm.get(l).groupOfSortedWorkfaces);
 				}
+				
+				// Print visual info
+//				if(curWorkfaceList.size() == 20){
+//					// For each machine op, mov, wait time
+//					for(int k = 0; k < curRegionTime.size() - 1; k += 2){
+//						ArrayList<Double> opMovTime = curRegionTime.get(k);
+//						ArrayList<Double> waitTime = curRegionTime.get(k + 1);
+//						System.out.print("Machine " + (k / 2) + " ");
+//						
+//						for(int m = 0; m < k / 2; m ++){
+//							long numOfPrevOpFirst = Math.round(curRegionTime.get(m * 2).get(0));
+////							if(curRegionTime.get(m * 2).get(0) - numOfPrevOpFirst > 0)
+////								numOfPrevOpFirst ++;
+//							for(int m1 = 0; m1 < numOfPrevOpFirst; m1 ++){
+//								System.out.print(" ");
+//							}
+//						}
+//						
+//						for(int j = 0; j < opMovTime.size() - 1; j += 2){
+//							long numOfOp = Math.round(opMovTime.get(j));
+//							if(opMovTime.get(j) - numOfOp > 0)
+//								numOfOp ++;
+//							long numOfMov = Math.round(opMovTime.get(j + 1));
+//							if(opMovTime.get(j + 1) - numOfMov > 0)
+//								numOfMov ++;
+////							if(numOfMov == 0)
+////								numOfMov = 1;
+//							long numOfWait = Math.round(waitTime.get(j / 2));
+////							if(waitTime.get(j / 2) - numOfWait > 0)
+////								numOfWait ++;
+//							for(int j1 = 0; j1 < numOfOp - 2; j1 ++){
+//								if(j1 == 2){
+//									String curWf = curWorkfaceList.get(j / 2).toString();
+//									if(curWf.length() == 2)
+//										System.out.print(curWf);
+//									else
+//										System.out.print("0" + curWf);
+//								}else
+//									System.out.print("=");
+//							}
+//							for(int j1 = 0; j1 < numOfMov; j1 ++)
+//								System.out.print(".");
+//							for(int j1 = 0; j1 < numOfWait; j1 ++)
+//								System.out.print("*");
+//						}
+//						long numOfOp = Math.round(opMovTime.get(opMovTime.size() - 1));
+//						for(int j1 = 0; j1 < numOfOp; j1 ++)
+//							System.out.print("=");
+//						
+//						System.out.println();
+//					}
+//				}
 			}
 		}
 		
-//		System.out.println("============minimum time=============\n" + minTotalTime + "\n");
-//		for(int i = 0; i < minGroupList.size(); i ++){
-//			for(int j =0; j < minGroupList.get(i).size(); j ++){
-//				System.out.print(minGroupList.get(i).get(j) + " ");
-//			}
-//			System.out.println();
-//		}
+		System.out.println("============minimum time=============\n" + minTotalTime + "\n");
+		for(int i = 0; i < minGroupList.size(); i ++){
+			for(int j =0; j < minGroupList.get(i).size(); j ++){
+				System.out.print(minGroupList.get(i).get(j) + " ");
+			}
+			System.out.println();
+		}
 		
 		return minGroupList;
 	}
@@ -496,14 +655,21 @@ public class SortTool {
 	 * @param row Current row to be calculated.
 	 * @return The maximum time for one workface permutation.
 	 */
-	private static Double getMaxTime(ArrayList<ArrayList<Double>> matrix, int col, int row){
+	private static Double getMaxTime(ArrayList<ArrayList<Double>> matrix, int col, int row, int flag){
 		if(col == 0 && row == 0){
 			return matrix.get(row).get(col);
 		}else{
 			double sum1 = 0;
-			if(col - 1 >= 0) sum1 = getMaxTime(matrix, col - 1, row);
+			if(col - 1 >= 0) sum1 = getMaxTime(matrix, col - 1, row, flag);
 			double sum2 = 0;
-			if(row - 1 >= 0) sum2 = getMaxTime(matrix, col, row - 1);
+			if(row - 1 >= 0) sum2 = getMaxTime(matrix, col, row - 1, flag);
+//			if(flag == 1){
+//				if(sum1 > sum2)
+//					System.out.println((matrix.get(row).get(col - 1) + " " + matrix.get(row).get(col)));
+//				else
+//					System.out.println((matrix.get(row - 1).get(col) + " " + matrix.get(row).get(col)));
+//			}
+			
 			return (Math.max(sum1,  sum2) + matrix.get(row).get(col));
 		}
 	}
@@ -513,8 +679,83 @@ public class SortTool {
 	 * @param matrix Matrix recording operating and moving time for each machine (column) on each workface (row).
 	 * @return The maximum time for one workface permutation.
 	 */
-	private static double computeMaxWfSeqTime(ArrayList<ArrayList<Double>> matrix){
-		return getMaxTime(matrix, matrix.get(0).size() - 1, matrix.size() - 1);
+	private static double computeMaxWfSeqTime(ArrayList<ArrayList<Double>> matrix, int flag){
+		return getMaxTime(matrix, matrix.get(0).size() - 1, matrix.size() - 1, flag);
+	}
+	
+	
+	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new1 (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
+		
+		// The number of groups after clustering
+		int len = clusterGroups1.size();
+		
+		// Iterate through each cluster group, e.g. (w1, w2, w3), (w4, w6), (w5, w7)
+		for(int i = 0; i < len; i++){
+			
+			ArrayList<ArrayList<Integer>> permList = new ArrayList<ArrayList<Integer>>();
+			ArrayList<Integer> curWfList = clusterGroups1.get(i);
+			permute(curWfList, 0, curWfList.size() - 1, permList);
+			// For each permutation of the workface sequence, e.g. w1 w2 w3, w1 w3 w2, w2 w1 w3, w2 w3 w1...(in total 6 permutations for 3 workfaces)
+			// Compute the total time used for operating and moving
+			double minTotalTime = Double.MAX_VALUE;
+			ArrayList<Integer> minPermList = new ArrayList<Integer>();
+			
+			for(int j = 0; j < permList.size(); j ++){
+				ArrayList<Integer> curPermList = permList.get(j);
+				double curTotalTime = 0;
+				// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
+				ArrayList<ArrayList<Double>> curRegionTime = computeMachineTimeIntervalInOneRegion
+						(curPermList, machineOpInfo, workload, distance);
+				
+				// Sum each machine's first operating time on each workface
+				for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
+					curTotalTime += curRegionTime.get(k * 2).get(0);
+				}
+				// Sum last machine's operating time
+				ArrayList<Double> lastMachineTimeInterval = curRegionTime.get(curRegionTime.size() - 2);
+				for(int m = 0; m < lastMachineTimeInterval.size(); m ++){
+					curTotalTime += lastMachineTimeInterval.get(m);
+				}
+				// Sum last machine's waiting time
+				ArrayList<Double> lastMachineWaitTime = curRegionTime.get(curRegionTime.size() - 1);
+				for(int n = 0; n < lastMachineWaitTime.size(); n ++){
+					curTotalTime += lastMachineWaitTime.get(n);
+				}
+				
+//				if(curPermList.contains(17) && curPermList.contains(18) && curPermList.contains(19) && curPermList.contains(20)){
+//					System.out.println("------------&&&&&-------------");
+//					for(int k = 0; k < curPermList.size(); k ++)
+//						System.out.print(curPermList.get(k) + " ");
+//					System.out.println("\n cur total time: " + curTotalTime);
+//				}
+//				if(curPermList.contains(12) && curPermList.contains(10) && curPermList.contains(11)){
+//					System.out.println("------------&&&&&-------------");
+//					for(int k = 0; k < curPermList.size(); k ++)
+//						System.out.print(curPermList.get(k) + " ");
+//					System.out.println("\n cur total time: " + curTotalTime);
+//				}
+				if(curPermList.contains(12) && curPermList.contains(10) && curPermList.contains(11) && curPermList.contains(9) && curPermList.contains(8) && curPermList.contains(7) && curPermList.contains(6) && curPermList.contains(5) && curPermList.contains(4)){
+//					System.out.println("------------&&&&&-------------");
+					StringBuilder sb = new StringBuilder();
+					for(int k = 0; k < curPermList.size(); k ++)
+						//System.out.print(curPermList.get(k) + " ");
+						sb.append(curPermList.get(k) + " ");
+					if(sb.toString().equals("5 6 7 4 8 9 12 10 11 ") || sb.toString().equals("6 5 4 9 8 7 12 10 11 ") || sb.toString().equals("4 6 5 7 8 9 10 11 12 ") || sb.toString().equals("4 6 5 7 8 9 11 10 12 ")){
+						System.out.println(sb.toString() + "\n cur total time: " + curTotalTime);
+					}
+					
+				}
+				
+				if(curTotalTime < minTotalTime){
+					minTotalTime = curTotalTime;
+					minPermList.clear();
+					minPermList.addAll(curPermList);
+				}
+			}
+			sortGroups.add(minPermList);
+		}
+		return sortGroups;
 	}
 	
 	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload){
@@ -537,6 +778,7 @@ public class SortTool {
 			// Compute the total time used for operating and moving
 			double minTime = Double.MAX_VALUE;
 			ArrayList<Integer> minPermList = null;
+			
 			for(int j = 0; j < permList.size(); j ++){
 				ArrayList<Integer> curPermList = permList.get(j);
 				
@@ -563,7 +805,10 @@ public class SortTool {
 					matrix.add(curWfTotalTime);
 				}
 				
-				double curMaxTime = computeMaxWfSeqTime(matrix);
+				int flag = 0;
+				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17))
+					flag = 1;
+				double curMaxTime = computeMaxWfSeqTime(matrix, flag);
 				
 				if(curMaxTime < minTime){
 					minTime = curMaxTime;
@@ -587,6 +832,9 @@ public class SortTool {
 				msgPerm.append("\n");
 				msgPerm.append("cur maxtime: " + curMaxTime + "\n");
 				LogTool.log(LEVEL, msgPerm.toString());
+				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17)){
+					System.out.println(msgPerm);
+				}
 				
 //				if(curPermList.contains(8)){
 //					msgPerm.append("\n===================Print out workface time info for each permutation================\n");
@@ -597,6 +845,12 @@ public class SortTool {
 //				}
 				
 			}
+			// Print out minimum workface time
+//			System.out.println("\n===================minimum workface time permutation================\n" + minTime);
+//			for(int k = 0; k < minPermList.size(); k ++){
+//				System.out.print(minPermList.get(k) + " ");
+//			}
+//			System.out.println();
 			
 			sortGroups.add(minPermList);
 		}

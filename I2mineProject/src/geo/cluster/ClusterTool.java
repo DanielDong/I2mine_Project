@@ -53,6 +53,34 @@ public class ClusterTool {
 		}
 	}
 	
+	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new1(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException, URISyntaxException{
+		
+		/* Load a dataset */
+		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
+		// Get original distance list
+		ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();
+		for(int row = 0; row < data.size(); row ++){
+			for(int col = row + 1; col < data.get(row).size(); col ++){
+				 
+				DistanceUnit du = new DistanceUnit();
+				du.distance = data.get(row).get(col);
+				du.from = row + 1; // 0 based index in data, plus 1 to be consistent with workface index in text file, 
+				du.to = col + 1;
+				
+				originalDistanceList.add(du);
+			}
+		}
+		
+		// Sort distance list in ascending order
+		DUComparator comparator = new DUComparator();
+		Collections.sort(originalDistanceList, comparator);
+		
+		for(int i = 0; i < originalDistanceList.size(); i ++){
+			System.out.print(originalDistanceList.get(i).distance + " ");
+		}
+		return null;
+	}
+	
 	/**
 	 * Cluster workfaces whose workface distances are stored in the <i>fileName</i> parameter.
 	 * @param fileName Text file which stores workface distance matrix.
@@ -61,7 +89,11 @@ public class ClusterTool {
 	 * @return Groups of workfaces determined by distances between workfaces. Workfaces which are near to each other are put together.
 	 * @throws IOException
 	 * @throws URISyntaxException 
+	 * <p>
+	 * Note: this algorithm is based on the tree structure.
+	 * </p>
 	 */
+	@Deprecated
 	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException, URISyntaxException{
 		
 	    /* Load a dataset */
@@ -69,12 +101,12 @@ public class ClusterTool {
 		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
 		
 		// Register log info
-		StringBuilder msgDistMatrix = new StringBuilder();
-		msgDistMatrix.append(Thread.currentThread().getStackTrace()[1].toString() + "\n=====Worface Distance Matrix======\n");
-		for(int i = 0; i < data.size(); i ++){
-			msgDistMatrix.append(data.get(i).toString() + "\n");
-		}
-		LogTool.log(LEVEL, msgDistMatrix.toString());
+//		StringBuilder msgDistMatrix = new StringBuilder();
+//		msgDistMatrix.append(Thread.currentThread().getStackTrace()[1].toString() + "\n=====Worface Distance Matrix======\n");
+//		for(int i = 0; i < data.size(); i ++){
+//			msgDistMatrix.append(data.get(i).toString() + "\n");
+//		}
+//		LogTool.log(LEVEL, msgDistMatrix.toString());
 		
 		// Get original distance list
 		ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();
@@ -95,13 +127,13 @@ public class ClusterTool {
 		Collections.sort(originalDistanceList, comparator);
 		
 		// Register log info
-		StringBuilder msgSortedDistList = new StringBuilder();
-		msgSortedDistList.append(Thread.currentThread().getStackTrace()[1].toString() + "\n======Sorted Distance Unit======\n");
-		for(int i = 0; i < originalDistanceList.size(); i++){
-			msgSortedDistList.append(originalDistanceList.get(i).distance + " ");
-		}
-		msgSortedDistList.append("\n");
-		LogTool.log(LEVEL, msgSortedDistList.toString());
+//		StringBuilder msgSortedDistList = new StringBuilder();
+//		msgSortedDistList.append(Thread.currentThread().getStackTrace()[1].toString() + "\n======Sorted Distance Unit======\n");
+//		for(int i = 0; i < originalDistanceList.size(); i++){
+//			msgSortedDistList.append(originalDistanceList.get(i).distance + " ");
+//		}
+//		msgSortedDistList.append("\n");
+//		LogTool.log(LEVEL, msgSortedDistList.toString());
 		
 		ArrayList<ArrayList<DistanceUnit>> groupDisList = new ArrayList<ArrayList<DistanceUnit>>();
 		int start = 0, end = 0;
@@ -132,18 +164,18 @@ public class ClusterTool {
 		}
 		
 		// Register log info
-		StringBuilder msgGroupDistList = new StringBuilder();
-		msgGroupDistList.append(Thread.currentThread().getStackTrace()[1].toString() + "'\n=======Display Grouped Distance Units=====\n");
-		msgGroupDistList.append("Distance Unit Size:" + originalDistanceList.size() + "\n");
-		msgGroupDistList.append("Group Size:" + groupDisList.size());
-		for(int i = 0; i < groupDisList.size(); i ++){
-			for(int j = 0; j < groupDisList.get(i).size(); j ++){
-				msgGroupDistList.append(groupDisList.get(i).get(j).distance + "(" + (groupDisList.get(i).get(j).from) + "," + 
-						(groupDisList.get(i).get(j).to) + ") ");
-			}
-			msgGroupDistList.append("\n");
-		}
-		LogTool.log(LEVEL, msgGroupDistList.toString());
+//		StringBuilder msgGroupDistList = new StringBuilder();
+//		msgGroupDistList.append(Thread.currentThread().getStackTrace()[1].toString() + "'\n=======Display Grouped Distance Units=====\n");
+//		msgGroupDistList.append("Distance Unit Size:" + originalDistanceList.size() + "\n");
+//		msgGroupDistList.append("Group Size:" + groupDisList.size());
+//		for(int i = 0; i < groupDisList.size(); i ++){
+//			for(int j = 0; j < groupDisList.get(i).size(); j ++){
+//				msgGroupDistList.append(groupDisList.get(i).get(j).distance + "(" + (groupDisList.get(i).get(j).from) + "," + 
+//						(groupDisList.get(i).get(j).to) + ") ");
+//			}
+//			msgGroupDistList.append("\n");
+//		}
+//		LogTool.log(LEVEL, msgGroupDistList.toString());
 		
 		
 		// *****************Start to create workface grouping using brackets*****************
@@ -280,11 +312,11 @@ public class ClusterTool {
 					groupOfWf[proWf] = groupOfWf[unProWf];
 					
 					//Register log info
-					StringBuilder msgTwoWfProcessed = new StringBuilder();
-					msgTwoWfProcessed.append(Thread.currentThread().getStackTrace()[1].toString() + "\n======Processed Two More Workfaces=======\n");
-					msgTwoWfProcessed.append("WF1:" + wf1 + " WF2:" + wf2 + "\n");
-					msgTwoWfProcessed.append(wfSeq + "\n");
-					LogTool.log(LEVEL, msgTwoWfProcessed.toString());
+//					StringBuilder msgTwoWfProcessed = new StringBuilder();
+//					msgTwoWfProcessed.append(Thread.currentThread().getStackTrace()[1].toString() + "\n======Processed Two More Workfaces=======\n");
+//					msgTwoWfProcessed.append("WF1:" + wf1 + " WF2:" + wf2 + "\n");
+//					msgTwoWfProcessed.append(wfSeq + "\n");
+//					LogTool.log(LEVEL, msgTwoWfProcessed.toString());
 					
 					continue;
 				}
@@ -292,7 +324,7 @@ public class ClusterTool {
 				// Both are processed already
 				
 				// Register log info
-				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Both WFs are processed - WF1 : " + wf1 + " WF2 : " + wf2);
+//				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Both WFs are processed - WF1 : " + wf1 + " WF2 : " + wf2);
 				
 				if(groupOfWf[wf1] == groupOfWf[wf2]){
 					continue;
@@ -307,12 +339,12 @@ public class ClusterTool {
 				String subStr1 = wfSeq.substring(startOf1, endOf1 + 1);
 				
 				// Register log info
-				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
+//				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
 				
 				String subStr2 = wfSeq.substring(startOf2, endOf2 + 1);
 				
 				// Register log info
-				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
+//				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
 				
 				// Get sub workface sequence to decide whether subStr1 and subStr2 on the same level or not
 				boolean isChanged = false;
@@ -322,7 +354,7 @@ public class ClusterTool {
 					int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
 					
 					// Register log info
-					LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Temp WF(from) : " + tmpWorkface);
+//					LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Temp WF(from) : " + tmpWorkface);
 					
 					if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
 						isChanged = true;
@@ -330,7 +362,7 @@ public class ClusterTool {
 							subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
 							
 							// Register log info
-							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-from) WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
+//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-from) WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
 						}
 					}
 					if(isChanged == true){
@@ -339,7 +371,7 @@ public class ClusterTool {
 					tmpWorkface = groupDisList.get(i).get(tmpJ).to;
 					
 					// Register log info
-					LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Temp WF(to) : " + tmpWorkface);
+//					LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Temp WF(to) : " + tmpWorkface);
 					
 					if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
 						isChanged = true;
@@ -347,7 +379,7 @@ public class ClusterTool {
 							subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
 							
 							// Register log info
-							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-to) WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
+//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-to) WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
 						}
 					}
 					if(isChanged == true){
@@ -364,7 +396,7 @@ public class ClusterTool {
 							subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
 							
 							// Register log info
-							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-from) WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
+//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-from) WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
 						}
 					}
 					if(isChanged == true){
@@ -377,7 +409,7 @@ public class ClusterTool {
 							subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
 							
 							// Register log info
-							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-to) WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
+//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-to) WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
 						}
 					}
 					if(isChanged == true){
@@ -503,17 +535,18 @@ public class ClusterTool {
 		StringBuilder msgWfProcessed = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
 		msgWfProcessed.append("\n Workface Sequence based on distance sorting(processed): " + wfSeq.toString() + "\n");
 		LogTool.log(LEVEL, msgWfProcessed.toString());
+		
+		
+		System.out.println("=======Workface Sequence based on distance sorting(processed-exclude parenthesis)========\n" + wfSeq.toString());
 
 		Stack totalSortedGroup = new Stack();
-		
-		
 		// Iterate over each char in wfSeq
 		for(int ci = 0; ci < wfSeq.toString().length();){
 			
 			// Register log info
-			StringBuilder msgCurCharCurSortedGroup = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-			msgCurCharCurSortedGroup.append("\nRead in next char, cur total sorted group is: " + totalSortedGroup.toString() + " cur len: " + totalSortedGroup.size() + "\n");
-			LogTool.log(LEVEL, msgCurCharCurSortedGroup.toString());
+//			StringBuilder msgCurCharCurSortedGroup = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//			msgCurCharCurSortedGroup.append("\nRead in next char, cur total sorted group is: " + totalSortedGroup.toString() + " cur len: " + totalSortedGroup.size() + "\n");
+//			LogTool.log(LEVEL, msgCurCharCurSortedGroup.toString());
 			
 			if(wfSeq.charAt(ci) == '('){
 				
@@ -596,6 +629,7 @@ public class ClusterTool {
 					dataSet[0] = data;
 					ArrayList<ArrayList<Integer>> tmpPara = new ArrayList<ArrayList<Integer>>();
 					tmpPara.add(curSortList);
+//					tmpSortGroupRet = SortTool.sortWorkfaces_new1(dataSet, tmpPara, opInfo, workload, distance1);
 					tmpSortGroupRet = SortTool.sortWorkfaces_new(dataSet, tmpPara, opInfo, workload);
 					msgBeforeAfterGroups.append("after sort workfaces: " + tmpSortGroupRet + "\n");
 					LogTool.log(LEVEL, msgBeforeAfterGroups.toString());
@@ -610,9 +644,9 @@ public class ClusterTool {
 					}
 					totalSortedGroup.push(Integer.valueOf(wfSeq.subSequence(ci, tmpIndex).toString()));
 					//Register log info
-					StringBuilder msgReadinInt = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-					msgReadinInt.append("\nRead in another integer: " + totalSortedGroup + "\n");
-					LogTool.log(LEVEL, msgReadinInt.toString());
+//					StringBuilder msgReadinInt = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//					msgReadinInt.append("\nRead in another integer: " + totalSortedGroup + "\n");
+//					LogTool.log(LEVEL, msgReadinInt.toString());
 					
 					ci = tmpIndex;
 			}else{
@@ -764,8 +798,8 @@ public class ClusterTool {
 				
 				if(substr.compareTo(sb.substring(tmpIndex, tmp)) == 0){
 					// Register log info
-					String message = Thread.currentThread().getStackTrace()[1].toString() + "Workface Seq: " + sb.toString() + " Workface: " + substr + " Workface index: " + tmpIndex;   
-					LogTool.log(LEVEL, message);
+//					String message = Thread.currentThread().getStackTrace()[1].toString() + "Workface Seq: " + sb.toString() + " Workface: " + substr + " Workface index: " + tmpIndex;   
+//					LogTool.log(LEVEL, message);
 					
 					return tmpIndex;
 				}else{
@@ -776,8 +810,8 @@ public class ClusterTool {
 			}
 		}
 		// Register log info
-		String message = Thread.currentThread().getStackTrace()[1].toString() + "Workface Seq: " + sb.toString() + " Workface: " + substr + " Workface index: " + tmpIndex;   
-		LogTool.log(LEVEL, message);
+//		String message = Thread.currentThread().getStackTrace()[1].toString() + "Workface Seq: " + sb.toString() + " Workface: " + substr + " Workface index: " + tmpIndex;   
+//		LogTool.log(LEVEL, message);
 		
 		return tmpIndex;
 	}
@@ -1476,9 +1510,9 @@ public class ClusterTool {
 				br.close();
 		}
 		//Register log info -- Print out machine operation information
-		StringBuilder msgOpInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		msgOpInfo.append(opInfo.outputMachineOpInfo());
-		LogTool.log(LEVEL, msgOpInfo.toString());
+//		StringBuilder msgOpInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//		msgOpInfo.append(opInfo.outputMachineOpInfo());
+//		LogTool.log(LEVEL, msgOpInfo.toString());
 		
 		// Read in workface workload information
 		WorkfaceWorkload workload = new WorkfaceWorkload(6,20);
@@ -1503,10 +1537,10 @@ public class ClusterTool {
 		}
 		
 		// Print out workface workoad information
-		StringBuilder msgOutputWorkload = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		msgOutputWorkload.append("\n=========Workface Workload==========\n");
-		msgOutputWorkload.append(workload.OutputWorkload());
-		LogTool.log(LEVEL, msgOutputWorkload.toString());
+//		StringBuilder msgOutputWorkload = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//		msgOutputWorkload.append("\n=========Workface Workload==========\n");
+//		msgOutputWorkload.append(workload.OutputWorkload());
+//		LogTool.log(LEVEL, msgOutputWorkload.toString());
 
 		// Start cluster & sort workface  *********************************************************
 		ArrayList<Integer> ds = null;
@@ -1534,251 +1568,264 @@ public class ClusterTool {
 	    		msgInitialSortedWf.append(ds.get(i) + " ");
 	    	}
 	    	msgInitialSortedWf.append("\n");
-    	}
-    	LogTool.log(LEVEL, msgInitialSortedWf.toString());
-    	
-    	// ***************Start to print out the time table of machines and workfaces*******************
-    	ArrayList<ArrayList<Double>> opMoveTimeTotal = new ArrayList<ArrayList<Double>>();
-    	// For each machine, compute operating time and moving time for sorted workface sequence
-    	for(int iMachine = 0; iMachine < opInfo.getMachineNum(); iMachine ++){
-    		
-    		ArrayList<Double> curMachineOpMoveTime = new ArrayList<Double>(); 
-    		double curDist = 0.0, curWorkload = 0.0, curOpTime = 0.0, curMovTime = 0.0, curOpRate = 0.0, curMovRate = 0.0;
-    		
-    		curOpRate = opInfo.getCertainMachineOpInfo(iMachine).get(0);
-			curMovRate = opInfo.getCertainMachineOpInfo(iMachine).get(1);
-			
-    		for(int iWorkface = 0; iWorkface < ds.size() - 1; iWorkface ++){
-    			
-    			curDist = distance.getDistBetweenTwoWorkfaces(ds.get(iWorkface) - 1, ds.get(iWorkface + 1) - 1);
-    			curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(iWorkface) - 1);
-    			
-    			curOpTime = curWorkload / curOpRate;
-    			curMovTime = curDist / curMovRate;
-    			
-    			curMachineOpMoveTime.add(curOpTime);
-    			curMachineOpMoveTime.add(curMovTime);
-    		}
-    		
-    		curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(workload.getWorkfaceNum() - 1) - 1);
-    		curOpTime = curWorkload / curOpRate;
-    		curMachineOpMoveTime.add(curOpTime);
-    		opMoveTimeTotal.add(curMachineOpMoveTime);
-    	}
-    	
-    	//Register log info -- Display the machine operating time and moving time in accordance with the sorted workfaces
-    	StringBuilder msgDisplayOpMovInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-    	for(int i = 0; i < opMoveTimeTotal.size(); i ++){
-    		msgDisplayOpMovInfo.append("Step " + i + " : ");
-    		for(int j = 0; j < opMoveTimeTotal.get(i).size(); j ++){
-    			msgDisplayOpMovInfo.append(opMoveTimeTotal.get(i).get(j) + " ");
-    		}
-    		msgDisplayOpMovInfo.append("\n");
-    	}
-    	msgDisplayOpMovInfo.append("\n\n");
-    	LogTool.log(LEVEL, msgDisplayOpMovInfo.toString());
-    	
-    	// Visualize the machine operating and moving movements
-    	ArrayList<ArrayList<String>> visualList= new ArrayList<ArrayList<String>>(); 
-    	for(int i = 0; i < opMoveTimeTotal.size(); i ++){
-    		
-    		ArrayList<String> curVisualList = new ArrayList<String>();
-    		StringBuilder curSb = null;
+	    	LogTool.log(LEVEL, msgInitialSortedWf.toString());
+	    	
+	    	
+	    	
+	    	
+	    	// ***************Start to print out the time table of machines and workfaces*******************
+	    	ArrayList<ArrayList<Double>> opMoveTimeTotal = new ArrayList<ArrayList<Double>>();
+	    	// For each machine, compute operating time and moving time for sorted workface sequence
+	    	for(int iMachine = 0; iMachine < opInfo.getMachineNum(); iMachine ++){
+	    		
+	    		ArrayList<Double> curMachineOpMoveTime = new ArrayList<Double>(); 
+	    		double curDist = 0.0, curWorkload = 0.0, curOpTime = 0.0, curMovTime = 0.0, curOpRate = 0.0, curMovRate = 0.0;
+	    		
+	    		curOpRate = opInfo.getCertainMachineOpInfo(iMachine).get(0);
+				curMovRate = opInfo.getCertainMachineOpInfo(iMachine).get(1);
+				
+	    		for(int iWorkface = 0; iWorkface < ds.size() - 1; iWorkface ++){
+	    			
+	    			curDist = distance.getDistBetweenTwoWorkfaces(ds.get(iWorkface) - 1, ds.get(iWorkface + 1) - 1);
+	    			curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(iWorkface) - 1);
+	    			
+	    			curOpTime = curWorkload / curOpRate;
+	    			curMovTime = curDist / curMovRate;
+	    			
+	    			curMachineOpMoveTime.add(curOpTime);
+	    			curMachineOpMoveTime.add(curMovTime);
+	    		}
+	    		
+	    		curWorkload = workload.getWorkloadOfMachine(iMachine).get(ds.get(workload.getWorkfaceNum() - 1) - 1);
+	    		curOpTime = curWorkload / curOpRate;
+	    		curMachineOpMoveTime.add(curOpTime);
+	    		opMoveTimeTotal.add(curMachineOpMoveTime);
+	    	}
+	    	
+	    	//Register log info -- Display the machine operating time and moving time in accordance with the sorted workfaces
+//	    	StringBuilder msgDisplayOpMovInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//	    	for(int i = 0; i < opMoveTimeTotal.size(); i ++){
+//	    		msgDisplayOpMovInfo.append("Step " + i + " : ");
+//	    		for(int j = 0; j < opMoveTimeTotal.get(i).size(); j ++){
+//	    			msgDisplayOpMovInfo.append(opMoveTimeTotal.get(i).get(j) + " ");
+//	    		}
+//	    		msgDisplayOpMovInfo.append("\n");
+//	    	}
+//	    	msgDisplayOpMovInfo.append("\n\n");
+//	    	LogTool.log(LEVEL, msgDisplayOpMovInfo.toString());
+	    	
+	    	// Visualize the machine operating and moving movements
+	    	ArrayList<ArrayList<String>> visualList= new ArrayList<ArrayList<String>>(); 
+	    	for(int i = 0; i < opMoveTimeTotal.size(); i ++){
+	    		
+	    		ArrayList<String> curVisualList = new ArrayList<String>();
+	    		StringBuilder curSb = null;
 
-    		// Visualize each machine
-    		long numOfOp = 0, numOfMove = 0;
-    		
-    		for(int j = 0; j < opMoveTimeTotal.get(i).size(); j ++){
-    			
-    			curSb = new StringBuilder();
-				// Print operating char
-				if(j % 2 == 0){
-					numOfOp = (Math.round(opMoveTimeTotal.get(i).get(j) * 100) / 100) + 1;
-					
-					if((numOfOp / 2 ) > 0){
-						numOfOp /= 2;
+	    		// Visualize each machine
+	    		long numOfOp = 0, numOfMove = 0;
+	    		
+	    		//For each machine
+	    		for(int j = 0; j < opMoveTimeTotal.get(i).size(); j ++){
+	    			
+	    			curSb = new StringBuilder();
+					// Print operating char
+					if(j % 2 == 0){
+						numOfOp = (Math.round(opMoveTimeTotal.get(i).get(j) * 100) / 100) + 1;
+//						numOfOp = (Math.round(opMoveTimeTotal.get(i).get(j)));
+						
+//						if((numOfOp / 2 ) > 0){
+//							numOfOp /= 2;
+//						}
+						
+						for(int k = 0; k < numOfOp; k ++){
+							curSb.append(STR_OP);
+						}
 					}
-					
-					for(int k = 0; k < numOfOp; k ++){
-						curSb.append(STR_OP);
+					// Print moving char
+					else{
+						numOfMove = (Math.round(opMoveTimeTotal.get(i).get(j) * 100) / 100) + 1;
+//						numOfMove = (Math.round(opMoveTimeTotal.get(i).get(j)));
+						
+//						if((numOfMove / 2 ) > 0){
+//							numOfMove /= 2;
+//						}
+						
+						for(int k = 0; k < numOfMove; k ++){
+							curSb.append(STR_MOVE);
+						}
 					}
-				}
-				// Print moving char
-				else{
-					numOfMove = (Math.round(opMoveTimeTotal.get(i).get(j) * 100) / 100) + 1;
-					
-					if((numOfMove / 2 ) > 0){
-						numOfMove /= 2;
-					}
-					
-					for(int k = 0; k < numOfMove; k ++){
-						curSb.append(STR_MOVE);
-					}
-				}
-				curVisualList.add(curSb.toString());
+					curVisualList.add(curSb.toString());
 
-    		}// end inner for
+	    		}// end inner for
 
-    		visualList.add(curVisualList);
-    	}// end outer for
-    	
-    	//Register log info -- Print out raw visual operating and moving information
-    	StringBuilder msgRawOpMovInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-    	msgRawOpMovInfo.append("\nPrint out raw visual operating and moving information\n");
-    	
-    	for(int i = 0; i < visualList.size(); i ++){
-    		msgRawOpMovInfo.append("Machine " + i + " ");
-    		for(int j = 0; j < visualList.get(i).size(); j ++){
-    			msgRawOpMovInfo.append(visualList.get(i).get(j));
-    		}
-    		msgRawOpMovInfo.append("\n");
+	    		visualList.add(curVisualList);
+	    	}// end outer for
+	    	
+//	    	System.out.println("==========visulaList.size for all machines==========");
+//	    	for(int i = 0; i < visualList.size(); i ++){
+//	    		System.out.println(visualList.get(i).size());
+//	    	}
+	    	
+	    	
+	    	//Register log info -- Print out raw visual operating and moving information
+//	    	StringBuilder msgRawOpMovInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//	    	msgRawOpMovInfo.append("\nPrint out raw visual operating and moving information\n");
+//	    	
+//	    	for(int i = 0; i < visualList.size(); i ++){
+//	    		msgRawOpMovInfo.append("Machine " + i + " ");
+//	    		for(int j = 0; j < visualList.get(i).size(); j ++){
+//	    			msgRawOpMovInfo.append(visualList.get(i).get(j));
+//	    		}
+//	    		msgRawOpMovInfo.append("\n");
+//	    	}
+//	    	msgRawOpMovInfo.append("\n\n");
+//	    	LogTool.log(LEVEL, msgRawOpMovInfo.toString());
+	    	
+	    	// Add workface number in operating info
+	    	int maxLenOfWf = 0;
+	    	for(int i = 0; i < ds.size(); i++){
+	    		int curWfLen = String.valueOf(ds.get(i)).length();
+	    		if(maxLenOfWf < curWfLen)
+	    			maxLenOfWf = curWfLen;
+	    	}
+	    	
+	    	for(int i = 0; i < visualList.size(); i ++){
+	    		for(int j = 0; j < visualList.get(i).size(); j ++){
+	    			if(j % 2 ==0){
+	    				StringBuilder newOpInfo = new StringBuilder(visualList.get(i).get(j));
+	    				StringBuilder curWf = new StringBuilder(String.valueOf(ds.get(j/2)));
+	    				if(curWf.length() == maxLenOfWf){
+	    					newOpInfo.insert(1, curWf);
+	    				}else{
+	    					for(int k = 0; k <= maxLenOfWf - curWf.length(); k ++){
+	    						curWf.insert(0, '0');
+	    					}
+	    					newOpInfo.insert(1, curWf.toString());
+	    				}
+	    				
+	    				visualList.get(i).set(j, newOpInfo.toString());
+	    			}// end if
+	    		}// end inner for
+	    	}// end outer for
+	    	
+	    	
+	    	//Prepare the graphical presentation of machine operating in each workface
+	    	for(int ii = 0; ii < visualList.size(); ii ++){
+	    		
+	    		// Compute previous machines' first operating process length
+	    		int prevTotalOpMoveLen = 0;
+	    		for(int prev = 0; prev < ii; prev ++){
+	    			prevTotalOpMoveLen += visualList.get(prev).get(0).length(); 
+	    		}
+	    		
+	    		// First machine has no wait time
+	    		if(ii == 0){
+	    			// Escape first machine
+	    		}
+	    		// Starting from 2nd machine, wait time might occur
+	    		else{
+	    			
+	    			for(int jj = 0; jj < visualList.get(ii).size(); jj ++){
+	    				// For first operating 
+	    				if(jj == 0){
+	    					int numOfIndentation = 0;
+	        				// Indentate
+	        				for(int kk = 0; kk < ii; kk ++){
+	        					numOfIndentation += visualList.get(kk).get(0).length();
+	        				}
+	        			}
+	    				// 
+	    				else{
+	    					// Only process operating time
+	    					if(jj % 2 == 0){
+	    						
+	    						// Operating and waiting length of previous machine
+	    						int preOpMoveLen = 0;
+	    						for(int kk = 0; kk <= jj; kk ++){
+	    							preOpMoveLen += visualList.get(ii - 1).get(kk).length();
+	    						}
+	    						for(int kk = 0; kk < ii - 1; kk ++){
+	    							preOpMoveLen += visualList.get(kk).get(0).length();
+	    						}
+	    						
+	    						// Operating and waiting length of current machine so far, jj exclusive
+	    						int curOpMoveLen = prevTotalOpMoveLen; 
+	    						for(int kk = 0; kk < jj; kk ++){
+	    							curOpMoveLen += visualList.get(ii).get(kk).length();
+	    						}
+	    						
+	    						// No need to wait
+	    						if(curOpMoveLen >= preOpMoveLen){
+	    							//System.out.print(visualList.get(ii).get(jj));
+	    						}
+	    						// Need to wait (preOpMoveLen - curOpMoveLen)
+	    						else{
+	    							StringBuilder tmpWaitSb = new StringBuilder();
+	    							for(int kk = 0; kk < (preOpMoveLen - curOpMoveLen); kk ++){
+	    								tmpWaitSb.append("*");
+	    							}
+	    							
+	    							String nextMove = visualList.get(ii).get(jj - 1);
+	    							visualList.get(ii).set(jj - 1, nextMove + tmpWaitSb.toString());
+	    						}
+	    					}
+	    				}
+	    			}// end for
+	    		}// end else
+	    	}
+	    	
+	    	// *****************Print out final graphical result********************
+	    	// Print out sorted workfaces
+	    	System.out.print("Sorted Workfaces: ");
+			for(int i=0;i<ds.size();i++)
+				System.out.print(ds.get(i) + " ");
+			System.out.println();
+	    	
+	    	//Print the graphical presentation of machine operating in each workface
+	    	for(int ii = 0; ii < visualList.size(); ii ++){
+	    		
+	    		System.out.print("Machine " + ii + " ");
+	    		
+	    		// Compute previous machines' first operating process length
+	    		int prevTotalOpMoveLen = 0;
+	    		for(int prev = 0; prev < ii; prev ++){
+	    			prevTotalOpMoveLen += visualList.get(prev).get(0).length(); 
+	    		}
+	    		
+	    		// First machine has no wait time
+	    		if(ii == 0){
+	    			for(int jj = 0; jj < visualList.get(ii).size(); jj ++){
+	        			System.out.print(visualList.get(ii).get(jj));
+	        		}
+	    		}
+	    		// Starting from 2nd machine, wait time might occur
+	    		else{
+	    			
+	    			for(int jj = 0; jj < visualList.get(ii).size(); jj ++){
+	    				// For first operating 
+	    				if(jj == 0){
+	    					int numOfIndentation = 0;
+	        				// Indentate
+	        				for(int kk = 0; kk < ii; kk ++){
+	        					numOfIndentation += visualList.get(kk).get(0).length();
+	        				}
+	        				for(int kk = 0; kk < numOfIndentation; kk ++){
+	        					System.out.print(" ");
+	        				}
+	        				System.out.print(visualList.get(ii).get(jj));
+	        			}
+	    				// 
+	    				else{
+	    					System.out.print(visualList.get(ii).get(jj));
+	    				}
+	    			}// end for
+	    		}// end else
+	    		
+	    		System.out.println();
+	    	}
+	    	System.out.println("\nNOTE: \n= for operating.\n. for moving.\n* for waiting.");
     	}
-    	msgRawOpMovInfo.append("\n\n");
-    	LogTool.log(LEVEL, msgRawOpMovInfo.toString());
     	
-    	// Add workface number in operating info
-    	int maxLenOfWf = 0;
-    	for(int i = 0; i < ds.size(); i++){
-    		int curWfLen = String.valueOf(ds.get(i)).length();
-    		if(maxLenOfWf < curWfLen)
-    			maxLenOfWf = curWfLen;
-    	}
-    	
-    	for(int i = 0; i < visualList.size(); i ++){
-    		for(int j = 0; j < visualList.get(i).size(); j ++){
-    			if(j % 2 ==0){
-    				StringBuilder newOpInfo = new StringBuilder(visualList.get(i).get(j));
-    				StringBuilder curWf = new StringBuilder(String.valueOf(ds.get(j/2)));
-    				if(curWf.length() == maxLenOfWf){
-    					newOpInfo.insert(1, curWf);
-    				}else{
-    					for(int k = 0; k <= maxLenOfWf - curWf.length(); k ++){
-    						curWf.insert(0, '0');
-    					}
-    					newOpInfo.insert(1, curWf.toString());
-    				}
-    				
-    				visualList.get(i).set(j, newOpInfo.toString());
-    			}// end if
-    		}// end inner for
-    	}// end outer for
-    	
-    	
-    	//Prepare the graphical presentation of machine operating in each workface
-    	for(int ii = 0; ii < visualList.size(); ii ++){
-    		
-    		// Compute previous machines' first operating process length
-    		int prevTotalOpMoveLen = 0;
-    		for(int prev = 0; prev < ii; prev ++){
-    			prevTotalOpMoveLen += visualList.get(prev).get(0).length(); 
-    		}
-    		
-    		// First machine has no wait time
-    		if(ii == 0){
-    			// Escape first machine
-    		}
-    		// Starting from 2nd machine, wait time might occur
-    		else{
-    			
-    			for(int jj = 0; jj < visualList.get(ii).size(); jj ++){
-    				// For first operating 
-    				if(jj == 0){
-    					int numOfIndentation = 0;
-        				// Indentate
-        				for(int kk = 0; kk < ii; kk ++){
-        					numOfIndentation += visualList.get(kk).get(0).length();
-        				}
-        			}
-    				// 
-    				else{
-    					// Only process operating time
-    					if(jj % 2 == 0){
-    						
-    						// Operating and waiting length of previous machine
-    						int preOpMoveLen = 0;
-    						for(int kk = 0; kk <= jj; kk ++){
-    							preOpMoveLen += visualList.get(ii - 1).get(kk).length();
-    						}
-    						for(int kk = 0; kk < ii - 1; kk ++){
-    							preOpMoveLen += visualList.get(kk).get(0).length();
-    						}
-    						
-    						// Operating and waiting length of current machine so far, jj exclusive
-    						int curOpMoveLen = prevTotalOpMoveLen; 
-    						for(int kk = 0; kk < jj; kk ++){
-    							curOpMoveLen += visualList.get(ii).get(kk).length();
-    						}
-    						
-    						// No need to wait
-    						if(curOpMoveLen >= preOpMoveLen){
-    							//System.out.print(visualList.get(ii).get(jj));
-    						}
-    						// Need to wait (preOpMoveLen - curOpMoveLen)
-    						else{
-    							StringBuilder tmpWaitSb = new StringBuilder();
-    							for(int kk = 0; kk < (preOpMoveLen - curOpMoveLen); kk ++){
-    								tmpWaitSb.append("*");
-    							}
-    							
-    							String nextMove = visualList.get(ii).get(jj - 1);
-    							visualList.get(ii).set(jj - 1, nextMove + tmpWaitSb.toString());
-    						}
-    					}
-    				}
-    			}// end for
-    		}// end else
-    	}
-    	
-    	// *****************Print out final graphical result********************
-    	// Print out sorted workfaces
-    	System.out.print("Sorted Workfaces: ");
-		for(int i=0;i<ds.size();i++)
-			System.out.print(ds.get(i) + " ");
-		System.out.println();
-    	
-    	//Print the graphical presentation of machine operating in each workface
-    	for(int ii = 0; ii < visualList.size(); ii ++){
-    		
-    		System.out.print("Machine " + ii + " ");
-    		
-    		// Compute previous machines' first operating process length
-    		int prevTotalOpMoveLen = 0;
-    		for(int prev = 0; prev < ii; prev ++){
-    			prevTotalOpMoveLen += visualList.get(prev).get(0).length(); 
-    		}
-    		
-    		// First machine has no wait time
-    		if(ii == 0){
-    			for(int jj = 0; jj < visualList.get(ii).size(); jj ++){
-        			System.out.print(visualList.get(ii).get(jj));
-        		}
-    		}
-    		// Starting from 2nd machine, wait time might occur
-    		else{
-    			
-    			for(int jj = 0; jj < visualList.get(ii).size(); jj ++){
-    				// For first operating 
-    				if(jj == 0){
-    					int numOfIndentation = 0;
-        				// Indentate
-        				for(int kk = 0; kk < ii; kk ++){
-        					numOfIndentation += visualList.get(kk).get(0).length();
-        				}
-        				for(int kk = 0; kk < numOfIndentation; kk ++){
-        					System.out.print(" ");
-        				}
-        				System.out.print(visualList.get(ii).get(jj));
-        			}
-    				// 
-    				else{
-    					System.out.print(visualList.get(ii).get(jj));
-    				}
-    			}// end for
-    		}// end else
-    		
-    		System.out.println();
-    	}
-    	System.out.println("\nNOTE: \n= for operating.\n. for moving.\n* for waiting.");
 	}// end of method main
 	
 	private static final String STR_OP = "=";
