@@ -53,6 +53,16 @@ public class ClusterTool {
 		}
 	}
 	
+	/**
+	 * Group workfaces based on distances between them
+	 * @param distance
+	 * @return
+	 */
+	public static ArrayList<Integer> getGroupsOfWorkfaces(int splitFactor, WorkfaceDistance distance){
+		
+		return null;
+	}
+	
 	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new1(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException, URISyntaxException{
 		
 		/* Load a dataset */
@@ -621,6 +631,7 @@ public class ClusterTool {
 				}
 				// Sort workfaces
 				else{
+					
 					
 					//Register log info
 					StringBuilder msgBeforeAfterGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
