@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -54,15 +55,349 @@ public class ClusterTool {
 	}
 	
 	/**
-	 * Group workfaces based on distances between them
+	 * Group workfaces based on distances between them for 2 sets of machines.
+	 * Note: value indexed from 0
 	 * @param distance
 	 * @return
 	 */
-	public static ArrayList<Integer> getGroupsOfWorkfaces(int splitFactor, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> get2GroupsOfWorkfaces(WorkfaceDistance distance){
+		int numOfWf = distance.getNumOfWorkface(), maxFrom = 0, maxTo = 0;
+		double maxDist = 0.0;
+		for(int i = 0; i < numOfWf; i ++){
+			for(int j = i + 1; j < numOfWf; j ++){
+				double tmpDist = distance.getDistBetweenTwoWorkfaces(i, j);
+				if(tmpDist > maxDist){
+					maxDist = tmpDist;
+					maxFrom = i;
+					maxTo = j;
+				}
+			}
+		}
 		
+		ArrayList<ArrayList<Integer>> groups = null;
+		ArrayList<Integer> subGroup1 = null;
+		ArrayList<Integer> subGroup2 = null;
+		while(true){
+			groups = new ArrayList<ArrayList<Integer>>();
+			subGroup1 = new ArrayList<Integer>();
+			subGroup2 = new ArrayList<Integer>();
+			subGroup1.add(maxFrom);
+			subGroup2.add(maxTo);
+			groups.add(subGroup1);
+			groups.add(subGroup2);
+			
+			// Initial grouping after determining the two workfaces with max distance.
+			for(int i = 0; i < numOfWf; i ++){
+				if(i == maxFrom || i == maxTo)
+					continue;
+				
+				if(distance.getDistBetweenTwoWorkfaces(maxFrom, i) > distance.getDistBetweenTwoWorkfaces(maxTo, i)){
+					subGroup2.add(i);
+				}else{
+					subGroup1.add(i);
+				}
+			}
+			
+			double sum1 = 0, sum2 = 0;
+			for(int i = 1; i < subGroup1.size(); i ++){
+				sum1 += distance.getDistBetweenTwoWorkfaces(maxFrom, subGroup1.get(i));
+			}
+			
+			for(int i = 1; i < subGroup2.size(); i ++){
+				sum2 += distance.getDistBetweenTwoWorkfaces(maxTo, subGroup2.get(i));
+			}
+			
+			System.out.println("Printing out subGroup1 & 2:");
+			for(int i = 0 ;i < subGroup1.size(); i ++)
+				System.out.print(subGroup1.get(i) + " ");
+			System.out.println();
+			for(int i = 0 ;i < subGroup2.size(); i ++)
+				System.out.print(subGroup2.get(i) + " ");
+			System.out.println();
+			
+			WorkfaceDist wd1 = get2NewWfwithMaxDist(subGroup1, distance);
+			WorkfaceDist wd2 = get2NewWfwithMaxDist(subGroup2, distance);
+			if(wd1.dist + wd2.dist >= sum1 + sum2){
+				break;
+			}else{
+				maxFrom = wd1.wfid;
+				maxTo = wd2.wfid;
+			}
+			System.out.println("maxFrom: " + maxFrom + " maxTo: " + maxTo + " sum1: " + sum1 + " sum2: " + sum2 + " wd1.dist: " + wd1.dist + "  wd2.dist: " + wd2.dist);
+		}
+		
+		
+		return groups;
+	}
+	/**
+	 * Group workfaces based on distances between them for 3 sets of machines.
+	 * Note: value indexed from 0
+	 * @param distance
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Integer>> get3GroupsOfWorkfaces(WorkfaceDistance distance){
+		int numOfWf = distance.getNumOfWorkface(), maxFrom = 0, maxMiddle = 0,  maxTo = 0;
+		double maxDist = 0.0;
+		for(int i = 0; i < numOfWf; i ++){
+			for(int j = i + 1; j < numOfWf; j ++){
+				for(int k = j + 1; k < numOfWf; k ++){
+					double tmpDist = distance.getDistBetweenTwoWorkfaces(i, j) + distance.getDistBetweenTwoWorkfaces(j, k);
+					if(tmpDist > maxDist){
+						maxDist = tmpDist;
+						maxFrom = i;
+						maxMiddle = j;
+						maxTo = k;
+					}
+				}
+			}
+		}
+		
+		ArrayList<ArrayList<Integer>> groups = null;
+		ArrayList<Integer> subGroup1 = null;
+		ArrayList<Integer> subGroup2 = null;
+		ArrayList<Integer> subGroup3 = null;
+		while(true){
+			groups = new ArrayList<ArrayList<Integer>>();
+			subGroup1 = new ArrayList<Integer>();
+			subGroup2 = new ArrayList<Integer>();
+			subGroup3 = new ArrayList<Integer>();
+			subGroup1.add(maxFrom);
+			subGroup2.add(maxMiddle);
+			subGroup3.add(maxTo);
+			groups.add(subGroup1);
+			groups.add(subGroup2);
+			groups.add(subGroup3);
+			
+			// Initial grouping after determining the two workfaces with max distance.
+			for(int i = 0; i < numOfWf; i ++){
+				if(i == maxFrom || i == maxTo || i == maxMiddle)
+					continue;
+				double tmpSum1 = distance.getDistBetweenTwoWorkfaces(maxFrom, i);
+				double tmpSum2 = distance.getDistBetweenTwoWorkfaces(maxMiddle, i);
+				double tmpSum3 = distance.getDistBetweenTwoWorkfaces(maxTo, i);
+				
+				double retSum = Math.min(Math.min(tmpSum1, tmpSum2), tmpSum3);
+				if(retSum == tmpSum1){
+					subGroup1.add(i);
+				}else if(retSum == tmpSum2){
+					subGroup2.add(i);
+				}else{
+					subGroup3.add(i);
+				}
+			}
+			
+			double sum1 = 0, sum2 = 0, sum3 = 0;
+			for(int i = 1; i < subGroup1.size(); i ++){
+				sum1 += distance.getDistBetweenTwoWorkfaces(maxFrom, subGroup1.get(i));
+			}
+			
+			for(int i = 1; i < subGroup2.size(); i ++){
+				sum2 += distance.getDistBetweenTwoWorkfaces(maxMiddle, subGroup2.get(i));
+			}
+			
+			for(int i = 1; i < subGroup3.size(); i ++){
+				sum3 += distance.getDistBetweenTwoWorkfaces(maxTo, subGroup3.get(i));
+			}
+			
+			System.out.println("Printing out subGroup1 & 2 & 3:");
+			for(int i = 0 ;i < subGroup1.size(); i ++)
+				System.out.print(subGroup1.get(i) + " ");
+			System.out.println();
+			for(int i = 0 ;i < subGroup2.size(); i ++)
+				System.out.print(subGroup2.get(i) + " ");
+			System.out.println();
+			for(int i = 0 ;i < subGroup3.size(); i ++)
+				System.out.print(subGroup3.get(i) + " ");
+			System.out.println();
+			
+			WorkfaceDist wd1 = get2NewWfwithMaxDist(subGroup1, distance);
+			WorkfaceDist wd2 = get2NewWfwithMaxDist(subGroup2, distance);
+			WorkfaceDist wd3 = get2NewWfwithMaxDist(subGroup3, distance);
+			
+			if(wd1.dist + wd2.dist + wd3.dist >= sum1 + sum2 + sum3){
+				break;
+			}else{
+				maxFrom = wd1.wfid;
+				maxMiddle = wd2.wfid;
+				maxTo = wd3.wfid;
+			}
+			System.out.println("maxFrom: " + maxFrom + " maxTo: " + maxTo + " maxMiddle: " + maxMiddle +  " sum1: " + sum1 + " sum3: " + sum3 + " wd1.dist: " + wd1.dist + "  wd3.dist: " + wd3.dist + " wd2.dist: " + wd2.dist);		
+		}		
+		return groups;
+	}
+	/**
+	 * Split groups into sub-groups each with workfaces.
+	 * @param groups Groups obtained from {@link get2GroupsOfWorkfaces} or {@link get3GroupsOfWorkfaces}.
+	 * Note: value indexed from 0 
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Integer>> getGroupsby4Wf(ArrayList<Integer> groups, WorkfaceDistance distance){
+		ArrayList<ArrayList<Integer>> retList = new ArrayList<ArrayList<Integer>>();
+		ArrayList<WorkfaceDist> wdList = new ArrayList<WorkfaceDist>();
+		
+		for(int i = 0; i < groups.size(); i ++){
+			WorkfaceDist wd = new WorkfaceDist();
+			wd.wfid = groups.get(i);
+			for(int j = 0; j < groups.size(); j ++){
+				if(j != i){
+					wd.dist += distance.getDistBetweenTwoWorkfaces(groups.get(i), groups.get(j));
+				}
+			}
+			wdList.add(wd);
+		}
+		
+		WDComparator wdc= new WDComparator();
+		Collections.sort(wdList, wdc);
+		
+		ArrayList<Integer> tmpRetList = null;
+		int i = wdList.size() - 1;
+		while(i >= 3){
+			tmpRetList = new ArrayList<Integer>();
+			tmpRetList.add(wdList.get(i).wfid);
+			tmpRetList.add(wdList.get(i - 1).wfid);
+			tmpRetList.add(wdList.get(i - 2).wfid);
+			tmpRetList.add(wdList.get(i - 3).wfid);
+			retList.add(tmpRetList);
+			i -= 4;
+		}
+		
+		if(i >= 0){
+			while(i >= 0){
+				tmpRetList = new ArrayList<Integer>();
+				tmpRetList.add(wdList.get(i).wfid);
+				i --;
+			}
+			retList.add(tmpRetList);
+		}
+		
+		
+		return retList;
+	}
+	
+	private static class WorkfaceDist{
+		public int wfid;
+		public double dist;
+	}
+	
+	// Sort increasingly
+	private static class WDComparator implements Comparator<WorkfaceDist>{
+
+		@Override
+		public int compare(WorkfaceDist o1, WorkfaceDist o2) {
+			return (o1.dist > o2.dist)? 1: ((o1.dist == o2.dist)? 0: -1);
+		}
+		
+	}
+	private static WorkfaceDist get2NewWfwithMaxDist(ArrayList<Integer> wfGroup, WorkfaceDistance distance){
+		ArrayList<WorkfaceDist> wdList = new ArrayList<WorkfaceDist>();
+		for(int i = 0; i < wfGroup.size(); i ++){
+			WorkfaceDist wd = new WorkfaceDist();
+			wd.wfid = wfGroup.get(i);
+			for(int j = 0; j < wfGroup.size(); j ++){
+				if(j != i){
+					wd.dist += distance.getDistBetweenTwoWorkfaces(wfGroup.get(i), wfGroup.get(j));
+				}
+			}
+			wdList.add(wd);
+		}
+		WDComparator wdc = new WDComparator();
+		Collections.sort(wdList, wdc);
+//		System.out.println("wdList order:");
+//		for(int i = 0; i < wdList.size(); i ++){
+//			System.out.print(wdList.get(i).wfid + "(" + wdList.get(i).dist + ") ");
+//		}
+//		System.out.println();
+		return wdList.get(0);
+	}
+	
+	/**
+	 * 
+	 * @param fileName
+	 * @param numOfWorkfaces
+	 * @param delimiter
+	 * @param opInfo
+	 * @param workload
+	 * @param distance1
+	 * @return
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
+	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new2(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance) throws IOException, URISyntaxException{
+		
+		/* Load a dataset */
+		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
+		
+		// Get groups of workfaces by using new grouping method.
+//		ArrayList<ArrayList<Integer>> groups = get2GroupsOfWorkfaces(distance);
+		ArrayList<ArrayList<Integer>> groups = get3GroupsOfWorkfaces(distance);
+		if(groups == null){
+			System.out.println("exit since groups == null");
+			System.exit(0);
+		}else{
+			
+			// Print out groups data
+			System.out.println("Print out groups data:");
+			for(int i = 0; i < groups.size(); i ++){
+				for(int j = 0; j < groups.get(i).size(); j ++){
+//					groups.get(i).set(j, groups.get(i).get(j) + 1);
+					System.out.print(groups.get(i).get(j) + " ");
+				}
+				System.out.println();
+			}
+			
+			ArrayList<ArrayList<Integer>> tmpGroups = new ArrayList<ArrayList<Integer>>(); 
+			// For each workface group
+			for(int i = 0; i < groups.size(); i ++){
+				
+				tmpGroups = getGroupsby4Wf(groups.get(i), distance);
+				
+				System.out.println("Print out 4-item groups:");
+				for(int m = 0; m < tmpGroups.size(); m ++){
+					for(int n = 0; n < tmpGroups.get(m).size(); n ++){
+						System.out.print(tmpGroups.get(m).get(n) + " ");
+					}
+					System.out.println();
+				}
+				
+				Dataset[] dataSet = new DefaultDataset[1];
+				dataSet[0] = data;
+				
+				// Set each 0 indexed workface value plus one.
+				for(int m = 0; m < tmpGroups.size(); m ++){
+					for(int n = 0; n < tmpGroups.get(m).size(); n ++){
+						tmpGroups.get(m).set(n, tmpGroups.get(m).get(n) + 1);
+					}
+				}
+				
+				ArrayList<ArrayList<Integer>> tmpSortRet = SortTool.sortWorkfaces_new(dataSet, tmpGroups, opInfo, workload);
+				// Print out sorted workfaces:
+				System.out.println("*********Print out sorted workfaces:*********");
+				for(int m = 0; m < tmpGroups.size(); m ++){
+					for(int n = 0; n < tmpGroups.get(m).size(); n ++){
+						System.out.print(tmpGroups.get(m).get(n) + " ");
+					}
+					System.out.println();
+				}
+//				tmpGroups.addAll();
+			}// end for
+			
+			
+		}// end else
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @param fileName
+	 * @param numOfWorkfaces
+	 * @param delimiter
+	 * @param opInfo
+	 * @param workload
+	 * @param distance1
+	 * @return
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 */
 	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new1(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException, URISyntaxException{
 		
 		/* Load a dataset */
@@ -1556,7 +1891,7 @@ public class ClusterTool {
 		// Start cluster & sort workface  *********************************************************
 		ArrayList<Integer> ds = null;
 		if(isSortedOrNot == 1){
-			 ds = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", opInfo, workload, distance);
+			 ds = ClusterTool.getClustersOfWorkfaces_zhen_new2("workface-distance.txt", 20, "\t", opInfo, workload, distance);
 		}else{
 			ds = new ArrayList<Integer>();
 			if(isSortedOrNot == 3)
