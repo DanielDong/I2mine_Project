@@ -235,62 +235,61 @@ public class SortTool {
 			
 			
 			//============================================================================
-			if(curWorkfaceList.size() == 20){
-				System.out.println("20 workfaces:");
-				for(int kk = 0; kk < curWorkfaceList.size(); kk ++){
-					System.out.print(curWorkfaceList.get(kk) + " ");
-				}
-			}System.out.println();
+//			if(curWorkfaceList.size() == 20){
+//				System.out.println("20 workfaces:");
+//				for(int kk = 0; kk < curWorkfaceList.size(); kk ++){
+//					System.out.print(curWorkfaceList.get(kk) + " ");
+//				}
+//			}System.out.println();
 			
 			
 			// Sum each machine's first operating time on each workface
 			for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
 				curTotalTime += curRegionTime.get(k * 2).get(0);
 				
-				//============================================================================
-				if(curWorkfaceList.size() == 20){
-					if(k == 0)
-						System.out.print("op time: ");
-					System.out.print(curRegionTime.get(k * 2).get(0) + " ");
-				}
+//				//============================================================================
+//				if(curWorkfaceList.size() == 20){
+//					if(k == 0)
+//						System.out.print("op time: ");
+//					System.out.print(curRegionTime.get(k * 2).get(0) + " ");
+//				}
 			}
-			System.out.println();
+			//System.out.println();
 			
 			// Sum last machine's operating time
 			ArrayList<Double> lastMachineTimeInterval = curRegionTime.get(curRegionTime.size() - 2);
 			for(int m = 0; m < lastMachineTimeInterval.size(); m ++){
 				curTotalTime += lastMachineTimeInterval.get(m);
 				
-				//============================================================================
-				if(curWorkfaceList.size() == 20){
-					if(m == 0)
-						System.out.print("last op/mv time: ");
-					System.out.print(lastMachineTimeInterval.get(m) + " ");
-				}
+//				//============================================================================
+//				if(curWorkfaceList.size() == 20){
+//					if(m == 0)
+//						System.out.print("last op/mv time: ");
+//					System.out.print(lastMachineTimeInterval.get(m) + " ");
+//				}
 			}
-			System.out.println();
+			//System.out.println();
 			
 			// Sum last machine's waiting time
 			ArrayList<Double> lastMachineWaitTime = curRegionTime.get(curRegionTime.size() - 1);
 			for(int n = 0; n < lastMachineWaitTime.size(); n ++){
 				curTotalTime += lastMachineWaitTime.get(n);
 				
-				//============================================================================
-				if(curWorkfaceList.size() == 20){
-					if(n == 0)
-						System.out.print("last wait time: ");
-					System.out.print(lastMachineWaitTime.get(n) + " ");
-				}
-			}
-			System.out.println();
-			
-//			if(curWorkfaceList.contains(10) && curWorkfaceList.contains(11) && curWorkfaceList.contains(12) || curWorkfaceList.contains(20)){
-//				for(int s = 0; s < curWorkfaceList.size(); s ++){
-//					System.out.print(curWorkfaceList.get(s) + " ");
+//				//============================================================================
+//				if(curWorkfaceList.size() == 20){
+//					if(n == 0)
+//						System.out.print("last wait time: ");
+//					System.out.print(lastMachineWaitTime.get(n) + " ");
 //				}
-//				System.out.println("	time: " + curTotalTime);
-//				
-//			}
+			}
+			//System.out.println();			
+			//Log information
+			StringBuilder msgMachineTimeInterval = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+			msgMachineTimeInterval.append("<sortGroups_new>cur total time:" + curTotalTime + "\n<sortGroups_new>cur sort group:");
+			for(int k = 0; k < curWorkfaceList.size(); k ++){
+				msgMachineTimeInterval.append(curWorkfaceList.get(k) + " ");
+			}
+			LogTool.log(LEVEL, msgMachineTimeInterval.toString());
 			
 			
 			if(curTotalTime < minTotalTime){
@@ -300,68 +299,16 @@ public class SortTool {
 					
 					minGroupList.add(curGroupPerm.get(l).groupOfSortedWorkfaces);
 				}
-				
-				// Print visual info
-//				if(curWorkfaceList.size() == 20){
-//					// For each machine op, mov, wait time
-//					for(int k = 0; k < curRegionTime.size() - 1; k += 2){
-//						ArrayList<Double> opMovTime = curRegionTime.get(k);
-//						ArrayList<Double> waitTime = curRegionTime.get(k + 1);
-//						System.out.print("Machine " + (k / 2) + " ");
-//						
-//						for(int m = 0; m < k / 2; m ++){
-//							long numOfPrevOpFirst = Math.round(curRegionTime.get(m * 2).get(0));
-////							if(curRegionTime.get(m * 2).get(0) - numOfPrevOpFirst > 0)
-////								numOfPrevOpFirst ++;
-//							for(int m1 = 0; m1 < numOfPrevOpFirst; m1 ++){
-//								System.out.print(" ");
-//							}
-//						}
-//						
-//						for(int j = 0; j < opMovTime.size() - 1; j += 2){
-//							long numOfOp = Math.round(opMovTime.get(j));
-//							if(opMovTime.get(j) - numOfOp > 0)
-//								numOfOp ++;
-//							long numOfMov = Math.round(opMovTime.get(j + 1));
-//							if(opMovTime.get(j + 1) - numOfMov > 0)
-//								numOfMov ++;
-////							if(numOfMov == 0)
-////								numOfMov = 1;
-//							long numOfWait = Math.round(waitTime.get(j / 2));
-////							if(waitTime.get(j / 2) - numOfWait > 0)
-////								numOfWait ++;
-//							for(int j1 = 0; j1 < numOfOp - 2; j1 ++){
-//								if(j1 == 2){
-//									String curWf = curWorkfaceList.get(j / 2).toString();
-//									if(curWf.length() == 2)
-//										System.out.print(curWf);
-//									else
-//										System.out.print("0" + curWf);
-//								}else
-//									System.out.print("=");
-//							}
-//							for(int j1 = 0; j1 < numOfMov; j1 ++)
-//								System.out.print(".");
-//							for(int j1 = 0; j1 < numOfWait; j1 ++)
-//								System.out.print("*");
-//						}
-//						long numOfOp = Math.round(opMovTime.get(opMovTime.size() - 1));
-//						for(int j1 = 0; j1 < numOfOp; j1 ++)
-//							System.out.print("=");
-//						
-//						System.out.println();
-//					}
-//				}
 			}
 		}
 		
-		System.out.println("============minimum time=============\n" + minTotalTime + "\n");
-		for(int i = 0; i < minGroupList.size(); i ++){
-			for(int j =0; j < minGroupList.get(i).size(); j ++){
-				System.out.print(minGroupList.get(i).get(j) + " ");
-			}
-			System.out.println();
-		}
+//		System.out.println("============minimum time=============\n" + minTotalTime + "\n");
+//		for(int i = 0; i < minGroupList.size(); i ++){
+//			for(int j =0; j < minGroupList.get(i).size(); j ++){
+//				System.out.print(minGroupList.get(i).get(j) + " ");
+//			}
+//			System.out.println();
+//		}
 		
 		return minGroupList;
 	}
@@ -827,10 +774,15 @@ public class SortTool {
 				}
 				msgPerm.append("curPermList: \n");
 				for(int ii = 0; ii < curPermList.size(); ii ++){
-					msgPerm.append(curPermList.get(ii) + " \n");
+					msgPerm.append(curPermList.get(ii) + " ");
 				}
 				msgPerm.append("\n");
-				msgPerm.append("cur maxtime: " + curMaxTime + "\n");
+				msgPerm.append("cur maxtime: " + curMaxTime + "\ncur mintime: " + minTime + "\n");
+				msgPerm.append("curMinList: \n");
+				for(int ii = 0; ii < minPermList.size(); ii ++){
+					msgPerm.append(minPermList.get(ii) + " ");
+				}
+				msgPerm.append("\n");
 				LogTool.log(LEVEL, msgPerm.toString());
 				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17)){
 					System.out.println(msgPerm);
