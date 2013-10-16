@@ -351,7 +351,7 @@ public class ClusterTool {
 			}
 			
 			ArrayList<ArrayList<Integer>> tmpGroups = new ArrayList<ArrayList<Integer>>(); 
-			// For each workface group
+			// For each workface group. Each workface group is for one set of operating machines.
 			for(int i = 0; i < groups.size(); i ++){
 				
 				tmpGroups = getGroupsby4Wf(groups.get(i), distance);
@@ -404,9 +404,65 @@ public class ClusterTool {
 				System.out.println();
 				
 				finalRet.add(tmpFinalRet);
-			}// end for
+			}// end for group
 			
+			// Start balancing out the operating time.
+			// Find the two workface lists with max and min operating time.
+			int min = 0, max = 0;
+			double maxd = Double.MIN_VALUE, mind = Double.MAX_VALUE;
+			ArrayList<Integer> minL = null, maxL = null;
+			for(int i = 0; i < finalRet.size(); i ++){
+				ArrayList<Integer> tmpL = finalRet.get(i);
+				double tmpTime = SortTool.computeOperatingTimeOfWorkfaceList(SortTool.computeMachineTimeIntervalInOneRegion(tmpL, opInfo, workload, distance));
+				if(tmpTime > maxd){
+					maxd = tmpTime;
+					maxL = tmpL;
+					max = i;
+				}
+				
+				if(tmpTime < mind){
+					mind = tmpTime;
+					minL = tmpL;
+					min = i;
+				}			
+			}
+			
+			ArrayList<Integer> tmpListInFinal = null;
+			for(int i = 0; i < finalRet.size(); i ++){
+				if(i != min && i != max){
+					tmpListInFinal = finalRet.get(i);
+				}
+			}
+			finalRet.clear();
+			if(tmpListInFinal != null)
+				finalRet.add(tmpListInFinal);
+			
+			while(maxd > mind){
+				// Find the operating machine in max list which is closed to min list.
+				int maxMachine = 0; 
+				double tmpDisFinal = Double.MAX_VALUE;
+				for(int maxi = 0; maxi < maxL.size(); maxi ++){
+					double tmpDis = Double.MAX_VALUE;
+					for(int mini = 0; mini < minL.size(); mini ++){
+						if(distance.getDistBetweenTwoWorkfaces(minL.get(mini) - 1, maxL.get(maxi) - 1) < tmpDis){
+							tmpDis = distance.getDistBetweenTwoWorkfaces(minL.get(mini) - 1, maxL.get(maxi) - 1);
+						}
+					}
+					if(tmpDis < tmpDisFinal){
+						tmpDisFinal = tmpDis;
+						maxMachine = maxi;
+					}
+				}
+				
+				minL.add(maxL.remove(maxMachine));
+				maxd = SortTool.computeOperatingTimeOfWorkfaceList(SortTool.computeMachineTimeIntervalInOneRegion(maxL, opInfo, workload, distance));
+				mind = SortTool.computeOperatingTimeOfWorkfaceList(SortTool.computeMachineTimeIntervalInOneRegion(minL, opInfo, workload, distance));
+			}
+			
+			finalRet.add(minL);
+			finalRet.add(maxL);
 		}// end else
+		System.out.println("final size: " + finalRet.size());
 		return finalRet;
 	}
 	

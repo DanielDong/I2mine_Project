@@ -233,55 +233,9 @@ public class SortTool {
 			ArrayList<ArrayList<Double>> curRegionTime = computeMachineTimeIntervalInOneRegion
 					(curWorkfaceList, machineOpInfo, workload, distance);
 			
+
+			curTotalTime = computeOperatingTimeOfWorkfaceList(curRegionTime);
 			
-			//============================================================================
-//			if(curWorkfaceList.size() == 20){
-//				System.out.println("20 workfaces:");
-//				for(int kk = 0; kk < curWorkfaceList.size(); kk ++){
-//					System.out.print(curWorkfaceList.get(kk) + " ");
-//				}
-//			}System.out.println();
-			
-			
-			// Sum each machine's first operating time on each workface
-			for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
-				curTotalTime += curRegionTime.get(k * 2).get(0);
-				
-//				//============================================================================
-//				if(curWorkfaceList.size() == 20){
-//					if(k == 0)
-//						System.out.print("op time: ");
-//					System.out.print(curRegionTime.get(k * 2).get(0) + " ");
-//				}
-			}
-			//System.out.println();
-			
-			// Sum last machine's operating time
-			ArrayList<Double> lastMachineTimeInterval = curRegionTime.get(curRegionTime.size() - 2);
-			for(int m = 0; m < lastMachineTimeInterval.size(); m ++){
-				curTotalTime += lastMachineTimeInterval.get(m);
-				
-//				//============================================================================
-//				if(curWorkfaceList.size() == 20){
-//					if(m == 0)
-//						System.out.print("last op/mv time: ");
-//					System.out.print(lastMachineTimeInterval.get(m) + " ");
-//				}
-			}
-			//System.out.println();
-			
-			// Sum last machine's waiting time
-			ArrayList<Double> lastMachineWaitTime = curRegionTime.get(curRegionTime.size() - 1);
-			for(int n = 0; n < lastMachineWaitTime.size(); n ++){
-				curTotalTime += lastMachineWaitTime.get(n);
-				
-//				//============================================================================
-//				if(curWorkfaceList.size() == 20){
-//					if(n == 0)
-//						System.out.print("last wait time: ");
-//					System.out.print(lastMachineWaitTime.get(n) + " ");
-//				}
-			}
 			//System.out.println();			
 			//Log information
 			StringBuilder msgMachineTimeInterval = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
@@ -312,6 +266,59 @@ public class SortTool {
 		
 		return minGroupList;
 	}
+	
+	/**
+	 * 
+	 * @param curRegionTime
+	 * @return
+	 */
+	public static double computeOperatingTimeOfWorkfaceList(ArrayList<ArrayList<Double>> curRegionTime){
+		double curTotalTime = 0.0;
+		//============================================================================
+//		if(curWorkfaceList.size() == 20){
+//			System.out.println("20 workfaces:");
+//			for(int kk = 0; kk < curWorkfaceList.size(); kk ++){
+//				System.out.print(curWorkfaceList.get(kk) + " ");
+//			}
+//		}System.out.println();
+		
+		
+		// Sum each machine's first operating time on each workface
+		for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
+			curTotalTime += curRegionTime.get(k * 2).get(0);
+			
+//			//============================================================================
+//			if(curWorkfaceList.size() == 20){
+//				if(k == 0)
+//					System.out.print("op time: ");
+//				System.out.print(curRegionTime.get(k * 2).get(0) + " ");
+//			}
+		}
+		//System.out.println();
+		
+		// Sum last machine's operating time
+		ArrayList<Double> lastMachineTimeInterval = curRegionTime.get(curRegionTime.size() - 2);
+		for(int m = 0; m < lastMachineTimeInterval.size(); m ++){
+			curTotalTime += lastMachineTimeInterval.get(m);
+			
+//			//============================================================================
+//			if(curWorkfaceList.size() == 20){
+//				if(m == 0)
+//					System.out.print("last op/mv time: ");
+//				System.out.print(lastMachineTimeInterval.get(m) + " ");
+//			}
+		}
+		//System.out.println();
+		
+		// Sum last machine's waiting time
+		ArrayList<Double> lastMachineWaitTime = curRegionTime.get(curRegionTime.size() - 1);
+		for(int n = 0; n < lastMachineWaitTime.size(); n ++){
+			curTotalTime += lastMachineWaitTime.get(n);
+		}
+		return curTotalTime;
+	}
+		
+	
 	private static void swapGroup(ArrayList<WorkfaceGroup> wgList, int from, int to){
 		WorkfaceGroup tmp = wgList.get(from);
 		wgList.set(from, wgList.get(to));
