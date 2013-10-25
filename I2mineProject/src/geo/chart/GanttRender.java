@@ -160,8 +160,9 @@ public class GanttRender extends ApplicationFrame{
     }
 
     /**
-     * Utility method for creating <code>Date</code> objects.
-     *
+     * Utility method for creating <code>Date</code> objects to .
+     * insert into the gantchart. 
+     * 
      * @param day  the date.
      * @param month  the month.
      * @param year  the year.
