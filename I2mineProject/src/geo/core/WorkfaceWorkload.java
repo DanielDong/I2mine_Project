@@ -23,6 +23,17 @@ public class WorkfaceWorkload {
 		workload = new ArrayList<ArrayList<Double>>(this.numOfWorkface);
 	}
 	
+	
+	/**
+	 * Set <i>wIndex</i> workface's workload for <i>mIndex</i> machine to value.
+	 * @param mIndex
+	 * @param wIndex
+	 * @param value
+	 */
+	public void setWorkloadForMachineOnCertainWf(int mIndex, int wIndex, double value){
+		workload.get(mIndex).set(wIndex, value);
+	}
+	
 	/**
 	 * Get the total machine number
 	 * @return the number of machine

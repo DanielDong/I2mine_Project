@@ -1,12 +1,12 @@
 package geo.cluster;
 
+import geo.core.MachineInitialPosition;
 import geo.core.MachineOpInfo;
 import geo.core.WorkfaceDistance;
 import geo.core.WorkfaceWorkload;
 import geo.util.LogTool;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import net.sf.javaml.core.Dataset;
 
@@ -634,10 +634,18 @@ public class SortTool {
 	 * @return The maximum time for one workface permutation.
 	 */
 	private static double computeMaxWfSeqTime(ArrayList<ArrayList<Double>> matrix, int flag){
-		return getMaxTime(matrix, matrix.get(0).size() - 1, matrix.size() - 1, flag);
+		return getMaxTime(matrix, matrix.get(0).size() - 1, matrix.size() - 1, 0);
 	}
 	
-	
+	/**
+	 *  Sort workfaces in traditional manner.
+	 * @param data
+	 * @param clusterGroups1
+	 * @param machineOpInfo
+	 * @param workload
+	 * @param distance
+	 * @return
+	 */
 	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new1 (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		
@@ -689,17 +697,17 @@ public class SortTool {
 //						System.out.print(curPermList.get(k) + " ");
 //					System.out.println("\n cur total time: " + curTotalTime);
 //				}
-				if(curPermList.contains(12) && curPermList.contains(10) && curPermList.contains(11) && curPermList.contains(9) && curPermList.contains(8) && curPermList.contains(7) && curPermList.contains(6) && curPermList.contains(5) && curPermList.contains(4)){
-//					System.out.println("------------&&&&&-------------");
-					StringBuilder sb = new StringBuilder();
-					for(int k = 0; k < curPermList.size(); k ++)
-						//System.out.print(curPermList.get(k) + " ");
-						sb.append(curPermList.get(k) + " ");
-					if(sb.toString().equals("5 6 7 4 8 9 12 10 11 ") || sb.toString().equals("6 5 4 9 8 7 12 10 11 ") || sb.toString().equals("4 6 5 7 8 9 10 11 12 ") || sb.toString().equals("4 6 5 7 8 9 11 10 12 ")){
-						System.out.println(sb.toString() + "\n cur total time: " + curTotalTime);
-					}
-					
-				}
+//				if(curPermList.contains(12) && curPermList.contains(10) && curPermList.contains(11) && curPermList.contains(9) && curPermList.contains(8) && curPermList.contains(7) && curPermList.contains(6) && curPermList.contains(5) && curPermList.contains(4)){
+////					System.out.println("------------&&&&&-------------");
+//					StringBuilder sb = new StringBuilder();
+//					for(int k = 0; k < curPermList.size(); k ++)
+//						//System.out.print(curPermList.get(k) + " ");
+//						sb.append(curPermList.get(k) + " ");
+//					if(sb.toString().equals("5 6 7 4 8 9 12 10 11 ") || sb.toString().equals("6 5 4 9 8 7 12 10 11 ") || sb.toString().equals("4 6 5 7 8 9 10 11 12 ") || sb.toString().equals("4 6 5 7 8 9 11 10 12 ")){
+//						System.out.println(sb.toString() + "\n cur total time: " + curTotalTime);
+//					}
+//					
+//				}
 				
 				if(curTotalTime < minTotalTime){
 					minTotalTime = curTotalTime;
@@ -712,7 +720,15 @@ public class SortTool {
 		return sortGroups;
 	}
 	
-	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload){
+	/**
+	 * Sort workfaces using matrix.
+	 * @param data
+	 * @param clusterGroups1
+	 * @param machineOpInfo
+	 * @param workload
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
 		
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		
@@ -745,23 +761,40 @@ public class SortTool {
 						
 						// Get workload of machine m on workface k
 						double curMachineWorkload = workload.getWorkloadOfMachine(m).get(curPermList.get(k) - 1);
-						double dist = 0;
-						if(k > 0){
-							dist = data[0].get(curPermList.get(k - 1) - 1).get(curPermList.get(k) - 1);
+						if(curMachineWorkload == 0){
+							curWfTotalTime.add(0.0);
+						}else{
+							double dist = 0;
+							if(k > 0){
+								int tmpi = k - 1; 
+								for(; tmpi >=0; tmpi -- ){
+									if(matrix.get(tmpi).get(m) == 0){
+										continue;
+									}else
+										break;
+								}
+								if(tmpi == -1){
+									dist = data[0].get(curPermList.get(k) - 1).get(machineInitPos.getInitPosOfMachine(m));
+									//dist = 0;
+								}
+								else
+									dist = data[0].get(curPermList.get(tmpi) - 1).get(curPermList.get(k) - 1);
+							}
+							
+							double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
+							double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
+							double curTotalTime = curMachineWorkload / opRate + dist / moveRate ;
+							
+							curWfTotalTime.add(curTotalTime);
 						}
 						
-						double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
-						double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
-						double curTotalTime = curMachineWorkload / opRate + dist / moveRate ;
-						
-						curWfTotalTime.add(curTotalTime);
 					}
 					matrix.add(curWfTotalTime);
 				}
 				
 				int flag = 0;
-				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17))
-					flag = 1;
+//				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17))
+//					flag = 1;
 				double curMaxTime = computeMaxWfSeqTime(matrix, flag);
 				
 				if(curMaxTime < minTime){
