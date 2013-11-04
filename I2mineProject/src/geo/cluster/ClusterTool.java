@@ -4,6 +4,7 @@ import geo.core.DUComparator;
 import geo.core.DistanceUnit;
 import geo.core.MachineInitialPosition;
 import geo.core.MachineOpInfo;
+import geo.core.ShareMachineUnit;
 import geo.core.WorkfaceDependancy;
 import geo.core.WorkfaceDistance;
 import geo.core.WorkfacePriority;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
@@ -312,6 +314,11 @@ public class ClusterTool {
 //		}
 //		System.out.println();
 		return wdList.get(0);
+	}
+	
+	public static void getClustersOfWorkfacesBySharedMachine(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos){
+		
+		
 	}
 	
 	/**
@@ -2130,6 +2137,7 @@ public class ClusterTool {
 		}
 		
 		
+		
 		System.out.println("Compute workface cluster by priority?[YES or NO]");
 		Scanner s = new Scanner(System.in);
 		String ret = s.nextLine();
@@ -2155,6 +2163,31 @@ public class ClusterTool {
 			System.exit(0);
 			
 		}
+		
+		System.out.println("Compute workface cluster by sharing machines?[YES or NO]");
+		s = new Scanner(System.in);
+		ret = s.nextLine();
+		// Finish workload by sharing operating machines.
+		if(ret.equalsIgnoreCase("yes")){
+			System.out.println("Number of operating machine set?");
+			int numbOfMachineSet = Integer.valueOf(s.nextLine());
+			String curLine = null;
+			br = new BufferedReader(new FileReader("machine-set.txt"));
+			LinkedList<String> q = new LinkedList<String>();
+			int cntOfLine = 0;
+			while((curLine = br.readLine()) != null){
+				q.add(curLine);
+				cntOfLine ++;
+			}
+			
+			int numOfProc = cntOfLine / numbOfMachineSet;
+			
+			
+			s.close();
+			System.exit(0);
+		}
+		
+		
 		
 		System.out.println("Compute workface cluster by dependancy?[YES or NO]");
 		s = new Scanner(System.in);
