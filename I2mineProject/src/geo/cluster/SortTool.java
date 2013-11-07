@@ -140,24 +140,6 @@ public class SortTool {
 						else{
 							curWaitTime.add(0.0);
 						}
-						
-//					}
-						
-					
-					
-					
-//					int indexOfPre = (w + 1) * 2;
-//					double timeOfPre = preMachineTimeInterval.get(indexOfPre) + preMachineTimeInterval.get(indexOfPre - 1);  
-//					timeOfPre += preWaitTime.get(w);
-//					
-//					// WAIT time is needed
-//					if(timeOfPre > timeOfCur){
-//						curWaitTime.add(timeOfPre - timeOfCur);
-//					}
-//					// No WAIT time is needed, can start process right away
-//					else{
-//						curWaitTime.add(0.0);
-//					}
 				}
 				
 			}// end for(w)

@@ -8,6 +8,7 @@ import geo.core.ShareMachineUnit;
 import geo.core.WorkfaceDependancy;
 import geo.core.WorkfaceDistance;
 import geo.core.WorkfacePriority;
+import geo.core.WorkfaceProcessUnit;
 import geo.core.WorkfaceWorkload;
 import geo.excel.ExcelReader;
 import geo.util.LogTool;
@@ -316,9 +317,131 @@ public class ClusterTool {
 		return wdList.get(0);
 	}
 	
-	public static void getClustersOfWorkfacesBySharedMachine(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos){
+	public static void getClustersOfWorkfacesBySharedMachine(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ShareMachineUnit shareUnit) throws IOException, URISyntaxException{
+		/* Load a dataset */
+		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
+		Dataset[] dataSets = new DefaultDataset[1];
+		dataSets[0] = data;
+		
+		// The number of procedures.
+		int numOfProc = opInfo.getMachineNum();
+		// Test
+	    System.out.println("The number of procedures: " + numOfProc);
+		
+		ArrayList<ShareMachineUnit.ProcedureUnit> shareMachineList = shareUnit.getSharedMachineList();
+		
+		// Test
+		System.out.println("Share machine information:");
+		for(int i = 0; i < shareMachineList.size(); i ++){
+			System.out.print(shareMachineList.get(i).getMachineNum() + " ");
+		}
+		System.out.println();
+		// Row is each workface, column is each machine. Both are 0 indexed.
+		Double[][] startTimeMatrix = new Double[distance.getNumOfWorkface()][shareUnit.getSharedMachineList().size()];
+		Double[][] endTimeMatrix = new Double[distance.getNumOfWorkface()][shareUnit.getSharedMachineList().size()];
+		
+		//
+		ArrayList<WorkfaceProcessUnit> wfProcList = new ArrayList<WorkfaceProcessUnit>(); 
+		for(int i = 0; i < workload.getWorkfaceNum(); i ++){
+			wfProcList.add(new WorkfaceProcessUnit(i));
+		}
+		
+		int curMachineIndex = 0;
+		// This number is either 1, 2 or 3. ONLY 3 possbile values for this variable.
+		int numOfFirstMachine = shareMachineList.get(0).getMachineNum();
+		int toMachinewithSameNum = 0;
+		for(int i = 1 + curMachineIndex; i < shareMachineList.size(); i ++){
+			if(shareMachineList.get(i).getMachineNum() == numOfFirstMachine){
+				toMachinewithSameNum ++;
+			}else{
+				break;
+			}
+		}
 		
 		
+		
+		List<ArrayList<Double>> opInfoList = opInfo.getOpInfoList();
+		MachineOpInfo tmpOpInfo = new MachineOpInfo(opInfoList.subList(0, toMachinewithSameNum + 1));
+		
+		// Store time interval list
+		ArrayList<ArrayList<ArrayList<Double>>> timeIntervalList = new ArrayList<ArrayList<ArrayList<Double>>>(); 
+		//Split workfaces into "numOfFirstMachine" groups.
+		ArrayList<ArrayList<Integer>> dss = null;
+		if(numOfFirstMachine == 1){
+			dss = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+			
+		}else if(numOfFirstMachine == 2){
+			dss = getClustersOfWorkfaces_zhen_new2(2, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+			
+		}else if(numOfFirstMachine == 3){
+			dss = getClustersOfWorkfaces_zhen_new2(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+			
+			// Store the operating, moving and waiting time for each sub-group.
+			for(int i = 0; i < dss.size(); i ++){
+				timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
+			}
+			
+			// Get operating(moving) and waiting time of each machine in each group (in total 3)
+			for(int groupIndex = 0; groupIndex < 3; groupIndex ++){
+				// Current group's operating and waiting time for 
+				ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
+				// Get operating(moving) and waiting time of each machine
+				for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
+					ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(machineIndex - curMachineIndex);
+					ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(machineIndex - curMachineIndex + 1);
+					ArrayList<Integer> curWfList = dss.get(groupIndex);
+					
+					for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
+						int curWf = curWfList.get(wfIndex);
+						double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
+						double curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
+						double curWfWaitTime = curMachineWaitTime.get(wfIndex);
+						
+						
+						
+					}
+				}
+			}
+			
+//			// Update the start and end time matrix for each sub-group
+//			for(int i = 0; i < dss.size(); i ++){
+//				ArrayList<Integer> curWfList = dss.get(i);
+//				ArrayList<Double> curOpMovTime = timeIntervalList.get(i).get(0);
+//				ArrayList<Double> curWaitTime = timeIntervalList.get(i).get(1);
+//				
+//				
+//			}
+		}
+		
+		// Test 
+		System.out.println("Test------dss: ");
+		System.out.println("Machine operating: " + tmpOpInfo.getMachineNum());
+		System.out.print("[");
+		for(int k = 0; k < tmpOpInfo.getMachineNum(); k ++){
+			System.out.print((curMachineIndex + k) + " ");
+		}
+		System.out.println("]");
+		if(dss != null){
+			for(int i = 0; i < dss.size(); i ++){
+				for(int j = 0; j < dss.get(i).size(); j ++){
+					System.out.print(dss.get(i).get(j) + " ");
+				}
+				System.out.println();
+			}
+		}
+		
+		// Test
+		System.out.println("TimeInterval list size: " + timeIntervalList.size());
+		for(int i = 0; i < timeIntervalList.size(); i ++){
+			System.out.println("Group " + i +"'s time: ");
+			for(int j = 0; j < timeIntervalList.get(i).size(); j ++){
+//				System.out.println(timeIntervalList.get(i).get(j).size());
+				for(int k = 0; k < timeIntervalList.get(i).get(j).size(); k  ++){
+					System.out.print(timeIntervalList.get(i).get(j).get(k) + " ");
+				}
+				System.out.println();
+			}
+		}
 	}
 	
 	/**
@@ -2057,6 +2180,7 @@ public class ClusterTool {
 				distance.addDistance(singleWorkloadInfo);
 			}
 			
+			
 		}catch(IOException e){
 			e.printStackTrace();
 		}finally{
@@ -2181,7 +2305,21 @@ public class ClusterTool {
 			}
 			
 			int numOfProc = cntOfLine / numbOfMachineSet;
+			ShareMachineUnit shareUnit = new ShareMachineUnit();
+			for(int i = 0; i < cntOfLine; i ++){
+				int procId = i % numOfProc;
+				String[] strArr = q.removeFirst().split("\t");
+				String name = strArr[0];
+				int machineNum = Integer.valueOf(strArr[1]);
+				// Test
+				System.out.println("ProcId: " + procId + " machineNum: " + machineNum + " machine name: " + name);
+				
+				shareUnit.addNewProcedureUnit(procId, machineNum, name);
+			}
+			//Test
+			System.out.println("Share unit size: " + shareUnit.getSharedMachineList().size());
 			
+			getClustersOfWorkfacesBySharedMachine("workface-distance.txt", 20, "\t", opInfo, workload, distance, machineInitPos, shareUnit);
 			
 			s.close();
 			System.exit(0);

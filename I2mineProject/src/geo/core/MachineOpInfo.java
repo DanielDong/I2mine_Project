@@ -1,6 +1,7 @@
 package geo.core;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class stores operating and moving rate for each machine.
@@ -12,7 +13,7 @@ import java.util.ArrayList;
  */
 public class MachineOpInfo {
 	private int numOfMachine;
-	private ArrayList<ArrayList<Double>> opInfo = null;
+	private List<ArrayList<Double>> opInfo = null;
 	
 	/**
 	 * @param machineNum The number of machines
@@ -20,6 +21,12 @@ public class MachineOpInfo {
 	public MachineOpInfo (int machineNum){
 		this.numOfMachine = machineNum;
 		opInfo = new ArrayList<ArrayList<Double>>();
+	}
+	
+	
+	public MachineOpInfo(List<ArrayList<Double>> opInfoList){
+		opInfo = opInfoList;
+		numOfMachine = opInfoList.size();
 	}
 	
 	public int getMachineNum (){
@@ -46,6 +53,10 @@ public class MachineOpInfo {
 		}
 		this.opInfo.add(curOpInfo);
 		return true;
+	}
+	
+	public List<ArrayList<Double>> getOpInfoList(){
+		return opInfo;
 	}
 	
 	/**

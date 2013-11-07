@@ -11,8 +11,20 @@ public class ShareMachineUnit {
 	}
 	
 	public void addNewProcedureUnit(int procId, int machineNum, String name){
-		ProcedureUnit pu = new ProcedureUnit(procId, machineNum, name);
-		sharedMachineList.add(pu);
+		int i = 0;
+		for(; i < sharedMachineList.size(); i ++){
+			if(sharedMachineList.get(i).getProcId() == procId){
+				sharedMachineList.get(i).addMachineName(name);
+				sharedMachineList.get(i).addMachineNum();
+				break;
+			}
+		}
+		
+		if(i == sharedMachineList.size()){
+			ProcedureUnit pu = new ProcedureUnit(procId, machineNum, name);
+			sharedMachineList.add(pu);
+		}
+		
 	}
 	
 	public ArrayList<ProcedureUnit> getSharedMachineList(){
@@ -22,13 +34,14 @@ public class ShareMachineUnit {
 	public static class ProcedureUnit{
 		private int procId; // 0-indexed
 		private int numOfMachine;
-		private String machineName;
+		private ArrayList<String> machineName;
 		
 		public ProcedureUnit(){};
 		public ProcedureUnit(int proc, int machineNum, String name){
 			procId = proc;
 			numOfMachine = machineNum;
-			machineName = name;
+			machineName = new ArrayList<String>();
+			machineName.add(name);
 		}
 		
 		public int getProcId(){
@@ -39,8 +52,21 @@ public class ShareMachineUnit {
 			return numOfMachine;
 		}
 		
-		public String getMachineName(){
+		public void addMachineNum(){
+			numOfMachine ++;
+		}
+		
+		public ArrayList<String> getMachineName(){
 			return machineName;
+		}
+		
+		public void addMachineName(String name){
+			if(machineName != null){
+				machineName.add(name);
+			}else{
+				machineName = new ArrayList<String>();
+				machineName.add(name);
+			}
 		}
 		
 	}
