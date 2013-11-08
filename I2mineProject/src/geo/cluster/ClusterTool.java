@@ -393,13 +393,58 @@ public class ClusterTool {
 					
 					for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
 						int curWf = curWfList.get(wfIndex);
+						
+						WorkfaceProcessUnit curProcUnit = null;
+						for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+							if(wfProcList.get(procUnit).getWfId() == curWf){
+								curProcUnit = wfProcList.get(procUnit);
+								break;
+							}
+						}
 						double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
 						double curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
 						double curWfWaitTime = curMachineWaitTime.get(wfIndex);
 						
+						// For the first workface in an operating machine's operating and moving time interval list.
+						if(wfIndex == 0){
+							// The machine is the first machine of the current machine listl
+							if(machineIndex == curMachineIndex){
+								double StartTime = 0;
+								curProcUnit.setStartTime(machineIndex, StartTime);
+								curProcUnit.setEndTime(machineIndex, StartTime + curWfOpTime);
+								curProcUnit.setMovTime(machineIndex, curWfWaitTime);
+							}else{
+								double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
+								
+								int prevWf = curWfList.get(wfIndex - 1);
+								WorkfaceProcessUnit prevProcUnit = null;
+								for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+									if(wfProcList.get(procUnit).getWfId() == prevWf){
+										prevProcUnit = wfProcList.get(procUnit);
+										break;
+									}
+								}
+								double startTime2 = prevProcUnit.getEndTime(machineIndex);
+								double movTime = prevProcUnit.getMovTime(machineIndex);
+								
+								if(startTime1 > startTime2 + movTime){
+									curProcUnit.setStartTime(machineIndex, startTime1);
+									curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+								}else{
+									curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
+									curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+								}
+								
+								
+							}
+							
+						}else{
+							
+						}
 						
 						
-					}
+						
+					}// end for wfIndex
 				}
 			}
 			
