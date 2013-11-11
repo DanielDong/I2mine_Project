@@ -2,9 +2,7 @@ package geo.core;
 
 import java.util.ArrayList;
 
-public class WorkfaceProcessUnit {
-	// 0-indexed
-	private int wfId;
+public class WorkfaceProcessUnit{
 	
 	public static class WorkfaceProcedureUnit{
 		// 0-indexed
@@ -30,15 +28,30 @@ public class WorkfaceProcessUnit {
 		}
 	}
 	
+	// 0-indexed
+	private int wfId;
+	private double totalEndTime;
 	private ArrayList<WorkfaceProcedureUnit> wfProcList;
+	
 	
 	public WorkfaceProcessUnit(){
 		wfProcList = new ArrayList<WorkfaceProcedureUnit>();
-	};
+	}
 	public WorkfaceProcessUnit(int id){
 		wfId = id;
 		wfProcList = new ArrayList<WorkfaceProcedureUnit>();
-	};
+	}
+	
+	public ArrayList<WorkfaceProcedureUnit> getWfProcList(){
+		return wfProcList;
+	}
+	public double getTotalEndTime(){
+		return totalEndTime;
+	}
+	
+	public void setTotalEndTime(double endTime){
+		totalEndTime = endTime;
+	}
 	
 	public double getMovTime(int machineId){
 		for(WorkfaceProcedureUnit wpu: wfProcList){
@@ -57,12 +70,28 @@ public class WorkfaceProcessUnit {
 		}
 	}
 	public void setStartTime(int machineId, double start){
+		boolean isSuccessful = false;
 		for(WorkfaceProcedureUnit wpu: wfProcList){
 			if(wpu.getMachineId() == machineId){
 				wpu.setStartTime(start);
+				isSuccessful = true;
 				break;
 			}
 		}
+		
+		if(isSuccessful == false){
+			WorkfaceProcedureUnit wpu = new WorkfaceProcedureUnit(machineId, start, 0, 0);
+			wfProcList.add(wpu);
+		}
+	}
+	
+	public double getStartTime(int machineId){
+		for(WorkfaceProcedureUnit wpu: wfProcList){
+			if(wpu.getMachineId() == machineId){
+				return wpu.getStartTime();
+			}
+		}
+		return -1;
 	}
 	
 	public double getEndTime(int machineId){
@@ -75,11 +104,17 @@ public class WorkfaceProcessUnit {
 	}
 	
 	public void setEndTime(int machineId, double end){
+		boolean isSuccessful = false;
 		for(WorkfaceProcedureUnit wpu: wfProcList){
 			if(wpu.getMachineId() == machineId){
 				wpu.setEndTime(end);
+				isSuccessful = true;
 				break;
 			}
+		}
+		if(isSuccessful == false){
+			WorkfaceProcedureUnit wpu = new WorkfaceProcedureUnit(machineId, 0, end, 0);
+			wfProcList.add(wpu);
 		}
 	}
 	

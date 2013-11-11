@@ -1,5 +1,8 @@
 package geo.chart;
 
+import geo.core.WorkfaceProcessUnit;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -12,22 +15,26 @@ import org.jfree.data.gantt.TaskSeries;
 import org.jfree.data.gantt.TaskSeriesCollection;
 import org.jfree.data.time.SimpleTimePeriod;
 import org.jfree.ui.ApplicationFrame;
-import org.jfree.ui.RefineryUtilities;
 
 public class GanttRender extends ApplicationFrame{
 
-	public GanttRender(final String title) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7404694263273528640L;
 
-        super(title);
+	public GanttRender(String winTitle, String charTitle, String domain, String range,  ArrayList<WorkfaceProcessUnit> wfProcList) {
 
-        final IntervalCategoryDataset dataset = createDataset();
-        final JFreeChart chart = createChart(dataset);
+        super(winTitle);
+
+        final IntervalCategoryDataset dataset = createDataset(wfProcList);
+        final JFreeChart chart = createChart(charTitle, domain, range, dataset);
 
         // add the chart to a panel...
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(1000, 540));
         setContentPane(chartPanel);
-
+        System.out.println("Set content pane!!!" + chartPanel);
     }
 
     /**
@@ -35,128 +42,75 @@ public class GanttRender extends ApplicationFrame{
      *
      * @return The dataset.
      */
-    public static IntervalCategoryDataset createDataset() {
+    public static IntervalCategoryDataset createDataset(ArrayList<WorkfaceProcessUnit> wfProcList) {
 
-        final TaskSeries s1 = new TaskSeries("Scheduled12");
-        s1.add(new Task("Write Proposal",
-               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
-                                    date(5, Calendar.APRIL, 2001))));
-        s1.add(new Task("Obtain Approval",
-               new SimpleTimePeriod(date(6, Calendar.APRIL, 2001),
-                                    date(9, Calendar.APRIL, 2001))));
-        s1.add(new Task("Requirements Analysis",
-               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
-                                    date(5, Calendar.MAY, 2001))));
-        s1.add(new Task("Design Phase",
-               new SimpleTimePeriod(date(6, Calendar.MAY, 2001),
-                                    date(30, Calendar.MAY, 2001))));
-        s1.add(new Task("Design Signoff",
-               new SimpleTimePeriod(date(2, Calendar.JUNE, 2001),
-                                    date(2, Calendar.JUNE, 2001))));
-        s1.add(new Task("Alpha Implementation",
-               new SimpleTimePeriod(date(3, Calendar.JUNE, 2001),
-                                    date(31, Calendar.JULY, 2001))));
-        s1.add(new Task("Design Review",
-               new SimpleTimePeriod(date(1, Calendar.AUGUST, 2001),
-                                    date(8, Calendar.AUGUST, 2001))));
-        s1.add(new Task("Revised Design Signoff",
-               new SimpleTimePeriod(date(10, Calendar.AUGUST, 2001),
-                                    date(10, Calendar.AUGUST, 2001))));
-        s1.add(new Task("Beta Implementation",
-               new SimpleTimePeriod(date(12, Calendar.AUGUST, 2001),
-                                    date(12, Calendar.SEPTEMBER, 2001))));
-        s1.add(new Task("Testing",
-               new SimpleTimePeriod(date(13, Calendar.SEPTEMBER, 2001),
-                                    date(31, Calendar.OCTOBER, 2001))));
-        s1.add(new Task("Final Implementation",
-               new SimpleTimePeriod(date(1, Calendar.NOVEMBER, 2001),
-                                    date(15, Calendar.NOVEMBER, 2001))));
-        s1.add(new Task("Signoff",
-               new SimpleTimePeriod(date(28, Calendar.NOVEMBER, 2001),
-                                    date(30, Calendar.NOVEMBER, 2001))));
+    	TaskSeriesCollection collection = new TaskSeriesCollection();
+    	// The number of tasks is the same as the number of procedures in each workface
+    	int numOfProcedure = wfProcList.get(0).getWfProcList().size();
+    	// The number of task series is the same as the number of workfaces.
+    	TaskSeries[] taskSeriesArray = new TaskSeries[wfProcList.size()];
+    	// For each workface
+    	for(int i = 0; i < taskSeriesArray.length; i ++){
+    		WorkfaceProcessUnit wpu = wfProcList.get(i);
+    		int wfId = wpu.getWfId();
+    		taskSeriesArray[i] = new TaskSeries("Workface " + wfId);
+    		// For each procedure
+    		Task t = null;
+    		for(int j = 0; j < numOfProcedure; j ++){
+    			WorkfaceProcessUnit.WorkfaceProcedureUnit procUnit = wpu.getWfProcList().get(j); 
+    			SimpleTimePeriod tp = new SimpleTimePeriod((long)procUnit.getStartTime(), (long)procUnit.getEndTime());
+    			t = new Task("Procedure " + j, tp);
+    			taskSeriesArray[i].add(t);
+    		}
+    		
+    		collection.add(taskSeriesArray[i]);
+    	}
+    	System.out.println("data set generated!!!" + collection);
+    	return collection;
+    	
+    	
+//    	
+//        TaskSeries s1 = new TaskSeries("Scheduled12");
+//        s1.add(new Task("Write Proposal",
+//               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
+//                                    date(5, Calendar.APRIL, 2001))));
+//        s1.add(new Task("Obtain Approval",
+//               new SimpleTimePeriod(date(6, Calendar.APRIL, 2001),
+//                                    date(9, Calendar.APRIL, 2001))));
+//        s1.add(new Task("Requirements Analysis",
+//               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
+//                                    date(5, Calendar.MAY, 2001))));
+//        s1.add(new Task("Design Phase",
+//               new SimpleTimePeriod(date(6, Calendar.MAY, 2001),
+//                                    date(30, Calendar.MAY, 2001))));
+//        s1.add(new Task("Design Signoff",
+//               new SimpleTimePeriod(date(2, Calendar.JUNE, 2001),
+//                                    date(2, Calendar.JUNE, 2001))));
+//        s1.add(new Task("Alpha Implementation",
+//               new SimpleTimePeriod(date(3, Calendar.JUNE, 2001),
+//                                    date(31, Calendar.JULY, 2001))));
+//        s1.add(new Task("Design Review",
+//               new SimpleTimePeriod(date(1, Calendar.AUGUST, 2001),
+//                                    date(8, Calendar.AUGUST, 2001))));
+//        s1.add(new Task("Revised Design Signoff",
+//               new SimpleTimePeriod(date(10, Calendar.AUGUST, 2001),
+//                                    date(10, Calendar.AUGUST, 2001))));
+//        s1.add(new Task("Beta Implementation",
+//               new SimpleTimePeriod(date(12, Calendar.AUGUST, 2001),
+//                                    date(12, Calendar.SEPTEMBER, 2001))));
+//        s1.add(new Task("Testing",
+//               new SimpleTimePeriod(date(13, Calendar.SEPTEMBER, 2001),
+//                                    date(31, Calendar.OCTOBER, 2001))));
+//        s1.add(new Task("Final Implementation",
+//               new SimpleTimePeriod(date(1, Calendar.NOVEMBER, 2001),
+//                                    date(15, Calendar.NOVEMBER, 2001))));
+//        s1.add(new Task("Signoff",
+//               new SimpleTimePeriod(date(28, Calendar.NOVEMBER, 2001),
+//                                    date(30, Calendar.NOVEMBER, 2001))));
 
-        final TaskSeries s2 = new TaskSeries("Actual12");
-        s2.add(new Task("Write Proposal",
-               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
-                                    date(5, Calendar.APRIL, 2001))));
-        s2.add(new Task("Obtain Approval",
-               new SimpleTimePeriod(date(9, Calendar.APRIL, 2001),
-                                    date(9, Calendar.APRIL, 2001))));
-        s2.add(new Task("Requirements Analysis",
-               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
-                                    date(15, Calendar.MAY, 2001))));
-        s2.add(new Task("Design Phase",
-               new SimpleTimePeriod(date(15, Calendar.MAY, 2001),
-                                    date(17, Calendar.JUNE, 2001))));
-        s2.add(new Task("Design Signoff",
-               new SimpleTimePeriod(date(30, Calendar.JUNE, 2001),
-                                    date(30, Calendar.JUNE, 2001))));
-        s2.add(new Task("Alpha Implementation",
-               new SimpleTimePeriod(date(1, Calendar.JULY, 2001),
-                                    date(12, Calendar.SEPTEMBER, 2001))));
-        s2.add(new Task("Design Review",
-               new SimpleTimePeriod(date(12, Calendar.SEPTEMBER, 2001),
-                                    date(22, Calendar.SEPTEMBER, 2001))));
-        s2.add(new Task("Revised Design Signoff",
-               new SimpleTimePeriod(date(25, Calendar.SEPTEMBER, 2001),
-                                    date(27, Calendar.SEPTEMBER, 2001))));
-        s2.add(new Task("Beta Implementation",
-               new SimpleTimePeriod(date(27, Calendar.SEPTEMBER, 2001),
-                                    date(30, Calendar.OCTOBER, 2001))));
-        s2.add(new Task("Testing",
-               new SimpleTimePeriod(date(31, Calendar.OCTOBER, 2001),
-                                    date(17, Calendar.NOVEMBER, 2001))));
-        s2.add(new Task("Final Implementation",
-               new SimpleTimePeriod(date(18, Calendar.NOVEMBER, 2001),
-                                    date(5, Calendar.DECEMBER, 2001))));
-        s2.add(new Task("Signoff",
-               new SimpleTimePeriod(date(10, Calendar.DECEMBER, 2001),
-                                    date(11, Calendar.DECEMBER, 2001))));
-        
-        final TaskSeries s3 = new TaskSeries("Random12");
-        s3.add(new Task("Write Proposal",
-               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
-                                    date(5, Calendar.APRIL, 2001))));
-        s3.add(new Task("Obtain Approval",
-               new SimpleTimePeriod(date(9, Calendar.APRIL, 2001),
-                                    date(9, Calendar.APRIL, 2001))));
-        s3.add(new Task("Requirements Analysis",
-               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
-                                    date(15, Calendar.MAY, 2001))));
-        s3.add(new Task("Design Phase",
-               new SimpleTimePeriod(date(15, Calendar.MAY, 2001),
-                                    date(17, Calendar.JUNE, 2001))));
-        s3.add(new Task("Design Signoff",
-               new SimpleTimePeriod(date(30, Calendar.JUNE, 2001),
-                                    date(30, Calendar.JUNE, 2001))));
-        s3.add(new Task("Alpha Implementation",
-               new SimpleTimePeriod(date(1, Calendar.JULY, 2001),
-                                    date(12, Calendar.SEPTEMBER, 2001))));
-        s3.add(new Task("Design Review",
-               new SimpleTimePeriod(date(12, Calendar.SEPTEMBER, 2001),
-                                    date(22, Calendar.SEPTEMBER, 2001))));
-        s3.add(new Task("Revised Design Signoff",
-               new SimpleTimePeriod(date(25, Calendar.SEPTEMBER, 2001),
-                                    date(27, Calendar.SEPTEMBER, 2001))));
-        s3.add(new Task("Beta Implementation",
-               new SimpleTimePeriod(date(27, Calendar.SEPTEMBER, 2001),
-                                    date(30, Calendar.OCTOBER, 2001))));
-        s3.add(new Task("Testing",
-               new SimpleTimePeriod(date(31, Calendar.OCTOBER, 2001),
-                                    date(17, Calendar.NOVEMBER, 2001))));
-        s3.add(new Task("Final Implementation",
-               new SimpleTimePeriod(date(18, Calendar.NOVEMBER, 2001),
-                                    date(5, Calendar.DECEMBER, 2001))));
-        s3.add(new Task("Signoff",
-               new SimpleTimePeriod(date(10, Calendar.DECEMBER, 2001),
-                                    date(11, Calendar.DECEMBER, 2001))));
-
-        final TaskSeriesCollection collection = new TaskSeriesCollection();
-        collection.add(s1);
-        collection.add(s2);
-        collection.add(s3);
-
-        return collection;
+//        TaskSeriesCollection collection = new TaskSeriesCollection();
+//        collection.add(s1);
+//        return collection;
     }
 
     /**
@@ -185,16 +139,17 @@ public class GanttRender extends ApplicationFrame{
      * 
      * @return The chart.
      */
-    private JFreeChart createChart(final IntervalCategoryDataset dataset) {
+    private JFreeChart createChart(String chartTitle, String domain, String range, IntervalCategoryDataset dataset) {
         final JFreeChart chart = ChartFactory.createGanttChart(
-            "Gantt Chart Demo",  // chart title
-            "Task",              // domain axis label
-            "Date",              // range axis label
+            chartTitle,  // chart title
+            domain,              // domain axis label
+            range,              // range axis label
             dataset,             // data
             true,                // include legend
             true,                // tooltips
             false                // urls
         );    
+        System.out.println("return chart!!" + chart);
         return chart;    
     }
     
@@ -203,12 +158,12 @@ public class GanttRender extends ApplicationFrame{
      *
      * @param args  ignored.
      */
-    public static void main(final String[] args) {
-
-        final GanttRender demo = new GanttRender("Gantt Chart D 1");
-        demo.pack();
-        RefineryUtilities.centerFrameOnScreen(demo);
-        demo.setVisible(true);
-    }
+//    public static void main(final String[] args) {
+//
+//        final GanttRender demo = new GanttRender("Gantt Chart D 1");
+//        demo.pack();
+//        RefineryUtilities.centerFrameOnScreen(demo);
+//        demo.setVisible(true);
+//    }
 
 }

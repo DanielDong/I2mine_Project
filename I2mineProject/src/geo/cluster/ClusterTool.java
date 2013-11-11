@@ -1,5 +1,6 @@
 package geo.cluster;
 
+import geo.chart.GanttRender;
 import geo.core.DUComparator;
 import geo.core.DistanceUnit;
 import geo.core.MachineInitialPosition;
@@ -33,6 +34,8 @@ import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.tools.data.FileHandler;
+
+import org.jfree.ui.RefineryUtilities;
 
 /**
  * This class provides methods to cluster a data set.
@@ -317,6 +320,42 @@ public class ClusterTool {
 		return wdList.get(0);
 	}
 	
+	/**
+	 * Compare two WorkfaceprocessUnits based on their total end time so far.
+	 * @author Dong
+	 * @version 1.0
+	 */
+	public static class WfProcUnitComparator implements Comparator<WorkfaceProcessUnit>{
+		@Override
+		public int compare(WorkfaceProcessUnit u1, WorkfaceProcessUnit u2){
+			double timeDiff = u1.getTotalEndTime() - u2.getTotalEndTime();
+			if(timeDiff < 0)
+				return -1;
+			else if(timeDiff == 0)
+				return 0;
+			else
+				return 1;
+		}
+	}
+	
+	/**
+	 * Compare two WorkfaceprocessUnits based on their start time so far.
+	 * @author Dong
+	 * @version 1.0
+	 */
+	public static class WfProcUnitStartComparator implements Comparator<WorkfaceProcessUnit>{
+		@Override
+		public int compare(WorkfaceProcessUnit u1, WorkfaceProcessUnit u2){
+			double timeDiff = u1.getStartTime(0) - u2.getStartTime(0);
+			if(timeDiff < 0)
+				return -1;
+			else if(timeDiff == 0)
+				return 0;
+			else
+				return 1;
+		}
+	}
+	
 	public static void getClustersOfWorkfacesBySharedMachine(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ShareMachineUnit shareUnit) throws IOException, URISyntaxException{
 		/* Load a dataset */
 		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
@@ -336,9 +375,6 @@ public class ClusterTool {
 			System.out.print(shareMachineList.get(i).getMachineNum() + " ");
 		}
 		System.out.println();
-		// Row is each workface, column is each machine. Both are 0 indexed.
-		Double[][] startTimeMatrix = new Double[distance.getNumOfWorkface()][shareUnit.getSharedMachineList().size()];
-		Double[][] endTimeMatrix = new Double[distance.getNumOfWorkface()][shareUnit.getSharedMachineList().size()];
 		
 		//
 		ArrayList<WorkfaceProcessUnit> wfProcList = new ArrayList<WorkfaceProcessUnit>(); 
@@ -346,147 +382,393 @@ public class ClusterTool {
 			wfProcList.add(new WorkfaceProcessUnit(i));
 		}
 		
+		
+		
 		int curMachineIndex = 0;
-		// This number is either 1, 2 or 3. ONLY 3 possbile values for this variable.
-		int numOfFirstMachine = shareMachineList.get(0).getMachineNum();
-		int toMachinewithSameNum = 0;
-		for(int i = 1 + curMachineIndex; i < shareMachineList.size(); i ++){
-			if(shareMachineList.get(i).getMachineNum() == numOfFirstMachine){
-				toMachinewithSameNum ++;
-			}else{
-				break;
-			}
-		}
-		
-		
-		
-		List<ArrayList<Double>> opInfoList = opInfo.getOpInfoList();
-		MachineOpInfo tmpOpInfo = new MachineOpInfo(opInfoList.subList(0, toMachinewithSameNum + 1));
-		
-		// Store time interval list
-		ArrayList<ArrayList<ArrayList<Double>>> timeIntervalList = new ArrayList<ArrayList<ArrayList<Double>>>(); 
-		//Split workfaces into "numOfFirstMachine" groups.
-		ArrayList<ArrayList<Integer>> dss = null;
-		if(numOfFirstMachine == 1){
-			dss = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+		while(curMachineIndex < shareUnit.getSharedMachineList().size()){
 			
-		}else if(numOfFirstMachine == 2){
-			dss = getClustersOfWorkfaces_zhen_new2(2, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+			System.out.println("current machine [group] start index: " + curMachineIndex);
 			
-		}else if(numOfFirstMachine == 3){
-			dss = getClustersOfWorkfaces_zhen_new2(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
-			
-			// Store the operating, moving and waiting time for each sub-group.
-			for(int i = 0; i < dss.size(); i ++){
-				timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
+			// This number is either 1, 2 or 3. ONLY 3 possbile values for this variable.
+			int numOfFirstMachine = shareMachineList.get(curMachineIndex).getMachineNum();
+			int toMachinewithSameNum = 0;
+			for(int i = 1 + curMachineIndex; i < shareMachineList.size(); i ++){
+				if(shareMachineList.get(i).getMachineNum() == numOfFirstMachine){
+					toMachinewithSameNum ++;
+				}else{
+					break;
+				}
 			}
 			
-			// Get operating(moving) and waiting time of each machine in each group (in total 3)
-			for(int groupIndex = 0; groupIndex < 3; groupIndex ++){
-				// Current group's operating and waiting time for 
-				ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
-				// Get operating(moving) and waiting time of each machine
-				for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
-					ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(machineIndex - curMachineIndex);
-					ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(machineIndex - curMachineIndex + 1);
-					ArrayList<Integer> curWfList = dss.get(groupIndex);
-					
-					for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
-						int curWf = curWfList.get(wfIndex);
-						
-						WorkfaceProcessUnit curProcUnit = null;
-						for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
-							if(wfProcList.get(procUnit).getWfId() == curWf){
-								curProcUnit = wfProcList.get(procUnit);
-								break;
-							}
-						}
-						double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
-						double curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
-						double curWfWaitTime = curMachineWaitTime.get(wfIndex);
-						
-						// For the first workface in an operating machine's operating and moving time interval list.
-						if(wfIndex == 0){
-							// The machine is the first machine of the current machine listl
-							if(machineIndex == curMachineIndex){
-								double StartTime = 0;
-								curProcUnit.setStartTime(machineIndex, StartTime);
-								curProcUnit.setEndTime(machineIndex, StartTime + curWfOpTime);
-								curProcUnit.setMovTime(machineIndex, curWfWaitTime);
-							}else{
-								double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
-								
-								int prevWf = curWfList.get(wfIndex - 1);
-								WorkfaceProcessUnit prevProcUnit = null;
-								for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
-									if(wfProcList.get(procUnit).getWfId() == prevWf){
-										prevProcUnit = wfProcList.get(procUnit);
-										break;
-									}
+			
+			
+			List<ArrayList<Double>> opInfoList = opInfo.getOpInfoList();
+			MachineOpInfo tmpOpInfo = new MachineOpInfo(opInfoList.subList(curMachineIndex, curMachineIndex + toMachinewithSameNum + 1));
+			
+			 
+			
+			// Store time interval list
+			ArrayList<ArrayList<ArrayList<Double>>> timeIntervalList = new ArrayList<ArrayList<ArrayList<Double>>>(); 
+			//Split workfaces into "numOfFirstMachine" groups.
+			ArrayList<ArrayList<Integer>> dss = null;
+			if(numOfFirstMachine == 1){
+				dss = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+				
+				// Store the operating, moving and waiting time for each sub-group.
+				for(int i = 0; i < dss.size(); i ++){
+					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
+				}
+				
+				// Get operating(moving) and waiting time of each machine in each group (in total 3)
+				for(int groupIndex = 0; groupIndex < 1; groupIndex ++){
+					// Current group's operating and waiting time for 
+					ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
+					// Get operating(moving) and waiting time of each machine
+					for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
+						ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex));
+						ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex) + 1);
+						ArrayList<Integer> curWfList = dss.get(groupIndex);
+						// current machine's operating and moving time for each workface
+						for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
+							int curWf = curWfList.get(wfIndex);
+							
+							WorkfaceProcessUnit curProcUnit = null;
+							for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+								if(wfProcList.get(procUnit).getWfId() == curWf){
+									curProcUnit = wfProcList.get(procUnit);
+									break;
 								}
-								double startTime2 = prevProcUnit.getEndTime(machineIndex);
-								double movTime = prevProcUnit.getMovTime(machineIndex);
-								
-								if(startTime1 > startTime2 + movTime){
-									curProcUnit.setStartTime(machineIndex, startTime1);
-									curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+							}
+							double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
+							double curWfMovTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
+							
+							double curWfWaitTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfWaitTime = curMachineWaitTime.get(wfIndex);
+							
+							// For the first workface in an operating machine's operating and moving time interval list.
+							if(wfIndex == 0){
+								// The machine is the first machine of the current machine listl
+								if(machineIndex == curMachineIndex){
+									double startTime = System.currentTimeMillis();
+									curProcUnit.setStartTime(machineIndex, startTime);
+									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+									curProcUnit.setMovTime(machineIndex, curWfWaitTime);
 								}else{
-									curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
-									curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+									
+									double startTime = curProcUnit.getEndTime(machineIndex - 1);
+									curProcUnit.setStartTime(machineIndex, startTime);
+									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
 								}
 								
-								
+							}else{
+								if(machineIndex == curMachineIndex){
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									curProcUnit.setStartTime(machineIndex, startTime + movTime);
+									curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+									
+								}else{
+									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
+									
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime2 = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									// Need to wait
+									if(startTime1 > startTime2 + movTime){
+										curProcUnit.setStartTime(machineIndex, startTime1);
+										curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+									}
+								}//end machine
+							}// end wf
+							if(machineIndex == curMachineIndex + toMachinewithSameNum){
+								curProcUnit.setTotalEndTime(curProcUnit.getEndTime(machineIndex));
 							}
-							
-						}else{
-							
-						}
-						
-						
-						
-					}// end for wfIndex
+						}// end for wfIndex
+					}//end for machineIndex
+					
 				}
-			}
+				
+				// Sort all the workfaces so far.
+				WfProcUnitComparator wfProcUnitCom = new WfProcUnitComparator();
+				Collections.sort(wfProcList, wfProcUnitCom);
+				// Update current machine to next un-processed one
+				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
+			}else if(numOfFirstMachine == 2){
+				dss = getClustersOfWorkfaces_zhen_new2(2, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+				
+				// Store the operating, moving and waiting time for each sub-group.
+				for(int i = 0; i < dss.size(); i ++){
+					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
+				}
+				
+				// Get operating(moving) and waiting time of each machine in each group (in total 3)
+				for(int groupIndex = 0; groupIndex < 2; groupIndex ++){
+					// Current group's operating and waiting time for 
+					ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
+					// Get operating(moving) and waiting time of each machine
+					for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
+						ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex));
+						ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex) + 1);
+						ArrayList<Integer> curWfList = dss.get(groupIndex);
+						// current machine's operating and moving time for each workface
+						for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
+							int curWf = curWfList.get(wfIndex);
+							
+							WorkfaceProcessUnit curProcUnit = null;
+							for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+								// procedure unit's workface is 0-indexed
+								if(wfProcList.get(procUnit).getWfId() == curWf - 1){
+									curProcUnit = wfProcList.get(procUnit);
+									break;
+								}
+							}
+							double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
+							double curWfMovTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
+							
+							double curWfWaitTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfWaitTime = curMachineWaitTime.get(wfIndex);
+							
+							// For the first workface in an operating machine's operating and moving time interval list.
+							if(wfIndex == 0){
+								// The machine is the first machine of the current machine listl
+								if(machineIndex == curMachineIndex){
+									
+									double startTime = System.currentTimeMillis();
+									curProcUnit.setStartTime(machineIndex, startTime);
+									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+									curProcUnit.setMovTime(machineIndex, curWfWaitTime);
+								}else{
+									
+									double startTime = curProcUnit.getEndTime(machineIndex - 1);
+									curProcUnit.setStartTime(machineIndex, startTime);
+									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+								}
+								
+							}else{
+								if(machineIndex == curMachineIndex){
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									curProcUnit.setStartTime(machineIndex, startTime + movTime);
+									curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+									
+								}else{
+									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
+									
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime2 = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									// Need to wait
+									if(startTime1 > startTime2 + movTime){
+										curProcUnit.setStartTime(machineIndex, startTime1);
+										curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+									}
+								}//end machine
+							}// end wf
+							if(machineIndex == curMachineIndex + toMachinewithSameNum){
+								curProcUnit.setTotalEndTime(curProcUnit.getEndTime(machineIndex));
+							}
+						}// end for wfIndex
+					}//end for machineIndex
+					
+				}
+				
+				// Sort all the workfaces so far.
+				WfProcUnitComparator wfProcUnitCom = new WfProcUnitComparator();
+				Collections.sort(wfProcList, wfProcUnitCom);
+				// Update current machine to next un-processed one
+				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
+			}else if(numOfFirstMachine == 3){
+				dss = getClustersOfWorkfaces_zhen_new2(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+				
+				// Store the operating, moving and waiting time for each sub-group.
+				for(int i = 0; i < dss.size(); i ++){
+					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
+				}
+				
+				// Get operating(moving) and waiting time of each machine in each group (in total 3)
+				for(int groupIndex = 0; groupIndex < 3; groupIndex ++){
+					// Current group's operating and waiting time for 
+					ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
+					// Get operating(moving) and waiting time of each machine
+					for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
+						ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex));
+						ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex) + 1);
+						ArrayList<Integer> curWfList = dss.get(groupIndex);
+						// current machine's operating and moving time for each workface
+						for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
+							// 1-indexed
+							int curWf = curWfList.get(wfIndex);
+							
+							WorkfaceProcessUnit curProcUnit = null;
+							for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+								// procedure unit's workface is 0-indexed
+								if(wfProcList.get(procUnit).getWfId() == curWf - 1){
+									curProcUnit = wfProcList.get(procUnit);
+									break;
+								}
+							}
+							double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
+							double curWfMovTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
+							
+							double curWfWaitTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfWaitTime = curMachineWaitTime.get(wfIndex);
+							
+							// For the first workface in an operating machine's operating and moving time interval list.
+							if(wfIndex == 0){
+								// The machine is the first machine of the current machine listl
+								if(machineIndex == curMachineIndex){
+									double startTime = System.currentTimeMillis();
+									curProcUnit.setStartTime(machineIndex, startTime);
+									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+									curProcUnit.setMovTime(machineIndex, curWfWaitTime);
+									curProcUnit.setMovTime(machineIndex, curWfMovTime);
+								}else{
+									
+									double startTime = curProcUnit.getEndTime(machineIndex - 1);
+									curProcUnit.setStartTime(machineIndex, startTime);
+									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+									curProcUnit.setMovTime(machineIndex, curWfMovTime);
+								}
+								
+							}else{
+								if(machineIndex == curMachineIndex){
+									// 0-indexed workface list
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									curProcUnit.setStartTime(machineIndex, startTime + movTime);
+									curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+									curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									
+								}else{
+									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
+									
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime2 = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									// Need to wait
+									if(startTime1 > startTime2 + movTime){
+										curProcUnit.setStartTime(machineIndex, startTime1);
+										curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+								}//end machine
+							}// end wf
+							if(machineIndex == curMachineIndex + toMachinewithSameNum){
+								curProcUnit.setTotalEndTime(curProcUnit.getEndTime(machineIndex));
+							}
+						}// end for wfIndex
+					}//end for machineIndex
+					
+				}
+				
+				// Sort all the workfaces so far.
+				WfProcUnitComparator wfProcUnitCom = new WfProcUnitComparator();
+				Collections.sort(wfProcList, wfProcUnitCom);
+				// Update current machine to next un-processed one
+				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
+				
+//				// Update the start and end time matrix for each sub-group
+//				for(int i = 0; i < dss.size(); i ++){
+//					ArrayList<Integer> curWfList = dss.get(i);
+//					ArrayList<Double> curOpMovTime = timeIntervalList.get(i).get(0);
+//					ArrayList<Double> curWaitTime = timeIntervalList.get(i).get(1);
+//					
+//					
+//				}
+			}// end of group 3
 			
-//			// Update the start and end time matrix for each sub-group
-//			for(int i = 0; i < dss.size(); i ++){
-//				ArrayList<Integer> curWfList = dss.get(i);
-//				ArrayList<Double> curOpMovTime = timeIntervalList.get(i).get(0);
-//				ArrayList<Double> curWaitTime = timeIntervalList.get(i).get(1);
-//				
-//				
-//			}
+		}// end while
+		
+		WfProcUnitStartComparator startCom = new WfProcUnitStartComparator();
+		Collections.sort(wfProcList, startCom);
+		
+		System.out.println("===============================\nwfProcList size: " + wfProcList.size() + "\n===============================\n");
+		for(int i = 0; i < wfProcList.size(); i ++){
+			System.out.println("Workface Id: " + wfProcList.get(i).getWfId());
+			for(int j = 0; j < wfProcList.get(i).getWfProcList().size(); j ++){
+				System.out.print(" Machine Id: " + wfProcList.get(i).getWfProcList().get(j).getMachineId() + 
+								 " Start Time: " + wfProcList.get(i).getWfProcList().get(j).getStartTime() +
+								 " End Time: " + wfProcList.get(i).getWfProcList().get(j).getEndTime() + "\n");
+			}
+			System.out.println();
 		}
 		
-		// Test 
-		System.out.println("Test------dss: ");
-		System.out.println("Machine operating: " + tmpOpInfo.getMachineNum());
-		System.out.print("[");
-		for(int k = 0; k < tmpOpInfo.getMachineNum(); k ++){
-			System.out.print((curMachineIndex + k) + " ");
-		}
-		System.out.println("]");
-		if(dss != null){
-			for(int i = 0; i < dss.size(); i ++){
-				for(int j = 0; j < dss.get(i).size(); j ++){
-					System.out.print(dss.get(i).get(j) + " ");
-				}
-				System.out.println();
-			}
-		}
-		
-		// Test
-		System.out.println("TimeInterval list size: " + timeIntervalList.size());
-		for(int i = 0; i < timeIntervalList.size(); i ++){
-			System.out.println("Group " + i +"'s time: ");
-			for(int j = 0; j < timeIntervalList.get(i).size(); j ++){
-//				System.out.println(timeIntervalList.get(i).get(j).size());
-				for(int k = 0; k < timeIntervalList.get(i).get(j).size(); k  ++){
-					System.out.print(timeIntervalList.get(i).get(j).get(k) + " ");
-				}
-				System.out.println();
-			}
-		}
+		// Draw the gantt chart
+        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", wfProcList);
+        demo.pack();
+        //RefineryUtilities.centerFrameOnScreen(demo);
+        demo.setVisible(true);
+        System.out.println("draw Gantt finished!!!");
 	}
 	
 	/**
