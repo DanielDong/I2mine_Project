@@ -15,6 +15,9 @@ import org.jfree.data.gantt.TaskSeries;
 import org.jfree.data.gantt.TaskSeriesCollection;
 import org.jfree.data.time.SimpleTimePeriod;
 import org.jfree.ui.ApplicationFrame;
+import org.jfree.ui.RefineryUtilities;
+
+import java.awt.event.WindowEvent;
 
 public class GanttRender extends ApplicationFrame{
 
@@ -32,10 +35,17 @@ public class GanttRender extends ApplicationFrame{
 
         // add the chart to a panel...
         final ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(1000, 540));
+        chartPanel.setPreferredSize(new java.awt.Dimension(1500, 840));
         setContentPane(chartPanel);
         System.out.println("Set content pane!!!" + chartPanel);
     }
+	
+	@Override
+	public void windowClosing(final WindowEvent event) {
+		if(event.getWindow() == this){
+			dispose();
+		}
+	}
 
     /**
      * Creates a sample dataset for a Gantt chart.
@@ -44,73 +54,26 @@ public class GanttRender extends ApplicationFrame{
      */
     public static IntervalCategoryDataset createDataset(ArrayList<WorkfaceProcessUnit> wfProcList) {
 
+    	if(wfProcList == null){
+    		return null;
+    	}
     	TaskSeriesCollection collection = new TaskSeriesCollection();
     	// The number of tasks is the same as the number of procedures in each workface
     	int numOfProcedure = wfProcList.get(0).getWfProcList().size();
-    	// The number of task series is the same as the number of workfaces.
-    	TaskSeries[] taskSeriesArray = new TaskSeries[wfProcList.size()];
-    	// For each workface
+    	TaskSeries[] taskSeriesArray = new TaskSeries[numOfProcedure];
+    	// For each procedure
     	for(int i = 0; i < taskSeriesArray.length; i ++){
-    		WorkfaceProcessUnit wpu = wfProcList.get(i);
-    		int wfId = wpu.getWfId();
-    		taskSeriesArray[i] = new TaskSeries("Workface " + wfId);
-    		// For each procedure
-    		Task t = null;
-    		for(int j = 0; j < numOfProcedure; j ++){
-    			WorkfaceProcessUnit.WorkfaceProcedureUnit procUnit = wpu.getWfProcList().get(j); 
-    			SimpleTimePeriod tp = new SimpleTimePeriod((long)procUnit.getStartTime(), (long)procUnit.getEndTime());
-    			t = new Task("Procedure " + j, tp);
+    		taskSeriesArray[i] = new TaskSeries("Procedure " + i);
+    		// For each operating machine
+    		for(int j = 0; j < wfProcList.size(); j ++ ){
+    			WorkfaceProcessUnit wpu = wfProcList.get(j);
+    			SimpleTimePeriod tp = new SimpleTimePeriod((long)wpu.getWfProcList().get(i).getStartTime(), (long)wpu.getWfProcList().get(i).getEndTime());
+    			Task t = new Task("Workface " + wfProcList.get(j).getWfId(), tp);
     			taskSeriesArray[i].add(t);
     		}
-    		
     		collection.add(taskSeriesArray[i]);
     	}
-    	System.out.println("data set generated!!!" + collection);
     	return collection;
-    	
-    	
-//    	
-//        TaskSeries s1 = new TaskSeries("Scheduled12");
-//        s1.add(new Task("Write Proposal",
-//               new SimpleTimePeriod(date(1, Calendar.APRIL, 2001),
-//                                    date(5, Calendar.APRIL, 2001))));
-//        s1.add(new Task("Obtain Approval",
-//               new SimpleTimePeriod(date(6, Calendar.APRIL, 2001),
-//                                    date(9, Calendar.APRIL, 2001))));
-//        s1.add(new Task("Requirements Analysis",
-//               new SimpleTimePeriod(date(10, Calendar.APRIL, 2001),
-//                                    date(5, Calendar.MAY, 2001))));
-//        s1.add(new Task("Design Phase",
-//               new SimpleTimePeriod(date(6, Calendar.MAY, 2001),
-//                                    date(30, Calendar.MAY, 2001))));
-//        s1.add(new Task("Design Signoff",
-//               new SimpleTimePeriod(date(2, Calendar.JUNE, 2001),
-//                                    date(2, Calendar.JUNE, 2001))));
-//        s1.add(new Task("Alpha Implementation",
-//               new SimpleTimePeriod(date(3, Calendar.JUNE, 2001),
-//                                    date(31, Calendar.JULY, 2001))));
-//        s1.add(new Task("Design Review",
-//               new SimpleTimePeriod(date(1, Calendar.AUGUST, 2001),
-//                                    date(8, Calendar.AUGUST, 2001))));
-//        s1.add(new Task("Revised Design Signoff",
-//               new SimpleTimePeriod(date(10, Calendar.AUGUST, 2001),
-//                                    date(10, Calendar.AUGUST, 2001))));
-//        s1.add(new Task("Beta Implementation",
-//               new SimpleTimePeriod(date(12, Calendar.AUGUST, 2001),
-//                                    date(12, Calendar.SEPTEMBER, 2001))));
-//        s1.add(new Task("Testing",
-//               new SimpleTimePeriod(date(13, Calendar.SEPTEMBER, 2001),
-//                                    date(31, Calendar.OCTOBER, 2001))));
-//        s1.add(new Task("Final Implementation",
-//               new SimpleTimePeriod(date(1, Calendar.NOVEMBER, 2001),
-//                                    date(15, Calendar.NOVEMBER, 2001))));
-//        s1.add(new Task("Signoff",
-//               new SimpleTimePeriod(date(28, Calendar.NOVEMBER, 2001),
-//                                    date(30, Calendar.NOVEMBER, 2001))));
-
-//        TaskSeriesCollection collection = new TaskSeriesCollection();
-//        collection.add(s1);
-//        return collection;
     }
 
     /**
@@ -158,12 +121,12 @@ public class GanttRender extends ApplicationFrame{
      *
      * @param args  ignored.
      */
-//    public static void main(final String[] args) {
-//
-//        final GanttRender demo = new GanttRender("Gantt Chart D 1");
-//        demo.pack();
-//        RefineryUtilities.centerFrameOnScreen(demo);
-//        demo.setVisible(true);
-//    }
+    public static void main(final String[] args) {
+
+        GanttRender demo = new GanttRender("Gantt Chart D 1", "chart title", "domain", "range", null);
+        demo.pack();
+        RefineryUtilities.centerFrameOnScreen(demo);
+        demo.setVisible(true);
+    }
 
 }

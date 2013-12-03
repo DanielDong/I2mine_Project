@@ -356,11 +356,11 @@ public class ClusterTool {
 		}
 	}
 	
-	public static void getClustersOfWorkfacesBySharedMachine(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ShareMachineUnit shareUnit) throws IOException, URISyntaxException{
+	public static void getClustersOfWorkfacesBySharedMachine(MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ShareMachineUnit shareUnit) throws IOException, URISyntaxException{
 		/* Load a dataset */
-		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
-		Dataset[] dataSets = new DefaultDataset[1];
-		dataSets[0] = data;
+//		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
+//		Dataset[] dataSets = new DefaultDataset[1];
+//		dataSets[0] = data;
 		
 		// The number of procedures.
 		int numOfProc = opInfo.getMachineNum();
@@ -384,6 +384,7 @@ public class ClusterTool {
 		
 		
 		
+		double START_TIME = System.currentTimeMillis();
 		int curMachineIndex = 0;
 		while(curMachineIndex < shareUnit.getSharedMachineList().size()){
 			
@@ -413,7 +414,8 @@ public class ClusterTool {
 			ArrayList<ArrayList<Integer>> dss = null;
 			if(numOfFirstMachine == 1){
 				dss = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
-				
+//				dss = getClustersOfWorkfaces_zhen_new2(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+				System.out.println("numOfFirstMachine == 1 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
 					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
@@ -430,111 +432,7 @@ public class ClusterTool {
 						ArrayList<Integer> curWfList = dss.get(groupIndex);
 						// current machine's operating and moving time for each workface
 						for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
-							int curWf = curWfList.get(wfIndex);
-							
-							WorkfaceProcessUnit curProcUnit = null;
-							for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
-								if(wfProcList.get(procUnit).getWfId() == curWf){
-									curProcUnit = wfProcList.get(procUnit);
-									break;
-								}
-							}
-							double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
-							double curWfMovTime = 0;
-							if(wfIndex < curWfList.size() - 1)
-								curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
-							
-							double curWfWaitTime = 0;
-							if(wfIndex < curWfList.size() - 1)
-								curWfWaitTime = curMachineWaitTime.get(wfIndex);
-							
-							// For the first workface in an operating machine's operating and moving time interval list.
-							if(wfIndex == 0){
-								// The machine is the first machine of the current machine listl
-								if(machineIndex == curMachineIndex){
-									double startTime = System.currentTimeMillis();
-									curProcUnit.setStartTime(machineIndex, startTime);
-									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
-									curProcUnit.setMovTime(machineIndex, curWfWaitTime);
-								}else{
-									
-									double startTime = curProcUnit.getEndTime(machineIndex - 1);
-									curProcUnit.setStartTime(machineIndex, startTime);
-									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
-								}
-								
-							}else{
-								if(machineIndex == curMachineIndex){
-									int prevWf = curWfList.get(wfIndex - 1);
-									WorkfaceProcessUnit prevProcUnit = null;
-									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
-										// procedure unit's workface is 0-indexed
-										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
-											prevProcUnit = wfProcList.get(procUnit);
-											break;
-										}
-									}
-									double startTime = prevProcUnit.getEndTime(machineIndex);
-									double movTime = prevProcUnit.getMovTime(machineIndex);
-									curProcUnit.setStartTime(machineIndex, startTime + movTime);
-									curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
-									
-								}else{
-									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
-									
-									int prevWf = curWfList.get(wfIndex - 1);
-									WorkfaceProcessUnit prevProcUnit = null;
-									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
-										// procedure unit's workface is 0-indexed
-										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
-											prevProcUnit = wfProcList.get(procUnit);
-											break;
-										}
-									}
-									double startTime2 = prevProcUnit.getEndTime(machineIndex);
-									double movTime = prevProcUnit.getMovTime(machineIndex);
-									// Need to wait
-									if(startTime1 > startTime2 + movTime){
-										curProcUnit.setStartTime(machineIndex, startTime1);
-										curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
-									}else{
-										curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
-										curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
-									}
-								}//end machine
-							}// end wf
-							if(machineIndex == curMachineIndex + toMachinewithSameNum){
-								curProcUnit.setTotalEndTime(curProcUnit.getEndTime(machineIndex));
-							}
-						}// end for wfIndex
-					}//end for machineIndex
-					
-				}
-				
-				// Sort all the workfaces so far.
-				WfProcUnitComparator wfProcUnitCom = new WfProcUnitComparator();
-				Collections.sort(wfProcList, wfProcUnitCom);
-				// Update current machine to next un-processed one
-				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
-			}else if(numOfFirstMachine == 2){
-				dss = getClustersOfWorkfaces_zhen_new2(2, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
-				
-				// Store the operating, moving and waiting time for each sub-group.
-				for(int i = 0; i < dss.size(); i ++){
-					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
-				}
-				
-				// Get operating(moving) and waiting time of each machine in each group (in total 3)
-				for(int groupIndex = 0; groupIndex < 2; groupIndex ++){
-					// Current group's operating and waiting time for 
-					ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
-					// Get operating(moving) and waiting time of each machine
-					for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
-						ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex));
-						ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex) + 1);
-						ArrayList<Integer> curWfList = dss.get(groupIndex);
-						// current machine's operating and moving time for each workface
-						for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
+							// 1-indexed
 							int curWf = curWfList.get(wfIndex);
 							
 							WorkfaceProcessUnit curProcUnit = null;
@@ -558,20 +456,52 @@ public class ClusterTool {
 							if(wfIndex == 0){
 								// The machine is the first machine of the current machine listl
 								if(machineIndex == curMachineIndex){
+									// The first operating machine group
+									if(machineIndex == 0){
+										double startTime = START_TIME;
+										curProcUnit.setStartTime(machineIndex, startTime);
+										curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+									// second operating machine group or later ones.
+									else{
+										double lastProcEndTime = curProcUnit.getEndTime(machineIndex - 1);
+										double distInitialWf = distance.getDistBetweenTwoWorkfaces(curWf - 1, initPos.getInitPosOfMachine(machineIndex));
+										double speed = opInfo.getCertainMachineOpInfo(machineIndex).get(1);
+										double movTimeFromInitialToWf = START_TIME +  distInitialWf / speed;
+										if(lastProcEndTime > movTimeFromInitialToWf){
+											curProcUnit.setStartTime(machineIndex, lastProcEndTime);
+											curProcUnit.setEndTime(machineIndex, lastProcEndTime + curWfOpTime);
+											curProcUnit.setMovTime(machineIndex, curWfMovTime);
+										}else{
+											curProcUnit.setStartTime(machineIndex, movTimeFromInitialToWf);
+											curProcUnit.setEndTime(machineIndex, movTimeFromInitialToWf + curWfOpTime);
+											curProcUnit.setMovTime(machineIndex, distInitialWf / speed);
+										}										
+									}
 									
-									double startTime = System.currentTimeMillis();
-									curProcUnit.setStartTime(machineIndex, startTime);
-									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
-									curProcUnit.setMovTime(machineIndex, curWfWaitTime);
 								}else{
 									
 									double startTime = curProcUnit.getEndTime(machineIndex - 1);
-									curProcUnit.setStartTime(machineIndex, startTime);
-									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+									System.out.println("----------curwf:" + curWf + " init pos: " + initPos.getInitPosOfMachine(machineIndex));
+									double distInitialWf = distance.getDistBetweenTwoWorkfaces(curWf - 1, initPos.getInitPosOfMachine(machineIndex));
+									double speed = opInfo.getCertainMachineOpInfo(machineIndex).get(1);
+									double movTimeFromInitialToWf = START_TIME +  distInitialWf / speed;
+									if(startTime > movTimeFromInitialToWf){
+										curProcUnit.setStartTime(machineIndex, startTime);
+										curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, movTimeFromInitialToWf);
+										curProcUnit.setEndTime(machineIndex, movTimeFromInitialToWf + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, distInitialWf / speed);
+									}
 								}
 								
 							}else{
 								if(machineIndex == curMachineIndex){
+									// time from previous workface
+									// 0-indexed workface list
 									int prevWf = curWfList.get(wfIndex - 1);
 									WorkfaceProcessUnit prevProcUnit = null;
 									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
@@ -583,8 +513,21 @@ public class ClusterTool {
 									}
 									double startTime = prevProcUnit.getEndTime(machineIndex);
 									double movTime = prevProcUnit.getMovTime(machineIndex);
-									curProcUnit.setStartTime(machineIndex, startTime + movTime);
-									curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+									
+									// End time of last procedure in current workface.
+									double lastProcEndTime = 0;
+									if(machineIndex > 0)
+										lastProcEndTime = curProcUnit.getEndTime(machineIndex - 1);
+									if(startTime + movTime > lastProcEndTime){
+										curProcUnit.setStartTime(machineIndex, startTime + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, lastProcEndTime);
+										curProcUnit.setEndTime(machineIndex, lastProcEndTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+									
 									
 								}else{
 									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
@@ -604,9 +547,166 @@ public class ClusterTool {
 									if(startTime1 > startTime2 + movTime){
 										curProcUnit.setStartTime(machineIndex, startTime1);
 										curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
 									}else{
 										curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
 										curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+								}//end machine
+							}// end wf
+							if(machineIndex == curMachineIndex + toMachinewithSameNum){
+								curProcUnit.setTotalEndTime(curProcUnit.getEndTime(machineIndex));
+							}
+						}// end for wfIndex
+					}//end for machineIndex
+					
+				}
+				
+				// Sort all the workfaces so far.
+				WfProcUnitComparator wfProcUnitCom = new WfProcUnitComparator();
+				Collections.sort(wfProcList, wfProcUnitCom);
+				// Update current machine to next un-processed one
+				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
+			}else if(numOfFirstMachine == 2){
+				dss = getClustersOfWorkfaces_zhen_new2(2, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+				System.out.println("numOfFirstMachine == 2 dss size: " + dss.size());
+				// Store the operating, moving and waiting time for each sub-group.
+				for(int i = 0; i < dss.size(); i ++){
+					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
+				}
+				
+				// Get operating(moving) and waiting time of each machine in each group (in total 3)
+				for(int groupIndex = 0; groupIndex < 2; groupIndex ++){
+					// Current group's operating and waiting time for 
+					ArrayList<ArrayList<Double>> curGroupOpWaitTimeList = timeIntervalList.get(groupIndex);
+					// Get operating(moving) and waiting time of each machine
+					for(int machineIndex = curMachineIndex; machineIndex <= curMachineIndex + toMachinewithSameNum; machineIndex ++){
+						ArrayList<Double> curMachineOpTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex));
+						ArrayList<Double> curMachineWaitTime = timeIntervalList.get(groupIndex).get(2 * (machineIndex - curMachineIndex) + 1);
+						ArrayList<Integer> curWfList = dss.get(groupIndex);
+						// current machine's operating and moving time for each workface
+						for(int wfIndex = 0; wfIndex < curWfList.size(); wfIndex ++){
+							// 1-indexed
+							int curWf = curWfList.get(wfIndex);
+							
+							WorkfaceProcessUnit curProcUnit = null;
+							for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+								// procedure unit's workface is 0-indexed
+								if(wfProcList.get(procUnit).getWfId() == curWf - 1){
+									curProcUnit = wfProcList.get(procUnit);
+									break;
+								}
+							}
+							double curWfOpTime = curMachineOpTime.get(wfIndex * 2);
+							double curWfMovTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfMovTime = curMachineOpTime.get(wfIndex * 2 + 1);
+							
+							double curWfWaitTime = 0;
+							if(wfIndex < curWfList.size() - 1)
+								curWfWaitTime = curMachineWaitTime.get(wfIndex);
+							
+							// For the first workface in an operating machine's operating and moving time interval list.
+							if(wfIndex == 0){
+								// The machine is the first machine of the current machine listl
+								if(machineIndex == curMachineIndex){
+									// The first operating machine group
+									if(machineIndex == 0){
+										double startTime = START_TIME;
+										curProcUnit.setStartTime(machineIndex, startTime);
+										curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+									// second operating machine group or later ones.
+									else{
+										double lastProcEndTime = curProcUnit.getEndTime(machineIndex - 1);
+										double distInitialWf = distance.getDistBetweenTwoWorkfaces(curWf - 1, initPos.getInitPosOfMachine(machineIndex));
+										double speed = opInfo.getCertainMachineOpInfo(machineIndex).get(1);
+										double movTimeFromInitialToWf = START_TIME +  distInitialWf / speed;
+										if(lastProcEndTime > movTimeFromInitialToWf){
+											curProcUnit.setStartTime(machineIndex, lastProcEndTime);
+											curProcUnit.setEndTime(machineIndex, lastProcEndTime + curWfOpTime);
+											curProcUnit.setMovTime(machineIndex, curWfMovTime);
+										}else{
+											curProcUnit.setStartTime(machineIndex, movTimeFromInitialToWf);
+											curProcUnit.setEndTime(machineIndex, movTimeFromInitialToWf + curWfOpTime);
+											curProcUnit.setMovTime(machineIndex, distInitialWf / speed);
+										}										
+									}
+									
+								}else{
+									
+									double startTime = curProcUnit.getEndTime(machineIndex - 1);
+									System.out.println("----------curwf:" + curWf + " init pos: " + initPos.getInitPosOfMachine(machineIndex));
+									double distInitialWf = distance.getDistBetweenTwoWorkfaces(curWf - 1, initPos.getInitPosOfMachine(machineIndex));
+									double speed = opInfo.getCertainMachineOpInfo(machineIndex).get(1);
+									double movTimeFromInitialToWf = START_TIME +  distInitialWf / speed;
+									if(startTime > movTimeFromInitialToWf){
+										curProcUnit.setStartTime(machineIndex, startTime);
+										curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, movTimeFromInitialToWf);
+										curProcUnit.setEndTime(machineIndex, movTimeFromInitialToWf + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, distInitialWf / speed);
+									}
+								}
+								
+							}else{
+								if(machineIndex == curMachineIndex){
+									// time from previous workface
+									// 0-indexed workface list
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									
+									// End time of last procedure in current workface.
+									double lastProcEndTime = 0;
+									if(machineIndex > 0)
+										lastProcEndTime = curProcUnit.getEndTime(machineIndex - 1);
+									if(startTime + movTime > lastProcEndTime){
+										curProcUnit.setStartTime(machineIndex, startTime + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, lastProcEndTime);
+										curProcUnit.setEndTime(machineIndex, lastProcEndTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+									
+									
+								}else{
+									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
+									
+									int prevWf = curWfList.get(wfIndex - 1);
+									WorkfaceProcessUnit prevProcUnit = null;
+									for(int procUnit = 0; procUnit <  wfProcList.size(); procUnit ++){
+										// procedure unit's workface is 0-indexed
+										if(wfProcList.get(procUnit).getWfId() == prevWf - 1){
+											prevProcUnit = wfProcList.get(procUnit);
+											break;
+										}
+									}
+									double startTime2 = prevProcUnit.getEndTime(machineIndex);
+									double movTime = prevProcUnit.getMovTime(machineIndex);
+									// Need to wait
+									if(startTime1 > startTime2 + movTime){
+										curProcUnit.setStartTime(machineIndex, startTime1);
+										curProcUnit.setEndTime(machineIndex, startTime1 + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, startTime2 + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime2 + movTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
 									}
 								}//end machine
 							}// end wf
@@ -625,7 +725,7 @@ public class ClusterTool {
 				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
 			}else if(numOfFirstMachine == 3){
 				dss = getClustersOfWorkfaces_zhen_new2(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
-				
+				System.out.println("numOfFirstMachine == 3 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
 					timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(dss.get(i), tmpOpInfo, workload, distance));
@@ -666,21 +766,51 @@ public class ClusterTool {
 							if(wfIndex == 0){
 								// The machine is the first machine of the current machine listl
 								if(machineIndex == curMachineIndex){
-									double startTime = System.currentTimeMillis();
-									curProcUnit.setStartTime(machineIndex, startTime);
-									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
-									curProcUnit.setMovTime(machineIndex, curWfWaitTime);
-									curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									// The first operating machine group
+									if(machineIndex == 0){
+										double startTime = START_TIME;
+										curProcUnit.setStartTime(machineIndex, startTime);
+										curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+									// second operating machine group or later ones.
+									else{
+										double lastProcEndTime = curProcUnit.getEndTime(machineIndex - 1);
+										double distInitialWf = distance.getDistBetweenTwoWorkfaces(curWf - 1, initPos.getInitPosOfMachine(machineIndex));
+										double speed = opInfo.getCertainMachineOpInfo(machineIndex).get(1);
+										double movTimeFromInitialToWf = START_TIME +  distInitialWf / speed;
+										if(lastProcEndTime > movTimeFromInitialToWf){
+											curProcUnit.setStartTime(machineIndex, lastProcEndTime);
+											curProcUnit.setEndTime(machineIndex, lastProcEndTime + curWfOpTime);
+											curProcUnit.setMovTime(machineIndex, curWfMovTime);
+										}else{
+											curProcUnit.setStartTime(machineIndex, movTimeFromInitialToWf);
+											curProcUnit.setEndTime(machineIndex, movTimeFromInitialToWf + curWfOpTime);
+											curProcUnit.setMovTime(machineIndex, distInitialWf / speed);
+										}										
+									}
+									
 								}else{
 									
 									double startTime = curProcUnit.getEndTime(machineIndex - 1);
-									curProcUnit.setStartTime(machineIndex, startTime);
-									curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
-									curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									System.out.println("----------curwf:" + curWf + " init pos: " + initPos.getInitPosOfMachine(machineIndex));
+									double distInitialWf = distance.getDistBetweenTwoWorkfaces(curWf - 1, initPos.getInitPosOfMachine(machineIndex));
+									double speed = opInfo.getCertainMachineOpInfo(machineIndex).get(1);
+									double movTimeFromInitialToWf = START_TIME +  distInitialWf / speed;
+									if(startTime > movTimeFromInitialToWf){
+										curProcUnit.setStartTime(machineIndex, startTime);
+										curProcUnit.setEndTime(machineIndex, startTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, movTimeFromInitialToWf);
+										curProcUnit.setEndTime(machineIndex, movTimeFromInitialToWf + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, distInitialWf / speed);
+									}
 								}
 								
 							}else{
 								if(machineIndex == curMachineIndex){
+									// time from previous workface
 									// 0-indexed workface list
 									int prevWf = curWfList.get(wfIndex - 1);
 									WorkfaceProcessUnit prevProcUnit = null;
@@ -693,9 +823,21 @@ public class ClusterTool {
 									}
 									double startTime = prevProcUnit.getEndTime(machineIndex);
 									double movTime = prevProcUnit.getMovTime(machineIndex);
-									curProcUnit.setStartTime(machineIndex, startTime + movTime);
-									curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
-									curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									
+									// End time of last procedure in current workface.
+									double lastProcEndTime = 0;
+									if(machineIndex > 0)
+										lastProcEndTime = curProcUnit.getEndTime(machineIndex - 1);
+									if(startTime + movTime > lastProcEndTime){
+										curProcUnit.setStartTime(machineIndex, startTime + movTime);
+										curProcUnit.setEndTime(machineIndex, startTime + movTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}else{
+										curProcUnit.setStartTime(machineIndex, lastProcEndTime);
+										curProcUnit.setEndTime(machineIndex, lastProcEndTime + curWfOpTime);
+										curProcUnit.setMovTime(machineIndex, curWfMovTime);
+									}
+									
 									
 								}else{
 									double startTime1 = curProcUnit.getEndTime(machineIndex - 1);
@@ -768,6 +910,7 @@ public class ClusterTool {
         demo.pack();
         //RefineryUtilities.centerFrameOnScreen(demo);
         demo.setVisible(true);
+        RefineryUtilities.centerFrameOnScreen(demo);
         System.out.println("draw Gantt finished!!!");
 	}
 	
@@ -923,6 +1066,23 @@ public class ClusterTool {
 		}
 
 		finalRet.add(sortedWfList);
+		// List of sorted workface
+		ArrayList<Integer> sortedWfSeq = new ArrayList<Integer>();
+		sortedWfSeq.addAll(sortedWfList);
+		ArrayList<WorkfaceProcessUnit> wfProcList = new ArrayList<WorkfaceProcessUnit>();
+		for(int i = 0; i < numOfWorkfaces; i ++){
+			WorkfaceProcessUnit wpu = new WorkfaceProcessUnit(i);
+			wfProcList.add(wpu);
+		}
+		
+		// Store time interval list
+		ArrayList<ArrayList<ArrayList<Double>>> timeIntervalList = new ArrayList<ArrayList<ArrayList<Double>>>();
+		timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(sortedWfSeq, opInfo, workload, distance));
+		
+					
+		
+		
+		
 		return finalRet;
 	}
 	
@@ -2479,10 +2639,10 @@ public class ClusterTool {
 	public static void main(String[] args) throws Exception {
 		
 		// Determine whether to output debug info or not
-		ClusterTool.LEVEL = LogTool.LEVEL_OPEN;
-		SortTool.LEVEL = LogTool.LEVEL_OPEN;
-//		ClusterTool.LEVEL = LogTool.LEVEL_CLOSE;
-//		SortTool.LEVEL = LogTool.LEVEL_CLOSE;
+//		ClusterTool.LEVEL = LogTool.LEVEL_OPEN;
+//		SortTool.LEVEL = LogTool.LEVEL_OPEN;
+		ClusterTool.LEVEL = LogTool.LEVEL_CLOSE;
+		SortTool.LEVEL = LogTool.LEVEL_CLOSE;
 		
 		//***************start the grouping workface process********************
 		//Dataset[] dss = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 20, "\t");
@@ -2611,191 +2771,193 @@ public class ClusterTool {
 			}
 			
 			s.close();
-			System.exit(0);
 			
-		}
-		
-		System.out.println("Compute workface cluster by sharing machines?[YES or NO]");
-		s = new Scanner(System.in);
-		ret = s.nextLine();
-		// Finish workload by sharing operating machines.
-		if(ret.equalsIgnoreCase("yes")){
-			System.out.println("Number of operating machine set?");
-			int numbOfMachineSet = Integer.valueOf(s.nextLine());
-			String curLine = null;
-			br = new BufferedReader(new FileReader("machine-set.txt"));
-			LinkedList<String> q = new LinkedList<String>();
-			int cntOfLine = 0;
-			while((curLine = br.readLine()) != null){
-				q.add(curLine);
-				cntOfLine ++;
-			}
+		    System.exit(0);
 			
-			int numOfProc = cntOfLine / numbOfMachineSet;
-			ShareMachineUnit shareUnit = new ShareMachineUnit();
-			for(int i = 0; i < cntOfLine; i ++){
-				int procId = i % numOfProc;
-				String[] strArr = q.removeFirst().split("\t");
-				String name = strArr[0];
-				int machineNum = Integer.valueOf(strArr[1]);
-				// Test
-				System.out.println("ProcId: " + procId + " machineNum: " + machineNum + " machine name: " + name);
-				
-				shareUnit.addNewProcedureUnit(procId, machineNum, name);
-			}
-			//Test
-			System.out.println("Share unit size: " + shareUnit.getSharedMachineList().size());
-			
-			getClustersOfWorkfacesBySharedMachine("workface-distance.txt", 20, "\t", opInfo, workload, distance, machineInitPos, shareUnit);
-			
-			s.close();
-			System.exit(0);
-		}
-		
-		
-		
-		System.out.println("Compute workface cluster by dependancy?[YES or NO]");
-		s = new Scanner(System.in);
-		ret = s.nextLine();
-		if(ret.equalsIgnoreCase("yes")){
-			// Read in workface dependancy information
-			WorkfaceDependancy wfDependancy = new WorkfaceDependancy();
-			br = null;
-			
-			try{
-				String curLine = null;
-				br = new BufferedReader(new FileReader("workface-dependancy.txt"));
-				while((curLine = br.readLine()) != null){
-					
-					String[] deArr = curLine.split("\t");
-					wfDependancy.addDependancyUnit(Integer.valueOf(deArr[0]), Integer.valueOf(deArr[1]));
-					
-				}
-				
-				ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfaces_byDependancy("workface-distance.txt", 20, "\t", wfDependancy, opInfo, workload, distance, machineInitPos);
-				
-			}catch(IOException e){
-				e.printStackTrace();
-			}finally{
-				if(br != null){
-					br.close();
-				}
-			}
-			
-			s.close();
-			System.exit(0);
-		}
-		
-		
-		
-	
-		
-		
-		int isSortedOrNot = 1;
-		System.out.println("Sort workfaces or not(1 for yes, 2 for No from 1 to 20, 3 for No from 20 to 1):");
-		s = new Scanner(System.in);
-		String str = s.nextLine();
-		if(str.equals("1")){
-			isSortedOrNot = 1;
-		}else if(str.equals("2")){
-			isSortedOrNot = 2;
-		}
-		else if(str.equals("3")){
-			isSortedOrNot = 3;
-		}
-		else{
-			System.err.println("Please choose 1, 2 or 3.");
-			System.exit(-1);
-		}
-		
-		System.out.println("Choose the level of parentheses you want to exclude:\n" +
-				"	0 No parentheses excluded.\n" +
-				"	1 First level parentheses excluded.\n" +
-				"	2 Second level parentheses excluded.\n" +
-				"	3 Third level parentheses excluded.\n");
-		int level = -1;
-		level = s.nextInt();
-		switch(level){
-			case 0:
-				ClusterTool.parenClearLevel = ClusterTool.Parentheses.NONE;
-				break;
-			case 1:
-				ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIRST_LEVEL;
-				break;
-			case 2:
-				ClusterTool.parenClearLevel = ClusterTool.Parentheses.SECOND_LEVEL;
-				break;
-			case 3:
-				ClusterTool.parenClearLevel = ClusterTool.Parentheses.THIRD_LEVEL;
-				break;
-//			case 4:
-//				ClusterTool.parenClearLevel = ClusterTool.Parentheses.FORTH_LEVEL;
-//				break;
-//			case 5:
-//				ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIFTH_LEVEL;
-//				break;
-			default:
-					System.out.println("Please choose a valid level number.");
-					System.exit(-1);
-		}
-		System.out.println("Specify the number of machine sets(1, 2 or 3):\n");
-		int numOfSet = s.nextInt();
-		if(numOfSet < 0 || numOfSet > 3){
-			System.err.println("Possible number of machine sets are 1, 2 or 3.");
-			System.exit(-1);
-		}
-		s.close();
-
-		
-		
-		// Machine 1 and 2 has no workload on workface 5.
-//		workload.setWorkloadForMachineOnCertainWf(0, 4, 0);
-//		workload.setWorkloadForMachineOnCertainWf(1, 4, 0);
-		
-		// Machine 1 and 2 has no workload on workface 1.
-//		workload.setWorkloadForMachineOnCertainWf(0, 0, 0);
-//		workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
-		
-		// Machine 1 and 2 has no workload on workface 1.
-		workload.setWorkloadForMachineOnCertainWf(0, 0, 0);
-		workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
-		// Machine 1 and 2 has no workload on workface 6.
-		workload.setWorkloadForMachineOnCertainWf(0, 5, 0);
-		workload.setWorkloadForMachineOnCertainWf(1, 5, 0);
-		
-		
-		
-		// Print out workface workoad information
-//		StringBuilder msgOutputWorkload = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//		msgOutputWorkload.append("\n=========Workface Workload==========\n");
-//		msgOutputWorkload.append(workload.OutputWorkload());
-//		LogTool.log(LEVEL, msgOutputWorkload.toString());
-
-		// Start cluster & sort workface  *********************************************************
-//		ArrayList<Integer> ds = null;
-		ArrayList<ArrayList<Integer>> dss = null;
-		if(isSortedOrNot == 1){
-			if(numOfSet == 1){
-				dss = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", opInfo, workload, distance, machineInitPos);
-			}else{
-				dss = ClusterTool.getClustersOfWorkfaces_zhen_new2(numOfSet, "workface-distance.txt", 20, "\t", opInfo, workload, distance, machineInitPos);
-			}
-			 
 		}else{
-//			ds = new ArrayList<Integer>();
-//			if(isSortedOrNot == 3)
-//				for(int iRandom = 0; iRandom < 20; iRandom ++){
-//					ds.add(20 - iRandom );
-//				}
-//			else
-//				for(int iRandom = 0; iRandom < 20; iRandom ++){
-//					ds.add(iRandom + 1);
-//				}
-		}
+			System.out.println("Compute workface cluster by sharing machines?[YES or NO]");
+			s = new Scanner(System.in);
+			ret = s.nextLine();
+			// Finish workload by sharing operating machines.
+			if(ret.equalsIgnoreCase("yes")){
+				System.out.println("Number of operating machine set?");
+				int numbOfMachineSet = Integer.valueOf(s.nextLine());
+				String curLine = null;
+				br = new BufferedReader(new FileReader("machine-set.txt"));
+				LinkedList<String> q = new LinkedList<String>();
+				int cntOfLine = 0;
+				while((curLine = br.readLine()) != null){
+					q.add(curLine);
+					cntOfLine ++;
+				}
+				
+				int numOfProc = cntOfLine / numbOfMachineSet;
+				ShareMachineUnit shareUnit = new ShareMachineUnit();
+				for(int i = 0; i < cntOfLine; i ++){
+					int procId = i % numOfProc;
+					String[] strArr = q.removeFirst().split("\t");
+					String name = strArr[0];
+					int machineNum = Integer.valueOf(strArr[1]);
+					// Test
+					System.out.println("ProcId: " + procId + " machineNum: " + machineNum + " machine name: " + name);
+					
+					shareUnit.addNewProcedureUnit(procId, machineNum, name);
+				}
+				//Test
+				System.out.println("Share unit size: " + shareUnit.getSharedMachineList().size());
+				
+				getClustersOfWorkfacesBySharedMachine(opInfo, workload, distance, machineInitPos, shareUnit);
+				
+				s.close();
+				System.out.println("another thread to show gantt!!!");
+				//System.exit(0);
+			}else{
+				System.out.println("Compute workface cluster by dependancy?[YES or NO]");
+				s = new Scanner(System.in);
+				ret = s.nextLine();
+				if(ret.equalsIgnoreCase("yes")){
+					// Read in workface dependancy information
+					WorkfaceDependancy wfDependancy = new WorkfaceDependancy();
+					br = null;
+					
+					try{
+						String curLine = null;
+						br = new BufferedReader(new FileReader("workface-dependancy.txt"));
+						while((curLine = br.readLine()) != null){
+							
+							String[] deArr = curLine.split("\t");
+							wfDependancy.addDependancyUnit(Integer.valueOf(deArr[0]), Integer.valueOf(deArr[1]));
+							
+						}
+						
+						ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfaces_byDependancy("workface-distance.txt", 20, "\t", wfDependancy, opInfo, workload, distance, machineInitPos);
+						
+					}catch(IOException e){
+						e.printStackTrace();
+					}finally{
+						if(br != null){
+							br.close();
+						}
+					}
+					
+					s.close();
+					System.exit(0);
+				}
+				
+				
+				
+			
+				
+				
+				int isSortedOrNot = 1;
+				System.out.println("Sort workfaces or not(1 for yes, 2 for No from 1 to 20, 3 for No from 20 to 1):");
+				s = new Scanner(System.in);
+				String str = s.nextLine();
+				if(str.equals("1")){
+					isSortedOrNot = 1;
+				}else if(str.equals("2")){
+					isSortedOrNot = 2;
+				}
+				else if(str.equals("3")){
+					isSortedOrNot = 3;
+				}
+				else{
+					System.err.println("Please choose 1, 2 or 3.");
+					System.exit(-1);
+				}
+				
+				System.out.println("Choose the level of parentheses you want to exclude:\n" +
+						"	0 No parentheses excluded.\n" +
+						"	1 First level parentheses excluded.\n" +
+						"	2 Second level parentheses excluded.\n" +
+						"	3 Third level parentheses excluded.\n");
+				int level = -1;
+				level = s.nextInt();
+				switch(level){
+					case 0:
+						ClusterTool.parenClearLevel = ClusterTool.Parentheses.NONE;
+						break;
+					case 1:
+						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIRST_LEVEL;
+						break;
+					case 2:
+						ClusterTool.parenClearLevel = ClusterTool.Parentheses.SECOND_LEVEL;
+						break;
+					case 3:
+						ClusterTool.parenClearLevel = ClusterTool.Parentheses.THIRD_LEVEL;
+						break;
+//					case 4:
+//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FORTH_LEVEL;
+//						break;
+//					case 5:
+//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIFTH_LEVEL;
+//						break;
+					default:
+							System.out.println("Please choose a valid level number.");
+							System.exit(-1);
+				}
+				System.out.println("Specify the number of machine sets(1, 2 or 3):\n");
+				int numOfSet = s.nextInt();
+				if(numOfSet < 0 || numOfSet > 3){
+					System.err.println("Possible number of machine sets are 1, 2 or 3.");
+					System.exit(-1);
+				}
+				s.close();
 
-		for(int i = 0; i < dss.size(); i ++){
-			printOutVisualInfo(dss.get(i), workload, opInfo, distance);
+				
+				
+				// Machine 1 and 2 has no workload on workface 5.
+//				workload.setWorkloadForMachineOnCertainWf(0, 4, 0);
+//				workload.setWorkloadForMachineOnCertainWf(1, 4, 0);
+				
+				// Machine 1 and 2 has no workload on workface 1.
+//				workload.setWorkloadForMachineOnCertainWf(0, 0, 0);
+//				workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
+				
+				// Machine 1 and 2 has no workload on workface 1.
+				workload.setWorkloadForMachineOnCertainWf(0, 0, 0);
+				workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
+				// Machine 1 and 2 has no workload on workface 6.
+				workload.setWorkloadForMachineOnCertainWf(0, 5, 0);
+				workload.setWorkloadForMachineOnCertainWf(1, 5, 0);
+				
+				
+				
+				// Print out workface workoad information
+//				StringBuilder msgOutputWorkload = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//				msgOutputWorkload.append("\n=========Workface Workload==========\n");
+//				msgOutputWorkload.append(workload.OutputWorkload());
+//				LogTool.log(LEVEL, msgOutputWorkload.toString());
+
+				// Start cluster & sort workface  *********************************************************
+//				ArrayList<Integer> ds = null;
+				ArrayList<ArrayList<Integer>> dss = null;
+				if(isSortedOrNot == 1){
+					if(numOfSet == 1){
+						dss = ClusterTool.getClustersOfWorkfaces_zhen_new("workface-distance.txt", 20, "\t", opInfo, workload, distance, machineInitPos);
+					}else{
+						dss = ClusterTool.getClustersOfWorkfaces_zhen_new2(numOfSet, "workface-distance.txt", 20, "\t", opInfo, workload, distance, machineInitPos);
+					}
+					 
+				}else{
+//					ds = new ArrayList<Integer>();
+//					if(isSortedOrNot == 3)
+//						for(int iRandom = 0; iRandom < 20; iRandom ++){
+//							ds.add(20 - iRandom );
+//						}
+//					else
+//						for(int iRandom = 0; iRandom < 20; iRandom ++){
+//							ds.add(iRandom + 1);
+//						}
+				}
+
+				for(int i = 0; i < dss.size(); i ++){
+					printOutVisualInfo(dss.get(i), workload, opInfo, distance);
+				}
+			}
 		}
+		
+		
     	
 	}// end of method main
 	
