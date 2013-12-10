@@ -700,6 +700,7 @@ public class I2MineMain extends Composite {
 						wfPriority.addWfPrioUnit(newUnit);
 					}
 					ArrayList<ArrayList<Integer>> finalRetList = ClusterTool.getClustersOfWorkfaces_byPriority(wfDistancePath, numOfWf, "\t",wfPriority, opInfo, workload, distance, machineInitPos);
+					
 				} catch(IOException e){
 					e.printStackTrace();
 				} catch (URISyntaxException e) {

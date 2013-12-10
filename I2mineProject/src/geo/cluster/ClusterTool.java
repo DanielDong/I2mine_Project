@@ -911,7 +911,7 @@ public class ClusterTool {
         //RefineryUtilities.centerFrameOnScreen(demo);
         demo.setVisible(true);
         RefineryUtilities.centerFrameOnScreen(demo);
-        System.out.println("draw Gantt finished!!!");
+        System.out.println("shared operating machine - draw Gantt finished!!!");
 	}
 	
 	/**
@@ -1069,6 +1069,8 @@ public class ClusterTool {
 		// List of sorted workface
 		ArrayList<Integer> sortedWfSeq = new ArrayList<Integer>();
 		sortedWfSeq.addAll(sortedWfList);
+		System.out.println("sorted workface seq size: " + sortedWfSeq.size());
+		
 		ArrayList<WorkfaceProcessUnit> wfProcList = new ArrayList<WorkfaceProcessUnit>();
 		for(int i = 0; i < numOfWorkfaces; i ++){
 			WorkfaceProcessUnit wpu = new WorkfaceProcessUnit(i);
@@ -1076,12 +1078,82 @@ public class ClusterTool {
 		}
 		
 		// Store time interval list
-		ArrayList<ArrayList<ArrayList<Double>>> timeIntervalList = new ArrayList<ArrayList<ArrayList<Double>>>();
-		timeIntervalList.add(SortTool.computeMachineTimeIntervalInOneRegion(sortedWfSeq, opInfo, workload, distance));
+		ArrayList<ArrayList<Double>> timeIntervalList = new ArrayList<ArrayList<Double>>();
+		timeIntervalList = SortTool.computeMachineTimeIntervalInOneRegion(sortedWfSeq, opInfo, workload, distance);
+		System.out.println("time interval size:" + timeIntervalList.size());
+	    long START_TIME = System.currentTimeMillis();
+	    
+	    // For each operating machine
+	    for(int i = 0; i < opInfo.getMachineNum(); i ++){
+	    	// Current machine's processing and moving time
+	    	ArrayList<Double> proTime = timeIntervalList.get(2 * i);
+	    	// Current machine's wait time
+	    	ArrayList<Double> waitTime = timeIntervalList.get(2 * i + 1);
+	    	
+	    	// For each workface in sorted worface list
+	    	for(int j = 0; j < sortedWfList.size(); j ++){
+	    		int curWfNum = sortedWfList.get(j) - 1;
+	    		double curWfMachineOpTime = proTime.get(2 * j);
+	    		double curWfMachineMovTime = 0;
+	    		if(j < sortedWfList.size() - 1){
+	    			curWfMachineMovTime = proTime.get(2 * j + 1);
+	    		}
+	    		
+	    		double curWfMachineWaitTime = 0;
+	    		if(j < sortedWfList.size() - 1){
+	    			curWfMachineWaitTime = waitTime.get(j);
+	    		}
+	    		
+	    		// Current workface process unit
+	    		WorkfaceProcessUnit wpu = wfProcList.get(curWfNum);
+	    		
+	    		// This is the first operating machine (or procedure on this workface)
+	    		if(i == 0){
+	    			if(j == 0){
+	    				wpu.setStartTime(i, START_TIME);
+		    			wpu.setEndTime(i, wpu.getStartTime(i) + curWfMachineOpTime);
+		    			wpu.setMovTime(i, curWfMachineMovTime);
+	    			}else{
+	    				WorkfaceProcessUnit prevWpu = wfProcList.get(sortedWfList.get(j - 1) - 1);
+	    				wpu.setStartTime(i, prevWpu.getEndTime(i) + prevWpu.getMovTime(i));
+		    			wpu.setEndTime(i, wpu.getStartTime(i) + curWfMachineOpTime);
+		    			wpu.setMovTime(i, curWfMachineMovTime);
+	    			}
+	    			
+	    		}else{
+	    			if(j == 0){
+	    				wpu.setStartTime(i, wpu.getEndTime(i - 1));
+		    			wpu.setEndTime(i, wpu.getStartTime(i) + curWfMachineOpTime);
+		    			wpu.setMovTime(i, curWfMachineMovTime);
+	    			}else{
+	    				WorkfaceProcessUnit prevWpu = wfProcList.get(sortedWfList.get(j - 1) - 1);
+	    				double endTime1 = wpu.getEndTime(i - 1);
+	    				double endTime2 = prevWpu.getEndTime(i) + prevWpu.getMovTime(i);
+	    				if(endTime1 > endTime2){
+	    					wpu.setStartTime(i, endTime1);
+	    				}else{
+	    					wpu.setStartTime(i, endTime2);
+	    				}
+	    				wpu.setEndTime(i, wpu.getStartTime(i) + curWfMachineOpTime);
+		    			wpu.setMovTime(i, curWfMachineMovTime);
+	    			}
+	    		}
+	    		if(i == opInfo.getMachineNum() - 1){
+	    			wpu.setTotalEndTime(wpu.getEndTime(i));
+	    		}
+	    	}// end for - workface
+	    }// end for - machine
+	    
+	    WfProcUnitStartComparator startCom = new WfProcUnitStartComparator();
+		Collections.sort(wfProcList, startCom);
 		
-					
-		
-		
+	    // Draw the gantt chart
+        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", wfProcList);
+        demo.pack();
+        //RefineryUtilities.centerFrameOnScreen(demo);
+        demo.setVisible(true);
+        RefineryUtilities.centerFrameOnScreen(demo);
+        System.out.println("by priority - draw Gantt finished!!!");
 		
 		return finalRet;
 	}
