@@ -2,6 +2,7 @@ package geo.i2mine;
 import geo.core.MachineInitialPosition;
 import geo.core.MachineOpInfo;
 import geo.core.ShareMachineUnit;
+import geo.core.WorkfaceDependancy;
 import geo.core.WorkfaceDistance;
 import geo.core.WorkfacePriority;
 import geo.core.WorkfaceWorkload;
@@ -99,7 +100,8 @@ public class I2MineMain extends Composite {
 	private Button BtnWfDist;
 	private Composite composite1;
 	private Composite parent;
-	private Combo comboDropDown;
+	private Combo comboDropDownSet;
+	private Combo comboDropDownLevel;
 	private String actionFilePath;
 	private MachineOpInfo opInfo;
 	private Text TxtNumofProc;
@@ -109,6 +111,7 @@ public class I2MineMain extends Composite {
 	private WorkfaceWorkload workload;
 	private WorkfaceDistance distance;
 	private MachineInitialPosition machineInitPos;
+	private Label LParenthesisLevel;
 
 	I2MineMain(org.eclipse.swt.widgets.Composite parent, int style) {
 		super(parent, style);
@@ -311,7 +314,7 @@ public class I2MineMain extends Composite {
 						{
 							RBtnByShare = new Button(composite2, SWT.RADIO | SWT.LEFT);
 							GridData RBtnByShareLData = new GridData();
-							RBtnByShareLData.horizontalSpan = 4;
+							RBtnByShareLData.horizontalSpan = 2;
 							RBtnByShare.setLayoutData(RBtnByShareLData);
 							RBtnByShare.setText("Schedual by sharing machines");
 							RBtnByShare.addMouseListener(new MouseAdapter() {
@@ -319,6 +322,26 @@ public class I2MineMain extends Composite {
 									RBtnByShareMouseDown(evt);
 								}
 							});
+						}
+						{
+							LNumofMachineSet = new Label(composite2, SWT.NONE);
+							GridData LNumofMachineSetLData = new GridData();
+							LNumofMachineSet.setLayoutData(LNumofMachineSetLData);
+							LNumofMachineSet.setText("Number of Machine Set:");
+							LNumofMachineSet.setVisible(false);
+						}
+						{
+							comboDropDownSet = new Combo(composite2, SWT.DROP_DOWN);
+							GridData comboDropDownData = new GridData();
+							comboDropDownData.verticalSpan = 0;
+							comboDropDownData.widthHint = 34;
+							comboDropDownData.heightHint = 23;
+							comboDropDownSet.setLayoutData(comboDropDownData);
+							for(int i = 0; i < 3; i ++){
+								Label LParenthesisLevel;
+								comboDropDownSet.add(String.valueOf(i + 1));
+							}
+							comboDropDownSet.setVisible(true);
 						}
 						{
 							RBtnByDep = new Button(composite2, SWT.RADIO | SWT.LEFT);
@@ -335,7 +358,7 @@ public class I2MineMain extends Composite {
 						{
 							RBtnBySort = new Button(composite2, SWT.RADIO | SWT.LEFT);
 							GridData RBtnBySortLData = new GridData();
-							RBtnBySortLData.horizontalSpan = 4;
+							RBtnBySortLData.horizontalSpan = 2;
 							RBtnBySort.setLayoutData(RBtnBySortLData);
 							RBtnBySort.setText("Schedual after Workface Sort");
 							RBtnBySort.addMouseListener(new MouseAdapter() {
@@ -343,6 +366,23 @@ public class I2MineMain extends Composite {
 									RBtnBySortMouseDown(evt);
 								}
 							});
+						}
+						{
+							LParenthesisLevel = new Label(composite2, SWT.NONE);
+							GridData LParenthesisLevelLData = new GridData();
+							LParenthesisLevel.setLayoutData(LParenthesisLevelLData);
+							LParenthesisLevel.setText("Parenthesis Level:");
+						}
+						{
+							comboDropDownLevel = new Combo(composite2, SWT.DROP_DOWN);
+							GridData comboDropDownData = new GridData();
+							comboDropDownData.verticalSpan = 0;
+							comboDropDownData.widthHint = 34;
+							comboDropDownData.heightHint = 23;
+							comboDropDownLevel.setLayoutData(comboDropDownData);
+							for(int i = 0; i < 3; i ++){
+								comboDropDownLevel.add(String.valueOf(i + 1));
+							}
 						}
 						{
 							LFileToRead = new Label(composite2, SWT.NONE);
@@ -375,25 +415,6 @@ public class I2MineMain extends Composite {
 							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LPoFileName.setImage(new Image(parent.getDisplay(), imgData));
-						}
-						{
-							LNumofMachineSet = new Label(composite2, SWT.NONE);
-							GridData LNumofMachineSetLData = new GridData();
-							LNumofMachineSet.setLayoutData(LNumofMachineSetLData);
-							LNumofMachineSet.setText("Number of Machine Set:");
-							LNumofMachineSet.setVisible(false);
-						}
-						{
-							comboDropDown = new Combo(composite2, SWT.DROP_DOWN);
-							GridData comboDropDownData = new GridData();
-							comboDropDownData.verticalSpan = 0;
-							comboDropDownData.widthHint = 34;
-							comboDropDownData.heightHint = 23;
-							comboDropDown.setLayoutData(comboDropDownData);
-							for(int i = 0; i < 3; i ++){
-								comboDropDown.add(String.valueOf(i + 1));
-							}
-							comboDropDown.setVisible(false);
 						}
 						{
 							BtnPerform = new Button(composite2, SWT.PUSH | SWT.CENTER);
@@ -715,16 +736,17 @@ public class I2MineMain extends Composite {
 				errorBox.setMessage("You must choose the related file.");
 				errorBox.open();
 			}else{
+				BufferedReader br = null;
 				try{
 					String curLine = null;
-					BufferedReader br = new BufferedReader(new FileReader(actionFilePath));
+					br = new BufferedReader(new FileReader(actionFilePath));
 					LinkedList<String> q = new LinkedList<String>();
 					int cntOfLine = 0;
 					while((curLine = br.readLine()) != null){
 						q.add(curLine);
 						cntOfLine ++;
 					}
-					int numbOfMachineSet = Integer.valueOf(comboDropDown.getItem(comboDropDown.getSelectionIndex()));
+					int numbOfMachineSet = Integer.valueOf(comboDropDownSet.getItem(comboDropDownSet.getSelectionIndex()));
 					int numOfProc = cntOfLine / numbOfMachineSet;
 					ShareMachineUnit shareUnit = new ShareMachineUnit();
 					for(int i = 0; i < cntOfLine; i ++){
@@ -750,12 +772,55 @@ public class I2MineMain extends Composite {
 					errorBox.open();
 				} catch (URISyntaxException e) {
 					e.printStackTrace();
+				}finally{
+					if(br != null){
+						try {
+							br.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 			break;
 		case WF_DEPENDENCY: 
+			if(actionFilePath == null){
+				MessageBox errorBox = new MessageBox(parent.getShell());
+				errorBox.setMessage("You must choose the related file.");
+				errorBox.open();
+			}else{
+				WorkfaceDependancy wfDependancy = new WorkfaceDependancy();
+				BufferedReader br = null;
+				
+				try{
+					String curLine = null;
+					br = new BufferedReader(new FileReader(actionFilePath));
+					while((curLine = br.readLine()) != null){
+						
+						String[] deArr = curLine.split("\t");
+						wfDependancy.addDependancyUnit(Integer.valueOf(deArr[0]), Integer.valueOf(deArr[1]));
+						
+					}
+					
+					ArrayList<ArrayList<Integer>> finalRetList = ClusterTool.getClustersOfWorkfaces_byDependancy(numOfWf, "\t", wfDependancy, opInfo, workload, distance, machineInitPos);
+					
+				}catch(IOException e){
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				}finally{
+					if(br != null){
+						try {
+							br.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
 			break;
 		case WF_SORT: 
+			
 			break;
 		default:
 		}
@@ -768,7 +833,7 @@ public class I2MineMain extends Composite {
 		//WF_PRIORITY SHARE_MACHINE WF_DEPENDENCY WF_SORT
 		actionChosen = WF_PRIORITY; 
 		LNumofMachineSet.setVisible(false);
-		comboDropDown.setVisible(false);
+		comboDropDownSet.setVisible(false);
 		actionFilePath = null;
 	}
 	
@@ -779,7 +844,7 @@ public class I2MineMain extends Composite {
 		//WF_PRIORITY SHARE_MACHINE WF_DEPENDENCY WF_SORT
 		actionChosen = SHARE_MACHINE;
 		LNumofMachineSet.setVisible(true);
-		comboDropDown.setVisible(true);
+		comboDropDownSet.setVisible(true);
 		actionFilePath = null;
 	}
 	
@@ -789,7 +854,7 @@ public class I2MineMain extends Composite {
 		LFileToRead.setText("File to be read: Workface Dependency File");
 		actionChosen = WF_DEPENDENCY;
 		LNumofMachineSet.setVisible(false);
-		comboDropDown.setVisible(false);
+		comboDropDownSet.setVisible(false);
 		actionFilePath = null;
 	}
 	
@@ -799,8 +864,6 @@ public class I2MineMain extends Composite {
 //		String text = LFileToRead.getText();
 		LFileToRead.setText("File to be read: NULL");
 		actionChosen = WF_SORT;
-		LNumofMachineSet.setVisible(false);
-		comboDropDown.setVisible(false);
 		actionFilePath = null;
 	}
 

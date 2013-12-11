@@ -709,8 +709,8 @@ public class SortTool {
 	 * @param machineOpInfo
 	 * @param workload
 	 * @return
-	 */
-	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
+	 *///Dataset[] data, 
+	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (WorkfaceDistance distance, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
 		
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		
@@ -756,11 +756,13 @@ public class SortTool {
 										break;
 								}
 								if(tmpi == -1){
-									dist = data[0].get(curPermList.get(k) - 1).get(machineInitPos.getInitPosOfMachine(m));
+									//dist = data[0].get(curPermList.get(k) - 1).get(machineInitPos.getInitPosOfMachine(m));
 									//dist = 0;
+									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(k) - 1, machineInitPos.getInitPosOfMachine(m));
 								}
 								else
-									dist = data[0].get(curPermList.get(tmpi) - 1).get(curPermList.get(k) - 1);
+//									dist = data[0].get(curPermList.get(tmpi) - 1).get(curPermList.get(k) - 1);
+									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(tmpi) - 1, curPermList.get(tmpi) - 1);
 							}
 							
 							double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
