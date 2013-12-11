@@ -5,7 +5,9 @@ import geo.core.ShareMachineUnit;
 import geo.core.WorkfaceDependancy;
 import geo.core.WorkfaceDistance;
 import geo.core.WorkfacePriority;
+import geo.core.WorkfaceProcessUnit;
 import geo.core.WorkfaceWorkload;
+import geo.chart.GanttRender;
 import geo.cluster.*;
 
 import java.io.BufferedReader;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
+import org.jfree.ui.RefineryUtilities;
 
 import com.cloudgarden.resource.SWTResourceManager;
 
@@ -111,7 +114,7 @@ public class I2MineMain extends Composite {
 	private WorkfaceWorkload workload;
 	private WorkfaceDistance distance;
 	private MachineInitialPosition machineInitPos;
-	private Label LParenthesisLevel;
+	private Label LNumOfMachineSetsFull;
 
 	I2MineMain(org.eclipse.swt.widgets.Composite parent, int style) {
 		super(parent, style);
@@ -177,7 +180,6 @@ public class I2MineMain extends Composite {
 							TxtNumofWfLData.widthHint = 34;
 							TxtNumofWfLData.heightHint = 15;
 							TxtNumofWf.setLayoutData(TxtNumofWfLData);
-							TxtNumofWf.setText("text1");
 							TxtNumofWf.setBackground(SWTResourceManager.getColor(230, 230, 230));
 						}
 						{
@@ -222,7 +224,6 @@ public class I2MineMain extends Composite {
 							TxtNumofProcLData.widthHint = 34;
 							TxtNumofProcLData.heightHint = 15;
 							TxtNumofProc.setLayoutData(TxtNumofProcLData);
-							TxtNumofProc.setText("text2");
 							TxtNumofProc.setBackground(SWTResourceManager.getColor(230, 230, 230));
 						}
 						{
@@ -338,10 +339,9 @@ public class I2MineMain extends Composite {
 							comboDropDownData.heightHint = 23;
 							comboDropDownSet.setLayoutData(comboDropDownData);
 							for(int i = 0; i < 3; i ++){
-								Label LParenthesisLevel;
 								comboDropDownSet.add(String.valueOf(i + 1));
 							}
-							comboDropDownSet.setVisible(true);
+							comboDropDownSet.setVisible(false);
 						}
 						{
 							RBtnByDep = new Button(composite2, SWT.RADIO | SWT.LEFT);
@@ -368,10 +368,11 @@ public class I2MineMain extends Composite {
 							});
 						}
 						{
-							LParenthesisLevel = new Label(composite2, SWT.NONE);
-							GridData LParenthesisLevelLData = new GridData();
-							LParenthesisLevel.setLayoutData(LParenthesisLevelLData);
-							LParenthesisLevel.setText("Parenthesis Level:");
+							LNumOfMachineSetsFull = new Label(composite2, SWT.NONE);
+							GridData LNumOfMachineSetsFullLData = new GridData();
+							LNumOfMachineSetsFull.setLayoutData(LNumOfMachineSetsFullLData);
+							LNumOfMachineSetsFull.setText("Number of Machine Set:");
+							LNumOfMachineSetsFull.setVisible(false);
 						}
 						{
 							comboDropDownLevel = new Combo(composite2, SWT.DROP_DOWN);
@@ -383,6 +384,7 @@ public class I2MineMain extends Composite {
 							for(int i = 0; i < 3; i ++){
 								comboDropDownLevel.add(String.valueOf(i + 1));
 							}
+							comboDropDownLevel.setVisible(false);
 						}
 						{
 							LFileToRead = new Label(composite2, SWT.NONE);
@@ -689,6 +691,8 @@ public class I2MineMain extends Composite {
 			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LPoFileName.setImage(new Image(parent.getDisplay(), imgData));
+		}else if(actionChosen == WF_SORT){
+			// Workface sort does not need extra files.
 		}else{
 			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -720,8 +724,9 @@ public class I2MineMain extends Composite {
 						WorkfacePriority.WorkfacePrioUnit newUnit = new WorkfacePriority.WorkfacePrioUnit(Integer.valueOf(strArr[0]), Integer.valueOf(strArr[1]));
 						wfPriority.addWfPrioUnit(newUnit);
 					}
-					ArrayList<ArrayList<Integer>> finalRetList = ClusterTool.getClustersOfWorkfaces_byPriority(wfDistancePath, numOfWf, "\t",wfPriority, opInfo, workload, distance, machineInitPos);
-					
+					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>(); 
+					ClusterTool.getClustersOfWorkfaces_byPriority(numOfWf, "\t",wfPriority, opInfo, workload, distance, machineInitPos, wfProcList);
+					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Workface Priority", "Workface Process", "Time Period", wfProcList.get(0));
 				} catch(IOException e){
 					e.printStackTrace();
 				} catch (URISyntaxException e) {
@@ -759,8 +764,8 @@ public class I2MineMain extends Composite {
 						
 						shareUnit.addNewProcedureUnit(procId, machineNum, name);
 					}
-					ClusterTool.getClustersOfWorkfacesBySharedMachine(opInfo, workload, distance, machineInitPos, shareUnit);
-					
+					ArrayList<WorkfaceProcessUnit> wfProcList = ClusterTool.getClustersOfWorkfacesBySharedMachine(opInfo, workload, distance, machineInitPos, shareUnit);
+					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Sharing Machines", "Workface Process", "Time Period", wfProcList);
 					// Set label to unused state when finishing gantte drawing
 					Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 					ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -802,8 +807,9 @@ public class I2MineMain extends Composite {
 						
 					}
 					
-					ArrayList<ArrayList<Integer>> finalRetList = ClusterTool.getClustersOfWorkfaces_byDependancy(numOfWf, "\t", wfDependancy, opInfo, workload, distance, machineInitPos);
-					
+					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>();
+					ClusterTool.getClustersOfWorkfaces_byDependancy(numOfWf, "\t", wfDependancy, opInfo, workload, distance, machineInitPos, wfProcList);
+					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Workface Dependency", "Workface Process", "Time Period", wfProcList.get(0));
 				}catch(IOException e){
 					e.printStackTrace();
 				} catch (URISyntaxException e) {
@@ -820,11 +826,35 @@ public class I2MineMain extends Composite {
 			}
 			break;
 		case WF_SORT: 
-			
+			try {
+				ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>(); 
+				int numbOfMachineSet = Integer.valueOf(comboDropDownSet.getItem(comboDropDownLevel.getSelectionIndex()));
+				if(numbOfMachineSet == 1){
+					ClusterTool.getClustersOfWorkfaces_zhen_new(20, "\t", opInfo, workload, distance, machineInitPos, wfProcList);
+				}else{
+					ClusterTool.getClustersOfWorkfaces_zhen_new2(numbOfMachineSet, 20, "\t", opInfo, workload, distance, machineInitPos, wfProcList);
+				}
+				drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Sorting Workface", "Workface Process", "Time Period", wfProcList.get(0));
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+			}
 			break;
 		default:
 		}
 	}
+	
+	private void drawGanttGraph(String winTitle, String charTitle, String domain, String range,  ArrayList<WorkfaceProcessUnit> wfProcList){
+		// Draw the gantt chart
+        GanttRender demo = new GanttRender(winTitle, charTitle, domain, range, wfProcList);
+        demo.pack();
+        //RefineryUtilities.centerFrameOnScreen(demo);
+        demo.setVisible(true);
+        RefineryUtilities.centerFrameOnScreen(demo);
+        System.out.println("by priority - draw Gantt finished!!!");
+	}
+	
 	
 	private void RBtnByPriorityMouseDown(MouseEvent evt){
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
@@ -834,6 +864,8 @@ public class I2MineMain extends Composite {
 		actionChosen = WF_PRIORITY; 
 		LNumofMachineSet.setVisible(false);
 		comboDropDownSet.setVisible(false);
+		LNumOfMachineSetsFull.setVisible(false);
+		comboDropDownLevel.setVisible(false);
 		actionFilePath = null;
 	}
 	
@@ -845,6 +877,8 @@ public class I2MineMain extends Composite {
 		actionChosen = SHARE_MACHINE;
 		LNumofMachineSet.setVisible(true);
 		comboDropDownSet.setVisible(true);
+		LNumOfMachineSetsFull.setVisible(false);
+		comboDropDownLevel.setVisible(false);
 		actionFilePath = null;
 	}
 	
@@ -855,6 +889,8 @@ public class I2MineMain extends Composite {
 		actionChosen = WF_DEPENDENCY;
 		LNumofMachineSet.setVisible(false);
 		comboDropDownSet.setVisible(false);
+		LNumOfMachineSetsFull.setVisible(false);
+		comboDropDownLevel.setVisible(false);
 		actionFilePath = null;
 	}
 	
@@ -865,6 +901,8 @@ public class I2MineMain extends Composite {
 		LFileToRead.setText("File to be read: NULL");
 		actionChosen = WF_SORT;
 		actionFilePath = null;
+		LNumOfMachineSetsFull.setVisible(true);
+		comboDropDownLevel.setVisible(true);
 	}
 
 }
