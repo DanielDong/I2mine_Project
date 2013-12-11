@@ -305,7 +305,7 @@ public class I2MineMain extends Composite {
 							GridData RBtnByPriorityLData = new GridData();
 							RBtnByPriorityLData.horizontalSpan = 4;
 							RBtnByPriority.setLayoutData(RBtnByPriorityLData);
-							RBtnByPriority.setText("Schedual by workface priority");
+							RBtnByPriority.setText("Schedule by workface priority");
 							RBtnByPriority.addMouseListener(new MouseAdapter() {
 								public void mouseDown(MouseEvent evt) {
 									RBtnByPriorityMouseDown(evt);
@@ -317,7 +317,7 @@ public class I2MineMain extends Composite {
 							GridData RBtnByShareLData = new GridData();
 							RBtnByShareLData.horizontalSpan = 2;
 							RBtnByShare.setLayoutData(RBtnByShareLData);
-							RBtnByShare.setText("Schedual by sharing machines");
+							RBtnByShare.setText("Schedule by sharing machines");
 							RBtnByShare.addMouseListener(new MouseAdapter() {
 								public void mouseDown(MouseEvent evt) {
 									RBtnByShareMouseDown(evt);
@@ -348,7 +348,7 @@ public class I2MineMain extends Composite {
 							GridData RBtnByDepLData = new GridData();
 							RBtnByDepLData.horizontalSpan = 4;
 							RBtnByDep.setLayoutData(RBtnByDepLData);
-							RBtnByDep.setText("Schedual by workface dependency");
+							RBtnByDep.setText("Schedule by workface dependency");
 							RBtnByDep.addMouseListener(new MouseAdapter() {
 								public void mouseDown(MouseEvent evt) {
 									RBtnByDepMouseDown(evt);
@@ -360,7 +360,7 @@ public class I2MineMain extends Composite {
 							GridData RBtnBySortLData = new GridData();
 							RBtnBySortLData.horizontalSpan = 2;
 							RBtnBySort.setLayoutData(RBtnBySortLData);
-							RBtnBySort.setText("Schedual after Workface Sort");
+							RBtnBySort.setText("Schedule after Workface Sort");
 							RBtnBySort.addMouseListener(new MouseAdapter() {
 								public void mouseDown(MouseEvent evt) {
 									RBtnBySortMouseDown(evt);
