@@ -1,14 +1,18 @@
 package geo.i2mine;
+import geo.chart.GanttRender;
+import geo.cluster.ClusterTool;
+import geo.core.DumpSiteCapacity;
+import geo.core.DumpSiteWorkfaceDistance;
 import geo.core.MachineInitialPosition;
 import geo.core.MachineOpInfo;
 import geo.core.ShareMachineUnit;
+import geo.core.Truck;
 import geo.core.WorkfaceDependancy;
 import geo.core.WorkfaceDistance;
+import geo.core.WorkfaceMineralCapacity;
 import geo.core.WorkfacePriority;
 import geo.core.WorkfaceProcessUnit;
 import geo.core.WorkfaceWorkload;
-import geo.chart.GanttRender;
-import geo.cluster.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -79,42 +83,48 @@ public class I2MineMain extends Composite {
 	private TabFolder mainTabfolder;
 	private TabItem tabItem1;
 	private Label WfDistFileName;
-	private TabItem tabItem2;
+	private TabItem tabItem2, tabItem3;
 	private Button BtnReadFile;
 	private Label LFileToRead;
 	private Button RBtnBySort;
 	private Button RBtnByDep;
 	private Button RBtnByShare;
 	private Button RBtnByPriority;
-	private Composite composite2;
 	private Label LMachineInitPos;
 	private Button BtnInitPos;
-	private Label MachineIniPos;
-	private Label LWfWorkload;
+	private Label MachineIniPos, LWfWorkload, LTruckInfoIcon;
 	private Button BtnWfWork;
 	private Label LNumofMachineSet;
 	private Button BtnPerform;
-	private Label LPoFileName;
-	private Label WfWorkloadFile;
+	private Label WfWorkloadFile, LTotalNumOfTrucks, LPoFileName;
 	private Label LMachineOpInfo;
 	private Button BtnOpInfo;
 	private Label MachineOpInfoFile;
 	private Label LWfDistName;
 	private Button BtnWfDist;
-	private Composite composite1;
+	private Composite composite1, composite2, composite3;
 	private Composite parent;
 	private Combo comboDropDownSet;
 	private Combo comboDropDownLevel;
 	private String actionFilePath;
 	private MachineOpInfo opInfo;
-	private Text TxtNumofProc;
-	private Label LNumofProc;
-	private Text TxtNumofWf;
-	private Label LNumofWf;
+	private Button BtnLhd;
+	private Button BtnWfDumpCap;
+	private Label LWfDumpCap, LNumofWf;
+	private Label LDumpWfDistIcon;
+	private Label LDumpSiteCapInfo;
+	private Button BtnDumpWfDist, BtnTruck, BtnDumpCap;
+	private Label LDumpWfDistance, LNumofProc, LWfMineralCapIcon;
+	private Label LNumOfMachineSetsFull, LTruckInfo, LDumpCap;
+	private Text TxtNumofProc, TxtNumofWf, TxtNumofTruck;
 	private WorkfaceWorkload workload;
 	private WorkfaceDistance distance;
 	private MachineInitialPosition machineInitPos;
-	private Label LNumOfMachineSetsFull;
+	private DumpSiteCapacity dumpSiteCapacity;
+	private int numOfTotalTruck;
+	private ArrayList<Truck> truckList;
+	private DumpSiteWorkfaceDistance dumpSiteWfDistance;
+	private WorkfaceMineralCapacity wfMineralCapacity;
 
 	I2MineMain(org.eclipse.swt.widgets.Composite parent, int style) {
 		super(parent, style);
@@ -432,6 +442,137 @@ public class I2MineMain extends Composite {
 						}
 					}
 				}
+				{
+					tabItem3 = new TabItem(mainTabfolder, SWT.NONE);
+					tabItem3.setText("LHD");
+					{
+						composite3 = new Composite(mainTabfolder, SWT.NONE);
+						GridLayout composite3Layout = new GridLayout();
+						composite3Layout.numColumns = 5;
+						composite3.setLayout(composite3Layout);
+						tabItem3.setControl(composite3);
+						{
+							LDumpCap = new Label(composite3, SWT.NONE);
+							LDumpCap.setText("Dump Site Capacity:");
+						}
+						{
+							BtnDumpCap = new Button(composite3, SWT.PUSH | SWT.CENTER);
+							GridData BtnDumpCapLData = new GridData();
+							BtnDumpCapLData.widthHint = 49;
+							BtnDumpCapLData.heightHint = 25;
+							BtnDumpCap.setLayoutData(BtnDumpCapLData);
+							BtnDumpCap.setText("Browse");
+							BtnDumpCap.addMouseListener(new MouseAdapter() {
+								public void mouseDown(MouseEvent evt) {
+									BtnDumpCapMouseDown(evt);
+								}
+							});
+
+						}
+						{
+							GridData LDumpSiteCapInfoLData = new GridData();
+							LDumpSiteCapInfoLData.widthHint = 30;
+							LDumpSiteCapInfoLData.heightHint = 15;
+							LDumpSiteCapInfoLData.horizontalSpan = 3;
+							LDumpSiteCapInfo = new Label(composite3, SWT.NONE);
+							LDumpSiteCapInfo.setLayoutData(LDumpSiteCapInfoLData);
+						}
+						{
+							LTruckInfo = new Label(composite3, SWT.NONE);
+							GridData LTruckInfoLData = new GridData();
+							LTruckInfo.setLayoutData(LTruckInfoLData);
+							LTruckInfo.setText("Truck Information:");
+						}
+						{
+							BtnTruck = new Button(composite3, SWT.PUSH | SWT.CENTER);
+							BtnTruck.setText("Browse");
+							BtnTruck.addMouseListener(new MouseAdapter() {
+								public void mouseDown(MouseEvent evt) {
+									BtnTruckMouseDown(evt);
+								}
+							});
+						}
+						{
+							LTruckInfoIcon = new Label(composite3, SWT.NONE);
+							GridData LTruckInfoIconLData = new GridData();
+							LTruckInfoIconLData.widthHint = 31;
+							LTruckInfoIconLData.heightHint = 15;
+							LTruckInfoIcon.setLayoutData(LTruckInfoIconLData);
+						}
+						{
+							LTotalNumOfTrucks = new Label(composite3, SWT.NONE);
+							GridData LTotalNumOfTrucksLData = new GridData();
+							LTotalNumOfTrucks.setLayoutData(LTotalNumOfTrucksLData);
+							LTotalNumOfTrucks.setText("Total Number of Trucks:");
+						}
+						{
+							TxtNumofTruck = new Text(composite3, SWT.NONE);
+							GridData TxtNumofTruckLData = new GridData();
+							TxtNumofTruckLData.widthHint = 34;
+							TxtNumofTruckLData.heightHint = 15;
+							TxtNumofTruck.setLayoutData(TxtNumofTruckLData);
+							TxtNumofTruck.setBackground(SWTResourceManager.getColor(230, 230, 230));
+						}
+						{
+							LDumpWfDistance = new Label(composite3, SWT.NONE);
+							GridData LDumpWfDistanceLData = new GridData();
+							LDumpWfDistance.setLayoutData(LDumpWfDistanceLData);
+							LDumpWfDistance.setText("Dump Workface Distance:");
+						}
+						{
+							BtnDumpWfDist = new Button(composite3, SWT.PUSH | SWT.CENTER);
+							BtnDumpWfDist.setText("Browse");
+							BtnDumpWfDist.addMouseListener(new MouseAdapter() {
+								public void mouseDown(MouseEvent evt) {
+									BtnDumpWfDistMouseDown(evt);
+								}
+							});
+						}
+						{
+							LDumpWfDistIcon = new Label(composite3, SWT.NONE);
+							GridData LDumpWfDistIconLData = new GridData();
+							LDumpWfDistIconLData.horizontalSpan = 3;
+							LDumpWfDistIconLData.widthHint = 31;
+							LDumpWfDistIconLData.heightHint = 15;
+							LDumpWfDistIcon.setLayoutData(LDumpWfDistIconLData);
+						}
+						{
+							LWfDumpCap = new Label(composite3, SWT.NONE);
+							GridData LWfDumpCapLData = new GridData();
+							LWfDumpCap.setLayoutData(LWfDumpCapLData);
+							LWfDumpCap.setText("Workface Mineral Capacity:");
+						}
+						{
+							BtnWfDumpCap = new Button(composite3, SWT.PUSH | SWT.CENTER);
+							BtnWfDumpCap.setText("Browse");
+							BtnWfDumpCap.addMouseListener(new MouseAdapter() {
+								public void mouseDown(MouseEvent evt) {
+									BtnWfDumpCapMouseDown(evt);
+								}
+							});
+						}
+						{
+							LWfMineralCapIcon = new Label(composite3, SWT.NONE);
+							GridData LWfMineralCapIconLData = new GridData();
+							LWfMineralCapIconLData.horizontalSpan = 3;
+							LWfMineralCapIconLData.widthHint = 34;
+							LWfMineralCapIconLData.heightHint = 15;
+							LWfMineralCapIcon.setLayoutData(LWfMineralCapIconLData);
+						}
+						{
+							BtnLhd = new Button(composite3, SWT.PUSH | SWT.CENTER);
+							GridData BtnLhdLData = new GridData();
+							BtnLhdLData.horizontalSpan = 5;
+							BtnLhd.setLayoutData(BtnLhdLData);
+							BtnLhd.setText("Perform");
+							BtnLhd.addMouseListener(new MouseAdapter() {
+								public void mouseDown(MouseEvent evt) {
+									BtnLhdMouseDown(evt);
+								}
+							});
+						}
+					}
+				}
 				FormData mainTabfolderLData = new FormData();
 				mainTabfolderLData.width = 468;
 				mainTabfolderLData.height = 199;
@@ -652,12 +793,14 @@ public class I2MineMain extends Composite {
 				while((curLine = br.readLine()) != null){
 					
 					String[] distRet = curLine.split("\t");
+					System.out.println("workload line size: " + distRet.length);
 					singleWorkloadInfo = new ArrayList<Double>(); 
 					for(int i = 0; i < distRet.length; i ++){
 						singleWorkloadInfo.add(Double.valueOf(distRet[i]));
 					}
 					distance.addDistance(singleWorkloadInfo);
 				}
+				
 				
 			}catch(IOException e){
 				e.printStackTrace();
@@ -808,6 +951,7 @@ public class I2MineMain extends Composite {
 					}
 					
 					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>();
+					System.out.println("number_of_procedure:" + opInfo.getMachineNum());
 					ClusterTool.getClustersOfWorkfaces_byDependancy(numOfWf, "\t", wfDependancy, opInfo, workload, distance, machineInitPos, wfProcList);
 					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Workface Dependency", "Workface Process", "Time Period", wfProcList.get(0));
 				}catch(IOException e){
@@ -849,7 +993,6 @@ public class I2MineMain extends Composite {
 		// Draw the gantt chart
         GanttRender demo = new GanttRender(winTitle, charTitle, domain, range, wfProcList);
         demo.pack();
-        //RefineryUtilities.centerFrameOnScreen(demo);
         demo.setVisible(true);
         RefineryUtilities.centerFrameOnScreen(demo);
         System.out.println("by priority - draw Gantt finished!!!");
@@ -860,7 +1003,6 @@ public class I2MineMain extends Composite {
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
 		//TODO add your code for RBtnBySort.mouseDown
 		LFileToRead.setText("File to be read: Workface Priority File");
-		//WF_PRIORITY SHARE_MACHINE WF_DEPENDENCY WF_SORT
 		actionChosen = WF_PRIORITY; 
 		LNumofMachineSet.setVisible(false);
 		comboDropDownSet.setVisible(false);
@@ -873,7 +1015,6 @@ public class I2MineMain extends Composite {
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
 		//TODO add your code for RBtnBySort.mouseDown
 		LFileToRead.setText("File to be read: Machine Set File");
-		//WF_PRIORITY SHARE_MACHINE WF_DEPENDENCY WF_SORT
 		actionChosen = SHARE_MACHINE;
 		LNumofMachineSet.setVisible(true);
 		comboDropDownSet.setVisible(true);
@@ -897,12 +1038,211 @@ public class I2MineMain extends Composite {
 	private void RBtnBySortMouseDown(MouseEvent evt) {
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
 		//TODO add your code for RBtnBySort.mouseDown
-//		String text = LFileToRead.getText();
 		LFileToRead.setText("File to be read: NULL");
 		actionChosen = WF_SORT;
 		actionFilePath = null;
 		LNumOfMachineSetsFull.setVisible(true);
 		comboDropDownLevel.setVisible(true);
+	}
+	
+	private void BtnLhdMouseDown(MouseEvent evt) {
+		System.out.println("BtnLhd.mouseDown, event="+evt);
+		//TODO add your code for BtnLhd.mouseDown
+		
+	}
+	
+	private void BtnDumpCapMouseDown(MouseEvent evt) {
+		System.out.println("BtnDumpCap.mouseDown, event="+evt);
+		//TODO add your code for BtnDumpCap.mouseDown
+		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
+		String path = fileDialog.open();
+		if(path != null){
+			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LDumpSiteCapInfo.setImage(new Image(parent.getDisplay(), imgData));
+			
+			// Read in dump site capacity file
+			BufferedReader br = null;
+			dumpSiteCapacity = new DumpSiteCapacity();
+			try{
+				String curLine = null;
+				br = new BufferedReader(new FileReader(path));
+				while((curLine = br.readLine()) != null){
+					
+					String[] capRet = curLine.split("\t");
+					dumpSiteCapacity.addSiteCapacity(Float.valueOf(capRet[1])); 
+				}
+				
+				
+			}catch(IOException e){
+				e.printStackTrace();
+			}finally{
+				if(br != null){
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}else{
+			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LDumpSiteCapInfo.setImage(new Image(parent.getDisplay(), imgData));
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must choose the <dump site capacity> file.");
+			errorBox.open();
+		}
+	}
+	
+	private void BtnTruckMouseDown(MouseEvent evt) {
+		System.out.println("BtnTruck.mouseDown, event="+evt);
+		//TODO add your code for BtnTruck.mouseDown
+		try{
+			numOfTotalTruck = Integer.valueOf(TxtNumofWf.getText().trim());
+		}catch(NumberFormatException n){
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("Please specify the <total number of trucks first>.");
+			errorBox.open();
+			return;
+		}
+		
+		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
+		String path = fileDialog.open();
+		if(path != null){
+			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LTruckInfoIcon.setImage(new Image(parent.getDisplay(), imgData));
+			
+			truckList = new ArrayList<Truck>();
+			// Read in truck information file
+			BufferedReader br = null;
+			dumpSiteCapacity = new DumpSiteCapacity();
+			int truckCnt = 0;
+			try{
+				String curLine = null;
+				br = new BufferedReader(new FileReader(path));
+				while((curLine = br.readLine()) != null){
+					
+					String[] truckStr = curLine.split("\t");
+					Truck truck = new Truck(truckCnt ++, truckStr[0], 
+							Float.valueOf(truckStr[1]),
+							Float.valueOf(truckStr[2]),
+							Float.valueOf(truckStr[3]));
+					truckList.add(truck);
+				}
+				
+				
+			}catch(IOException e){
+				e.printStackTrace();
+			}finally{
+				if(br != null){
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}else{
+			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LTruckInfoIcon.setImage(new Image(parent.getDisplay(), imgData));
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must choose the <truck information> file.");
+			errorBox.open();
+		}
+	}
+	
+	private void BtnDumpWfDistMouseDown(MouseEvent evt) {
+		System.out.println("BtnDumpWfDist.mouseDown, event="+evt);
+		//TODO add your code for BtnDumpWfDist.mouseDown
+		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
+		String path = fileDialog.open();
+		if(path != null){
+			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LDumpWfDistIcon.setImage(new Image(parent.getDisplay(), imgData));
+			
+			dumpSiteWfDistance = new DumpSiteWorkfaceDistance();
+			// Read in truck information file
+			BufferedReader br = null;
+			try{
+				String curLine = null;
+				br = new BufferedReader(new FileReader(path));
+				while((curLine = br.readLine()) != null){
+					String[] dumpWfDist = curLine.split("\t");
+					ArrayList<Float> curDumpWfDistList = new ArrayList<Float>();
+					for(int i = 0; i < dumpWfDist.length; i ++){
+						curDumpWfDistList.add(Float.valueOf(dumpWfDist[i]));
+					}
+					dumpSiteWfDistance.addDumpSiteList(curDumpWfDistList);
+				}
+				
+				
+			}catch(IOException e){
+				e.printStackTrace();
+			}finally{
+				if(br != null){
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}else{
+			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LDumpWfDistIcon.setImage(new Image(parent.getDisplay(), imgData));
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must choose the <dump site workface distance> file.");
+			errorBox.open();
+		}
+	}
+	
+	private void BtnWfDumpCapMouseDown(MouseEvent evt) {
+		System.out.println("BtnWfDumpCap.mouseDown, event="+evt);
+		//TODO add your code for BtnWfDumpCap.mouseDown
+		
+		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
+		String path = fileDialog.open();
+		if(path != null){
+			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LWfMineralCapIcon.setImage(new Image(parent.getDisplay(), imgData));
+			
+			wfMineralCapacity = new WorkfaceMineralCapacity();
+			// Read in truck information file
+			BufferedReader br = null;
+			try{
+				String curLine = null;
+				br = new BufferedReader(new FileReader(path));
+				while((curLine = br.readLine()) != null){
+					String[] wfCap = curLine.split("\t");
+					wfMineralCapacity.addCapacity(Float.valueOf(wfCap[1]));
+				}
+				
+				
+			}catch(IOException e){
+				e.printStackTrace();
+			}finally{
+				if(br != null){
+					try {
+						br.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}else{
+			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
+			LWfMineralCapIcon.setImage(new Image(parent.getDisplay(), imgData));
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must choose the <workface mineral capacity> file.");
+			errorBox.open();
+		}
 	}
 
 }
