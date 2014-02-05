@@ -3,6 +3,12 @@ package geo.core;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * A WorkfacePriority instance maintains a list of {@link WorkfacePrioUnit} instances internally.
+ * 
+ * @author Dong
+ * @version 1.0
+ */
 public class WorkfacePriority {
 	private ArrayList<WorkfacePrioUnit> wfPrioUnitList = new ArrayList<WorkfacePrioUnit>();
 	
@@ -47,10 +53,17 @@ public class WorkfacePriority {
 	}
 	
 	
+	/**
+	 * A WorkfacePrioUnit instance stores a mapping between the ID of a workface and 
+	 * its priority.
+	 * 
+	 * @author Dong
+	 * @version 1.0
+	 */
 	public static class WorkfacePrioUnit implements Comparable<WorkfacePrioUnit>{
-		// indexed from 0
+		// 0-indexed workface ID
 		private int wfNum;
-		// possible values are 1, 2, 3 (1 > 2 > 3)
+		// Priority level, possible values are 1, 2, 3 (1 > 2 > 3)
 		private int priority;
 		
 		public WorkfacePrioUnit(int wf, int prio){

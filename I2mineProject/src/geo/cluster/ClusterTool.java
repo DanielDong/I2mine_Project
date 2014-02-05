@@ -1,6 +1,5 @@
 package geo.cluster;
 
-import geo.chart.GanttRender;
 import geo.core.DUComparator;
 import geo.core.DistanceUnit;
 import geo.core.MachineInitialPosition;
@@ -17,6 +16,7 @@ import geo.util.LogTool;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -34,8 +34,6 @@ import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.tools.data.FileHandler;
-
-import org.jfree.ui.RefineryUtilities;
 
 /**
  * This class provides methods to cluster a data set.
@@ -355,6 +353,8 @@ public class ClusterTool {
 				return 1;
 		}
 	}
+	
+	
 	
 	public static ArrayList<WorkfaceProcessUnit> getClustersOfWorkfacesBySharedMachine(MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ShareMachineUnit shareUnit) throws IOException, URISyntaxException{
 		/* Load a dataset */
@@ -913,6 +913,24 @@ public class ClusterTool {
 //        demo.setVisible(true);
 //        RefineryUtilities.centerFrameOnScreen(demo);
 //        System.out.println("shared operating machine - draw Gantt finished!!!");
+		
+		// Persist ordered workface data to disk.
+		File f = new File("SCHEDULE_BY_SHARING_MACHINES.txt");
+		FileWriter fw = new FileWriter(f);
+		StringBuilder sb = null;
+		for(WorkfaceProcessUnit wfpu: wfProcList){
+			sb = new StringBuilder();
+			sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
+			ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
+			for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
+				sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
+							procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+			}
+			sb.append("\n");
+			fw.write(sb.toString());
+		}
+		
+		fw.close();
 		return wfProcList;
 	}
 	
@@ -1063,6 +1081,25 @@ public class ClusterTool {
 		if(finalProcList != null){
 			finalProcList.add(wfProcList);
 		}
+		
+		// Persist ordered workface data to disk.
+		File f = new File("SCHEDULE_BY_DEPENDENCY.txt");
+		FileWriter fw = new FileWriter(f);
+		StringBuilder sb = null;
+		for(WorkfaceProcessUnit wfpu: wfProcList){
+			sb = new StringBuilder();
+			sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
+			ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
+			for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
+				sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
+							procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+			}
+			sb.append("\n");
+			fw.write(sb.toString());
+		}
+		
+		fw.close();
+				
 //		// Draw the gantt chart
 //        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", wfProcList);
 //        demo.pack();
@@ -1196,6 +1233,24 @@ public class ClusterTool {
 		if(finalProcList != null){
 			finalProcList.add(wfProcList);
 		}
+		
+		File f = new File("SCHEDULE_BY_PRIORITY.txt");
+		FileWriter fw = new FileWriter(f);
+		StringBuilder sb = null;
+		for(WorkfaceProcessUnit wfpu: wfProcList){
+			sb = new StringBuilder();
+			sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
+			ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
+			for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
+				sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
+							procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+			}
+			sb.append("\n");
+			fw.write(sb.toString());
+		}
+		
+		fw.close();
+		
 //	    // Draw the gantt chart
 //        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", wfProcList);
 //        demo.pack();
@@ -1416,6 +1471,27 @@ public class ClusterTool {
 		if(wfProcListArray != null){
 			wfProcListArray.add(finalWfProcList);
 		}
+		// Persist ordered workface data to disk.
+		File f = new File("SCHEDULE_BY_SORT_2_3.txt");
+		FileWriter fw = new FileWriter(f);
+//		fw.write("There are " + numOfSet + " sets of machines to be shared among the workfaces." +
+//				"All the workfaces would be grouped into " + numOfSet + " sub-groups. Each" +
+//						"sub-group would be processed separately. Then sub-groups are processed together as a whole.\n\n");
+		StringBuilder sb = null;
+		for(WorkfaceProcessUnit wfpu: wfProcList){
+			sb = new StringBuilder();
+			sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
+			ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
+			for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
+				sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
+							procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+			}
+			sb.append("\n");
+			fw.write(sb.toString());
+		}
+		
+		fw.close();
+				
 //		// Draw the gantt chart
 //        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", finalWfProcList);
 //        demo.pack();
@@ -1558,7 +1634,6 @@ public class ClusterTool {
 	 * Note: this algorithm is based on the tree structure.
 	 * </p>
 	 */
-	@Deprecated
 	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_zhen_new(int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalWfProcList) throws IOException, URISyntaxException{
 		
 	    /* Load a dataset */
@@ -2224,6 +2299,25 @@ public class ClusterTool {
 		if(finalWfProcList != null){
 			finalWfProcList.add(wfProcList);
 		}
+		
+		// Persist ordered workface data to disk.
+		File f = new File("SCHEDULE_BY_SORT_1.txt");
+		FileWriter fw = new FileWriter(f);
+		StringBuilder sb = null;
+		for(WorkfaceProcessUnit wfpu: wfProcList){
+			sb = new StringBuilder();
+			sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
+			ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
+			for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
+				sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
+							procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+			}
+			sb.append("\n");
+			fw.write(sb.toString());
+		}
+		
+		fw.close();
+				
 //	    // Draw the gantt chart
 //        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", wfProcList);
 //        demo.pack();

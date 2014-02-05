@@ -703,13 +703,14 @@ public class SortTool {
 	}
 	
 	/**
-	 * Sort workfaces using matrix.
-	 * @param data
-	 * @param clusterGroups1
-	 * @param machineOpInfo
-	 * @param workload
-	 * @return
-	 *///Dataset[] data, 
+	 * Sort groups of workfaces using time matrix.
+	 * @param distance <b>WorkfaceDistance</b> instance which stores all distances between each pair of workfaces.
+	 * @param clusterGroups1 Groups of workfaces to be sorted.
+	 * @param machineOpInfo <b>MachineOpInfo</b> instance which stores operating machine information (e.g. operating speed, moving speed).
+	 * @param workload <b>WorkfaceWorkload</b> instance which stores workloads for all workfaces.
+	 * @param machineInitPos <b>MachineInitialPosition</b> instance which stores all the initial position of all operating machines.
+	 * @return Sorted groups of workfaces.
+	 */
 	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (WorkfaceDistance distance, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
 		
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
@@ -844,10 +845,10 @@ public class SortTool {
 	/**
 	 * Sort workfaces to determin the operating order of all machines on these workfaces.
 	 * @param data Distance matrix between all workfaces
-	 * @param clusterGroups A group of workfaces which are to be sorted, e.g. (w1, w2, w3), (w4, w6), (w5, w7)
+	 * @param clusterGroups1 A group of workfaces which are to be sorted, e.g. (w1, w2, w3), (w4, w6), (w5, w7)
 	 * @param machineOpInfo Machine operation information including machine operating rate and moving rate.
 	 * @param workload Workload for all machines on all workfaces.
-	 * @return A list of sorted workfaces 
+	 * @return Sorted groups of workfaces.
 	 */
 	@Deprecated 
  	public static ArrayList<ArrayList<Integer>> sortWorkfaces (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload){

@@ -3,7 +3,7 @@ package geo.core;
 import java.util.ArrayList;
 
 /**
- * This class loads workface workloads for all workfaces from file.
+ * Class instance stores workface workloads for all workfaces from file.
  * 
  * @author Dong
  * @version 1.0

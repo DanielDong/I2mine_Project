@@ -1,6 +1,7 @@
 package geo.i2mine;
 import geo.chart.GanttRender;
 import geo.cluster.ClusterTool;
+import geo.cluster.LHD;
 import geo.core.DumpSiteCapacity;
 import geo.core.DumpSiteWorkfaceDistance;
 import geo.core.MachineInitialPosition;
@@ -23,6 +24,8 @@ import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
@@ -39,8 +42,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
@@ -49,6 +54,7 @@ import org.eclipse.swt.widgets.Text;
 import org.jfree.ui.RefineryUtilities;
 
 import com.cloudgarden.resource.SWTResourceManager;
+
 
 /**
 * This code was edited or generated using CloudGarden's Jigloo
@@ -62,16 +68,52 @@ import com.cloudgarden.resource.SWTResourceManager;
 * THIS MACHINE, SO JIGLOO OR THIS CODE CANNOT BE USED
 * LEGALLY FOR ANY CORPORATE OR COMMERCIAL PURPOSE.
 */
+/**
+ * This UI is the entry point of the whole application.
+ */
 public class I2MineMain extends Composite {
-	private static final int WF_PRIORITY = 0;
-	private static final int SHARE_MACHINE = 1;
-	private static final int WF_DEPENDENCY = 2;
-	private static final int WF_SORT = 3;
-	private static int actionChosen = -1;
-	private int numOfWf;
-	private String wfDistancePath;
 	
-	//WF_PRIORITY SHARE_MACHINE WF_DEPENDENCY WF_SORT
+	// 4 operations to perform on workfaces.
+	public static final int WF_PRIORITY = 0;
+	public static final int SHARE_MACHINE = 1;
+	public static final int WF_DEPENDENCY = 2;
+	public static final int WF_SORT = 3;
+	// Records which operation the user chooses
+	private static int actionChosen = -1, oldActionChosen = -1;
+	
+	// The total number of workfaces.
+	private int numOfWf;
+	// distance file path
+	private String wfDistancePath;
+	// A WorkfaceWorkload instance stores workloads for all the workfaces.
+	private WorkfaceWorkload workload;
+	// A WorkfaceDistance instance stores distances between each pair of workfaces.
+	private WorkfaceDistance distance;
+	// A MachineInitialPosition instance stores the initial positions (workfaces) for all operating machines.
+	private MachineInitialPosition machineInitPos;
+	// A DumpSiteCapacity instance stores dump capacities for all dump sites.
+	private DumpSiteCapacity dumpSiteCapacity;
+	// total number of trucks.
+	private int numOfTotalTruck;
+	// A list of Truck instaces.
+	private ArrayList<Truck> truckList;
+	// A DumpSiteWorkfaceDistance instance stores distances between workfaces and dump sites.
+	private DumpSiteWorkfaceDistance dumpSiteWfDistance;
+	// A WorkfaceMineralCapacity instance.
+	private WorkfaceMineralCapacity wfMineralCapacity;
+	// A list of WorkfaceProcessUnit instances. One WorkfaceProcessUnit instace refers to one workface.
+	private ArrayList<WorkfaceProcessUnit> finalWfProcList;
+	// Total number of loaders.
+	private int numOfLoaders;
+	private boolean isDistRead = false, isOpInfoRead = false, 
+			isWorkloadRead = false, isInitPosRead = false;
+	private String actionFilePath;
+	// Operating machine information
+	private MachineOpInfo opInfo;
+	
+	private boolean isDumpSiteCap = false, isTruckInfo = false,
+			isDumpWfDist = false, isWfMineralCap = false;
+	
 	{
 		//Register as a resource user - SWTResourceManager will
 		//handle the obtaining and disposing of resources
@@ -81,50 +123,22 @@ public class I2MineMain extends Composite {
 
 	private CLabel appTitleLable;
 	private TabFolder mainTabfolder;
-	private TabItem tabItem1;
-	private Label WfDistFileName;
-	private TabItem tabItem2, tabItem3;
-	private Button BtnReadFile;
-	private Label LFileToRead;
-	private Button RBtnBySort;
-	private Button RBtnByDep;
-	private Button RBtnByShare;
-	private Button RBtnByPriority;
-	private Label LMachineInitPos;
-	private Button BtnInitPos;
-	private Label MachineIniPos, LWfWorkload, LTruckInfoIcon;
-	private Button BtnWfWork;
-	private Label LNumofMachineSet;
-	private Button BtnPerform;
-	private Label WfWorkloadFile, LTotalNumOfTrucks, LPoFileName;
-	private Label LMachineOpInfo;
-	private Button BtnOpInfo;
-	private Label MachineOpInfoFile;
-	private Label LWfDistName;
-	private Button BtnWfDist;
-	private Composite composite1, composite2, composite3;
-	private Composite parent;
-	private Combo comboDropDownSet;
-	private Combo comboDropDownLevel;
-	private String actionFilePath;
-	private MachineOpInfo opInfo;
-	private Button BtnLhd;
-	private Button BtnWfDumpCap;
-	private Label LWfDumpCap, LNumofWf;
-	private Label LDumpWfDistIcon;
-	private Label LDumpSiteCapInfo;
-	private Button BtnDumpWfDist, BtnTruck, BtnDumpCap;
-	private Label LDumpWfDistance, LNumofProc, LWfMineralCapIcon;
-	private Label LNumOfMachineSetsFull, LTruckInfo, LDumpCap;
-	private Text TxtNumofProc, TxtNumofWf, TxtNumofTruck;
-	private WorkfaceWorkload workload;
-	private WorkfaceDistance distance;
-	private MachineInitialPosition machineInitPos;
-	private DumpSiteCapacity dumpSiteCapacity;
-	private int numOfTotalTruck;
-	private ArrayList<Truck> truckList;
-	private DumpSiteWorkfaceDistance dumpSiteWfDistance;
-	private WorkfaceMineralCapacity wfMineralCapacity;
+	private TabItem tabItem1, tabItem2, tabItem3;
+	private Button BtnOpInfo, BtnInitPos, BtnReadFile, RBtnBySort, 
+				RBtnByDep, RBtnByShare, RBtnByPriority, BtnWfWork, 
+				BtnPerform, BtnDumpWfDist, BtnTruck, BtnDumpCap, 
+				BtnWfDist, BtnLhd, BtnWfDumpCap;  
+	private Label LMachineInitPos, MachineIniPos, LWfWorkload, 
+				LTruckInfoIcon, LNumofMachineSet, WfWorkloadFile, 
+				LTotalNumOfTrucks, LPoFileName, LMachineOpInfo, 
+				MachineOpInfoFile, LWfDistName, LWfDumpCap, LNumofWf, 
+				LDumpWfDistIcon, LDumpSiteCapInfo, LNumofLoaders
+				,LDumpWfDistance, LNumofProc, LWfMineralCapIcon, 
+				LNumOfMachineSetsFull, LTruckInfo, LDumpCap, LFileToRead, 
+				WfDistFileName;
+	private Composite parent, composite1, composite2, composite3;
+	private Combo comboDropDownSet, comboDropDownLevel;
+	private Text TxtNumofProc, TxtNumofWf, TxtNumofTruck, TxtNumofLoaders;
 
 	I2MineMain(org.eclipse.swt.widgets.Composite parent, int style) {
 		super(parent, style);
@@ -134,8 +148,7 @@ public class I2MineMain extends Composite {
 	
 	
 	public void initGUI(){
-		try{
-//			
+		try{	
 			FormLayout thisLayout = new FormLayout();
 			this.setLayout(thisLayout);
 			this.setSize(500, 300);
@@ -145,7 +158,7 @@ public class I2MineMain extends Composite {
 					tabItem1 = new TabItem(mainTabfolder, SWT.NONE);
 					tabItem1.setText("Read in basic files");
 					{
-						composite1 = new Composite(mainTabfolder, SWT.NONE);
+ 						composite1 = new Composite(mainTabfolder, SWT.NONE);
 						GridLayout composite1Layout = new GridLayout();
 						composite1Layout.numColumns = 5;
 						composite1.setLayout(composite1Layout);
@@ -256,15 +269,14 @@ public class I2MineMain extends Composite {
 						{
 							LWfWorkload = new Label(composite1, SWT.NONE);
 							GridData LWfWorkloadLData = new GridData();
-							LWfWorkloadLData.horizontalSpan = 3;
-							LWfWorkloadLData.widthHint = 240;
+							LWfWorkloadLData.widthHint = 39;
 							LWfWorkloadLData.heightHint = 15;
 							LWfWorkload.setLayoutData(LWfWorkloadLData);
 //							LWfWorkload.setText("label1");
 							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LWfWorkload.setImage(new Image(parent.getDisplay(), imgData));
-							LWfWorkload.setSize(240, 15);
+							LWfWorkloadLData.horizontalSpan = 3;
 						}
 						{
 							MachineIniPos = new Label(composite1, SWT.NONE);
@@ -301,9 +313,71 @@ public class I2MineMain extends Composite {
 				}
 				{
 					tabItem2 = new TabItem(mainTabfolder, SWT.NONE);
+//					tabItem2.addListener(SWT.MouseDoubleClick|SWT.MouseDown, new Listener(){
+//						@Override
+//						public void handleEvent(Event event) {
+//							if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
+//								MessageBox errorBox = new MessageBox(parent.getShell());
+//								errorBox.setMessage("You must read in the basic files first.");
+//								errorBox.open();
+//								
+////								composite1.forceFocus();
+//							}
+//						}
+//					});
+					
 					tabItem2.setText("Perform operations");
 					{
 					composite2 = new Composite(mainTabfolder, SWT.NONE);
+//					composite2.addFocusListener(new FocusListener(){
+//
+//						@Override
+//						public void focusGained(FocusEvent e) {
+//							System.out.println("tabItem2 focus gained: " + e);
+//							// TODO Auto-generated method stub
+//							if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
+//								MessageBox errorBox = new MessageBox(parent.getShell());
+//								errorBox.setMessage("You must read in the basic files first.");
+//								errorBox.open();
+//								
+////								composite1.forceFocus();
+//							}
+//						}
+//
+//						@Override
+//						public void focusLost(FocusEvent e) {
+//							
+//						}
+//						
+//					});
+//					composite2.addMouseListener(new  MouseListener(){
+//
+//						@Override
+//						public void mouseDoubleClick(MouseEvent e) {
+//							// TODO Auto-generated method stub
+//							
+//						}
+//
+//						@Override
+//						public void mouseDown(MouseEvent e) {
+//							// TODO Auto-generated method stub
+//							if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
+//								MessageBox errorBox = new MessageBox(parent.getShell());
+//								errorBox.setMessage("You must read in the basic files first.");
+//								errorBox.open();
+//								
+//								composite1.forceFocus();
+//							}
+//						}
+//
+//						@Override
+//						public void mouseUp(MouseEvent e) {
+//							// TODO Auto-generated method stub
+//							
+//						}
+//						
+//					});
+					
 					GridLayout composite2Layout = new GridLayout();
 						composite2Layout.numColumns = 4;
 						composite2.setLayout(composite2Layout);
@@ -531,10 +605,24 @@ public class I2MineMain extends Composite {
 						{
 							LDumpWfDistIcon = new Label(composite3, SWT.NONE);
 							GridData LDumpWfDistIconLData = new GridData();
-							LDumpWfDistIconLData.horizontalSpan = 3;
+//							LDumpWfDistIconLData.horizontalSpan = 3;
 							LDumpWfDistIconLData.widthHint = 31;
 							LDumpWfDistIconLData.heightHint = 15;
 							LDumpWfDistIcon.setLayoutData(LDumpWfDistIconLData);
+						}
+						{
+							LNumofLoaders = new Label(composite3, SWT.NONE);
+							GridData LNumofLoadersLData = new GridData();
+							LNumofLoaders.setLayoutData(LNumofLoadersLData);
+							LNumofLoaders.setText("Number of Loaders:");
+						}
+						{
+							TxtNumofLoaders = new Text(composite3, SWT.NONE);
+							GridData TxtNumofLoadersLData = new GridData();
+							TxtNumofLoadersLData.widthHint = 34;
+							TxtNumofLoadersLData.heightHint = 15;
+							TxtNumofLoaders.setLayoutData(TxtNumofLoadersLData);
+							TxtNumofLoaders.setBackground(SWTResourceManager.getColor(230, 230, 230));
 						}
 						{
 							LWfDumpCap = new Label(composite3, SWT.NONE);
@@ -656,7 +744,8 @@ public class I2MineMain extends Composite {
 					String[] deArr = curLine.split("\t");
 					machineInitPos.addIniPosUnit(Integer.valueOf(deArr[0]), Integer.valueOf(deArr[1]));
 				}
-				
+				// Machine initial position file is read successfully.
+				isInitPosRead = true;
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -674,10 +763,16 @@ public class I2MineMain extends Composite {
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LMachineInitPos.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
-			errorBox.setMessage("You must choose the workface workload file.");
+			errorBox.setMessage("You must choose the machine initial position file.");
 			errorBox.open();
 		}
 	}
+	
+	/**
+	 * Read in the workface workload file.
+	 * 
+	 * @param evt
+	 */
 	private void BtnWfWorkMouseDown(MouseEvent evt){
 		System.out.println("BtnWfDist.mouseDown, event="+evt);
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
@@ -704,6 +799,8 @@ public class I2MineMain extends Composite {
 					workload.addMachineWorkload(singleWorkload);
 					singleWorkload = null;
 				}
+				// Workface workload file is read successfully
+				isWorkloadRead = true;
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -727,6 +824,16 @@ public class I2MineMain extends Composite {
 	
 	private void BtnOpInfoMouseDown(MouseEvent evt){
 		System.out.println("BtnWfDist.mouseDown, event="+evt);
+		int numOfProc = 0;
+		try{
+			numOfProc = Integer.valueOf(TxtNumofProc.getText().trim());
+		}catch(NumberFormatException n){
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("Please specify the <total number of trucks first>.");
+			errorBox.open();
+			return;
+		}
+	
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
@@ -735,7 +842,6 @@ public class I2MineMain extends Composite {
 			LMachineOpInfo.setImage(new Image(parent.getDisplay(), imgData));
 			
 			// Read in machine operation information
-			int numOfProc = Integer.valueOf(TxtNumofProc.getText().trim());
 			opInfo = new MachineOpInfo(numOfProc); // there are in total numOfProc machines
 			ArrayList<Double> singleOpInfo = null;
 			BufferedReader br = null;
@@ -746,12 +852,13 @@ public class I2MineMain extends Composite {
 					
 					String[] opRet = curLine.split("\t");
 					singleOpInfo = new ArrayList<Double>();
-					singleOpInfo.add(Double.valueOf(opRet[0]));
 					singleOpInfo.add(Double.valueOf(opRet[1]));
+					singleOpInfo.add(Double.valueOf(opRet[2]));
 					opInfo.addMachineOpInfo(singleOpInfo);
 					singleOpInfo = null;
 				}
-				
+				// Machine operating information is read successfully.
+				isOpInfoRead = true; 
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -774,6 +881,16 @@ public class I2MineMain extends Composite {
 	
 	private void BtnWfDistMouseDown(MouseEvent evt) {
 		System.out.println("BtnWfDist.mouseDown, event="+evt);
+		
+		try{
+			numOfWf = Integer.valueOf(TxtNumofWf.getText().trim());
+		}catch(NumberFormatException n){
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("Please specify the <total number of workfaces first>.");
+			errorBox.open();
+			return;
+		}
+		
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
@@ -783,7 +900,6 @@ public class I2MineMain extends Composite {
 			
 			wfDistancePath = path;
 			// Read in distance matrix file
-			numOfWf = Integer.valueOf(TxtNumofWf.getText().trim());
 			distance = new WorkfaceDistance(numOfWf);
 			BufferedReader br = null;
 			ArrayList<Double> singleWorkloadInfo = null;
@@ -800,8 +916,8 @@ public class I2MineMain extends Composite {
 					}
 					distance.addDistance(singleWorkloadInfo);
 				}
-				
-				
+				// Workface distance file is read successfully.
+				isDistRead = true;
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -846,15 +962,27 @@ public class I2MineMain extends Composite {
 		}
 	}
 	
+	/**
+	 * Perform the chosen action by user (possible actions are "schedule by priority", 
+	 * "schedule by dependancy", "schedule by sharing machines", "schedule by sort")
+	 * 
+	 * @param evt
+	 */
 	private void BtnPerformMouseDown(MouseEvent evt){
 		System.out.println("BtnReadFile.mouseDown, event="+evt);
-		//TODO add your code for BtnReadFile.mouseDown
-		//WF_PRIORITY SHARE_MACHINE WF_DEPENDENCY WF_SORT
+		// Check if all the basic files has been read
+		if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must read in the basic files first.");
+			errorBox.open();
+			return;
+		}
+		
 		switch(actionChosen){
 		case WF_PRIORITY:
 			if(actionFilePath == null){
 				MessageBox errorBox = new MessageBox(parent.getShell());
-				errorBox.setMessage("You must choose the workface file.");
+				errorBox.setMessage("You must choose the workface priority file.");
 				errorBox.open();
 			}else{
 				WorkfacePriority wfPriority = new WorkfacePriority();
@@ -870,6 +998,8 @@ public class I2MineMain extends Composite {
 					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>(); 
 					ClusterTool.getClustersOfWorkfaces_byPriority(numOfWf, "\t",wfPriority, opInfo, workload, distance, machineInitPos, wfProcList);
 					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Workface Priority", "Workface Process", "Time Period", wfProcList.get(0));
+					// Set finalWfProcList for LHD usage
+					finalWfProcList = wfProcList.get(0);
 				} catch(IOException e){
 					e.printStackTrace();
 				} catch (URISyntaxException e) {
@@ -881,7 +1011,7 @@ public class I2MineMain extends Composite {
 		case SHARE_MACHINE: 
 			if(actionFilePath == null){
 				MessageBox errorBox = new MessageBox(parent.getShell());
-				errorBox.setMessage("You must choose the related file.");
+				errorBox.setMessage("You must choose the machine set file.");
 				errorBox.open();
 			}else{
 				BufferedReader br = null;
@@ -909,6 +1039,10 @@ public class I2MineMain extends Composite {
 					}
 					ArrayList<WorkfaceProcessUnit> wfProcList = ClusterTool.getClustersOfWorkfacesBySharedMachine(opInfo, workload, distance, machineInitPos, shareUnit);
 					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Sharing Machines", "Workface Process", "Time Period", wfProcList);
+					
+					// Set finalWfProcList for LHD usage
+					finalWfProcList = wfProcList;
+					
 					// Set label to unused state when finishing gantte drawing
 					Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 					ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -934,7 +1068,7 @@ public class I2MineMain extends Composite {
 		case WF_DEPENDENCY: 
 			if(actionFilePath == null){
 				MessageBox errorBox = new MessageBox(parent.getShell());
-				errorBox.setMessage("You must choose the related file.");
+				errorBox.setMessage("You must choose the workface dependancy file.");
 				errorBox.open();
 			}else{
 				WorkfaceDependancy wfDependancy = new WorkfaceDependancy();
@@ -953,6 +1087,10 @@ public class I2MineMain extends Composite {
 					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>();
 					System.out.println("number_of_procedure:" + opInfo.getMachineNum());
 					ClusterTool.getClustersOfWorkfaces_byDependancy(numOfWf, "\t", wfDependancy, opInfo, workload, distance, machineInitPos, wfProcList);
+					
+					// Set finalWfProcList for LHD usage
+					finalWfProcList = wfProcList.get(0);
+					
 					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Workface Dependency", "Workface Process", "Time Period", wfProcList.get(0));
 				}catch(IOException e){
 					e.printStackTrace();
@@ -976,9 +1114,22 @@ public class I2MineMain extends Composite {
 				if(numbOfMachineSet == 1){
 					ClusterTool.getClustersOfWorkfaces_zhen_new(20, "\t", opInfo, workload, distance, machineInitPos, wfProcList);
 				}else{
-					ClusterTool.getClustersOfWorkfaces_zhen_new2(numbOfMachineSet, 20, "\t", opInfo, workload, distance, machineInitPos, wfProcList);
+					ClusterTool.getClustersOfWorkfaces_zhen_new2(numbOfMachineSet, 20, "\t", 
+							opInfo, 
+							workload, 
+							distance, 
+							machineInitPos, 
+							wfProcList);
 				}
 				drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Sorting Workface", "Workface Process", "Time Period", wfProcList.get(0));
+				
+				// Set finalWfProcList for LHD usage
+				finalWfProcList = wfProcList.get(0);
+				
+			} catch (IllegalArgumentException e){
+				MessageBox errorBox = new MessageBox(parent.getShell());
+				errorBox.setMessage("You should choose a valid machine set number.");
+				errorBox.open();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (URISyntaxException e) {
@@ -986,19 +1137,39 @@ public class I2MineMain extends Composite {
 			}
 			break;
 		default:
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You should first choose an operation, then perform it.");
+			errorBox.open();
 		}
+		oldActionChosen = actionChosen;
+		actionChosen = -1;
+		RBtnByPriority.setSelection(false);
+		RBtnByShare.setSelection(false);
+		RBtnByDep.setSelection(false);
+		RBtnBySort.setSelection(false);
 	}
 	
+	/** 
+	 * Utility function to draw Gantt graph
+	 * @param winTitle Title of the window
+	 * @param charTitle Title of the graph
+	 * @param domain Domain - X axis range 
+	 * @param range Range - Y axis range
+	 * @param wfProcList Data to be showed in the Gantt graph
+	 */
 	private void drawGanttGraph(String winTitle, String charTitle, String domain, String range,  ArrayList<WorkfaceProcessUnit> wfProcList){
 		// Draw the gantt chart
         GanttRender demo = new GanttRender(winTitle, charTitle, domain, range, wfProcList);
         demo.pack();
         demo.setVisible(true);
         RefineryUtilities.centerFrameOnScreen(demo);
-        System.out.println("by priority - draw Gantt finished!!!");
+//        System.out.println("by priority - draw Gantt finished!!!");
 	}
 	
-	
+	/**
+	 * Choose the "schedule by priority" algorithm
+	 * @param evt
+	 */
 	private void RBtnByPriorityMouseDown(MouseEvent evt){
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
 		//TODO add your code for RBtnBySort.mouseDown
@@ -1011,6 +1182,10 @@ public class I2MineMain extends Composite {
 		actionFilePath = null;
 	}
 	
+	/**
+	 * Choose the "schedule by sharing machines" algorithm
+	 * @param evt
+	 */
 	private void RBtnByShareMouseDown(MouseEvent evt){
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
 		//TODO add your code for RBtnBySort.mouseDown
@@ -1023,6 +1198,10 @@ public class I2MineMain extends Composite {
 		actionFilePath = null;
 	}
 	
+	/**
+	 * Choose the "schedule by dependency" algorithm
+	 * @param evt
+	 */
 	private void RBtnByDepMouseDown(MouseEvent evt){
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
 		//TODO add your code for RBtnBySort.mouseDown
@@ -1035,27 +1214,94 @@ public class I2MineMain extends Composite {
 		actionFilePath = null;
 	}
 	
+	/**
+	 * Choose the "schedule by sort" algorithm
+	 * @param evt
+	 */
 	private void RBtnBySortMouseDown(MouseEvent evt) {
 		System.out.println("RBtnBySort.mouseDown, event="+evt);
-		//TODO add your code for RBtnBySort.mouseDown
 		LFileToRead.setText("File to be read: NULL");
 		actionChosen = WF_SORT;
 		actionFilePath = null;
 		LNumOfMachineSetsFull.setVisible(true);
 		comboDropDownLevel.setVisible(true);
+		LNumofMachineSet.setVisible(false);
+		comboDropDownSet.setVisible(false);
 	}
 	
+	/**
+	 * Perform the LHD alogirthm after performing operations on all workfaces (i.e., all the workloads on 
+	 * all workfaces is finished)
+	 * @param evt
+	 */
 	private void BtnLhdMouseDown(MouseEvent evt) {
 		System.out.println("BtnLhd.mouseDown, event="+evt);
-		//TODO add your code for BtnLhd.mouseDown
 		
+		// Check if all the necessary files have been read
+		if(finalWfProcList == null || finalWfProcList.size() == 0 ||
+				distance == null || workload == null || wfMineralCapacity == null ||
+				truckList == null || truckList.size() == 0 ||
+				opInfo == null || opInfo.getOpInfoList().size() == 0 ||
+				machineInitPos == null || machineInitPos.getMachineInitPosList().size() == 0 ||
+				dumpSiteWfDistance == null || dumpSiteCapacity == null || 
+				numOfTotalTruck <= 0 || numOfLoaders <= 0 || oldActionChosen == -1){
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must read in all necessary files in tab \"Read in basic files\" and \"Perform operations\".");
+			errorBox.open();
+			return;
+		}
+		
+		// Each time LHD is run, "dump site capcity" file, "truck information" file, 
+		// "dump workface distance" file and "workface mineral capacity" file need to be read.
+		if(!isDumpSiteCap||!isTruckInfo||!isDumpWfDist||!isWfMineralCap){
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("You must read in \"dump site capcity\" file, " +
+					"\"truck information\" file, " +
+					"\"dump workface distance\" file" +
+					"\"workface mineral capacity\" file. ");
+			errorBox.open();
+			return;
+		}
+		
+		try {
+			boolean res = LHD.lhd(finalWfProcList, 
+					distance, 
+					workload, 
+					wfMineralCapacity, 
+					truckList, 
+					opInfo, 
+					machineInitPos, 
+					dumpSiteWfDistance, 
+					dumpSiteCapacity, 
+					numOfTotalTruck,
+					numOfLoaders,
+					oldActionChosen);
+			isDumpSiteCap = false; 
+			isTruckInfo = false;
+			isDumpWfDist = false;
+			isWfMineralCap = false;
+			
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("LHD output data has been persisted on the disk.");
+			errorBox.open();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("Encounter an exception when trying to create dump data of LHD: " + e.getMessage());
+			errorBox.open();
+		}
 	}
 	
+	/**
+	 * Read in dump site capacity file
+	 * @param evt
+	 */
 	private void BtnDumpCapMouseDown(MouseEvent evt) {
 		System.out.println("BtnDumpCap.mouseDown, event="+evt);
-		//TODO add your code for BtnDumpCap.mouseDown
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
+		// User must choose the dump site capacity file.
 		if(path != null){
 			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -1073,7 +1319,7 @@ public class I2MineMain extends Composite {
 					dumpSiteCapacity.addSiteCapacity(Float.valueOf(capRet[1])); 
 				}
 				
-				
+				isDumpSiteCap = true; 
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -1086,6 +1332,7 @@ public class I2MineMain extends Composite {
 				}
 			}
 		}else{
+			// Show an error if no file is chosen.
 			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LDumpSiteCapInfo.setImage(new Image(parent.getDisplay(), imgData));
@@ -1095,12 +1342,17 @@ public class I2MineMain extends Composite {
 		}
 	}
 	
+	/**
+	 * Read in the truck information file
+	 * @param evt
+	 */
 	private void BtnTruckMouseDown(MouseEvent evt) {
 		System.out.println("BtnTruck.mouseDown, event="+evt);
-		//TODO add your code for BtnTruck.mouseDown
+		// User must input the number of trucks used
 		try{
-			numOfTotalTruck = Integer.valueOf(TxtNumofWf.getText().trim());
+			numOfTotalTruck = Integer.valueOf(TxtNumofTruck.getText().trim());
 		}catch(NumberFormatException n){
+			// Show an error if input is not a valid number.
 			MessageBox errorBox = new MessageBox(parent.getShell());
 			errorBox.setMessage("Please specify the <total number of trucks first>.");
 			errorBox.open();
@@ -1109,6 +1361,7 @@ public class I2MineMain extends Composite {
 		
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
+		// User must choose the truck information file
 		if(path != null){
 			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -1117,7 +1370,7 @@ public class I2MineMain extends Composite {
 			truckList = new ArrayList<Truck>();
 			// Read in truck information file
 			BufferedReader br = null;
-			dumpSiteCapacity = new DumpSiteCapacity();
+//			dumpSiteCapacity = new DumpSiteCapacity();
 			int truckCnt = 0;
 			try{
 				String curLine = null;
@@ -1132,7 +1385,7 @@ public class I2MineMain extends Composite {
 					truckList.add(truck);
 				}
 				
-				
+				isTruckInfo = true; 
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -1145,6 +1398,7 @@ public class I2MineMain extends Composite {
 				}
 			}
 		}else{
+			// Show an error if no file is chosen.
 			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LTruckInfoIcon.setImage(new Image(parent.getDisplay(), imgData));
@@ -1153,12 +1407,27 @@ public class I2MineMain extends Composite {
 			errorBox.open();
 		}
 	}
-	
+	/**
+	 * Read in the dump site - workface distance file for later process 
+	 * @param evt
+	 */
 	private void BtnDumpWfDistMouseDown(MouseEvent evt) {
 		System.out.println("BtnDumpWfDist.mouseDown, event="+evt);
-		//TODO add your code for BtnDumpWfDist.mouseDown
+		
+		// User must input the total number of loaders.
+		try{
+			numOfLoaders = Integer.valueOf(TxtNumofLoaders.getText().trim());
+		}catch(NumberFormatException n){
+			// Show an error if input is not a valid number
+			MessageBox errorBox = new MessageBox(parent.getShell());
+			errorBox.setMessage("Please specify the <total number of loaders first>.");
+			errorBox.open();
+			return;
+		}
+		
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
+		// User must choose the dump site - workface distance file
 		if(path != null){
 			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -1179,7 +1448,7 @@ public class I2MineMain extends Composite {
 					dumpSiteWfDistance.addDumpSiteList(curDumpWfDistList);
 				}
 				
-				
+				isDumpWfDist = true; 
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -1192,6 +1461,7 @@ public class I2MineMain extends Composite {
 				}
 			}
 		}else{
+			// Show an error if no distance file is chosen.
 			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LDumpWfDistIcon.setImage(new Image(parent.getDisplay(), imgData));
@@ -1201,12 +1471,16 @@ public class I2MineMain extends Composite {
 		}
 	}
 	
+	/**
+	 * Read in the workface mineral capacities from file to memory for later process.
+	 * @param evt
+	 */
 	private void BtnWfDumpCapMouseDown(MouseEvent evt) {
 		System.out.println("BtnWfDumpCap.mouseDown, event="+evt);
-		//TODO add your code for BtnWfDumpCap.mouseDown
 		
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
+		// The user must choose the dump site capacity file.
 		if(path != null){
 			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
@@ -1223,7 +1497,7 @@ public class I2MineMain extends Composite {
 					wfMineralCapacity.addCapacity(Float.valueOf(wfCap[1]));
 				}
 				
-				
+				isWfMineralCap = true;
 			}catch(IOException e){
 				e.printStackTrace();
 			}finally{
@@ -1236,6 +1510,7 @@ public class I2MineMain extends Composite {
 				}
 			}
 		}else{
+			// Show an error message if no file is chosen.
 			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfMineralCapIcon.setImage(new Image(parent.getDisplay(), imgData));

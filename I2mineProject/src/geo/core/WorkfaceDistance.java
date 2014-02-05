@@ -4,14 +4,18 @@ import java.util.ArrayList;
 
 /**
  * This class loads the distance matrix of all the workfaces from file. 
+ * When looking up a distance between two workfaces, workface index is 
+ * started from 0.
  * 
  * @author Dong
  * @version 1.0
  */
 public class WorkfaceDistance {
 	
+	// The total number of workfaces
 	private int numOfWorkface;
 	
+	// The distance matrix
 	private ArrayList<ArrayList<Double>> distance = null;
 	
 	public WorkfaceDistance(int workfaceNum){
@@ -25,7 +29,7 @@ public class WorkfaceDistance {
 	 * 		  The distance ArrayList representing distances between one workface and the rest of workfaces.
 	 * @return true if added successfully, otherwise false.
 	 * <p>
-	 * NOTE: if the distance matrix is full (num_of_workface X num_of_workface matrix), then false is returned also.
+	 * NOTE: if the distance matrix is full (num_of_workface * num_of_workface matrix), then false is returned also.
 	 * </p>
 	 */
 	public boolean addDistance(ArrayList<Double> singleWorkfaceToAll){
