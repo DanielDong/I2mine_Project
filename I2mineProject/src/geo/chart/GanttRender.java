@@ -97,9 +97,7 @@ public class GanttRender extends ApplicationFrame{
         
     /**
      * Creates a chart.
-     * 
      * @param dataset  the dataset.
-     * 
      * @return The chart.
      */
     private JFreeChart createChart(String chartTitle, String domain, String range, IntervalCategoryDataset dataset) {

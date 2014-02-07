@@ -1113,18 +1113,19 @@ public class ClusterTool {
 	}
 	
 	/**
-	 * @param fileName
-	 * @param numOfWorkfaces
-	 * @param delimiter
-	 * @param wfPriority
+	 * Finish workloads on working faces by working face priority.
+	 * @param numOfWorkfaces The total number of working faces.
+	 * @param wfPriority A {@link WorkfacePriority} instance stores working face priorities.
 	 * @param opInfo
 	 * @param workload
 	 * @param distance
+	 * @param initPos
+	 * @param finalProcList
 	 * @return
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_byPriority(int numOfWorkfaces, String delimiter, WorkfacePriority wfPriority, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalProcList) throws IOException, URISyntaxException{
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_byPriority(int numOfWorkfaces, WorkfacePriority wfPriority, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalProcList) throws IOException, URISyntaxException{
 		ArrayList<ArrayList<Integer>> finalRet = new ArrayList<ArrayList<Integer>>();
 //		/* Load a dataset */
 //		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
@@ -1472,7 +1473,7 @@ public class ClusterTool {
 			wfProcListArray.add(finalWfProcList);
 		}
 		// Persist ordered workface data to disk.
-		File f = new File("SCHEDULE_BY_SORT_2_3.txt");
+		File f = new File("SCHEDULE_BY_SORT_2_31.txt");
 		FileWriter fw = new FileWriter(f);
 //		fw.write("There are " + numOfSet + " sets of machines to be shared among the workfaces." +
 //				"All the workfaces would be grouped into " + numOfSet + " sub-groups. Each" +
@@ -3202,7 +3203,7 @@ public class ClusterTool {
 				System.out.println(e.getMessage());
 			}
 			
-			ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfaces_byPriority(20, "\t",wfPriority, opInfo, workload, distance, machineInitPos, null);
+			ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfaces_byPriority(20,wfPriority, opInfo, workload, distance, machineInitPos, null);
 			for(int i = 0; i < finalRetList.size(); i ++){
 				printOutVisualInfo(finalRetList.get(i), workload, opInfo, distance);
 			}

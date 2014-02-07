@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 
 /**
- * 
+ * Class implements LHD algorithm.
  * @author Dong
  *
  */
@@ -28,7 +28,8 @@ public class LHD {
 	/**
 	 * Such a class instance records a time duration during which how much workload has
 	 * been done on a workface, the starting time, the ending time, the number of trucks allocated
-	 * to the workface during the time duration, the dump site ID where the workface mineral is sent, 
+	 * to the workface during the time duration, the dump site ID where the workface mineral is sent, level of 
+	 * TimeDuration and a message indicating if the target dump site is overflown or not.
 	 * 
 	 * @author Dong
 	 *
@@ -43,6 +44,8 @@ public class LHD {
 		private double workLeft;
 		private int dumpSiteId;
 		private String dumpSiteOverflowMsg;
+		// All minerals on a working face can be moved by multiple TimeDurations. 
+		// Level value indicates how many shifts have been done on this working face.
 		private int level;
 		
 		public TimeDuration(){};

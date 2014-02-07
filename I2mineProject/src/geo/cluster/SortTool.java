@@ -591,22 +591,24 @@ public class SortTool {
 	 * @param row Current row to be calculated.
 	 * @return The maximum time for one workface permutation.
 	 */
-	private static Double getMaxTime(ArrayList<ArrayList<Double>> matrix, int col, int row, int flag){
+	private static Double getMaxTime(ArrayList<ArrayList<Double>> opMatrix, ArrayList<ArrayList<Double>> movMatrix, int col, int row){
 		if(col == 0 && row == 0){
-			return matrix.get(row).get(col);
+			return opMatrix.get(row).get(col);
 		}else{
 			double sum1 = 0;
-			if(col - 1 >= 0) sum1 = getMaxTime(matrix, col - 1, row, flag);
+			if(col - 1 >= 0) sum1 = getMaxTime(opMatrix, movMatrix, col - 1, row);
 			double sum2 = 0;
-			if(row - 1 >= 0) sum2 = getMaxTime(matrix, col, row - 1, flag);
+			if(row - 1 >= 0){
+				sum2 = getMaxTime(opMatrix, movMatrix, col, row - 1);
+			}
+			sum2 += movMatrix.get(row).get(col);
 //			if(flag == 1){
 //				if(sum1 > sum2)
 //					System.out.println((matrix.get(row).get(col - 1) + " " + matrix.get(row).get(col)));
 //				else
 //					System.out.println((matrix.get(row - 1).get(col) + " " + matrix.get(row).get(col)));
-//			}
-			
-			return (Math.max(sum1,  sum2) + matrix.get(row).get(col));
+//			}			
+			return Math.max(sum1,  sum2) + opMatrix.get(row).get(col);
 		}
 	}
 	
@@ -615,8 +617,8 @@ public class SortTool {
 	 * @param matrix Matrix recording operating and moving time for each machine (column) on each workface (row).
 	 * @return The maximum time for one workface permutation.
 	 */
-	private static double computeMaxWfSeqTime(ArrayList<ArrayList<Double>> matrix, int flag){
-		return getMaxTime(matrix, matrix.get(0).size() - 1, matrix.size() - 1, 0);
+	private static double computeMaxWfSeqTime(ArrayList<ArrayList<Double>> opMatrix, ArrayList<ArrayList<Double>> movMatrix){
+		return getMaxTime(opMatrix, movMatrix, opMatrix.get(0).size() - 1, opMatrix.size() - 1);
 	}
 	
 	/**
@@ -628,7 +630,7 @@ public class SortTool {
 	 * @param distance
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new1 (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> sortWorkfacesByMatrix (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		
 		// The number of groups after clustering
@@ -713,17 +715,13 @@ public class SortTool {
 	 */
 	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (WorkfaceDistance distance, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
 		
-		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
-		
+		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();		
 		// The number of groups after clustering
-		int len = clusterGroups1.size();
-		
+		int len = clusterGroups1.size();		
 		// The number of procedures in each work face
-		int numOfProcedure = machineOpInfo.getMachineNum();
-		
+		int numOfProcedure = machineOpInfo.getMachineNum();		
 		// Iterate through each cluster group, e.g. (w1, w2, w3), (w4, w6), (w5, w7)
-		for(int i = 0; i < len; i++){
-			
+		for(int i = 0; i < len; i++){			
 			ArrayList<ArrayList<Integer>> permList = new ArrayList<ArrayList<Integer>>();
 			ArrayList<Integer> curWfList = clusterGroups1.get(i);
 			permute(curWfList, 0, curWfList.size() - 1, permList);
@@ -735,52 +733,72 @@ public class SortTool {
 			for(int j = 0; j < permList.size(); j ++){
 				ArrayList<Integer> curPermList = permList.get(j);
 				
-				// Initiate operating time and moving time matrix
-				ArrayList<ArrayList<Double>> matrix = new ArrayList<ArrayList<Double>>();
+				// Initiate operating time matrix
+				ArrayList<ArrayList<Double>> opMatrix = new ArrayList<ArrayList<Double>>();
+				// Initiate moving time matrix
+				ArrayList<ArrayList<Double>> movMatrix = new ArrayList<ArrayList<Double>>();
 				
 				for(int k = 0; k < curPermList.size(); k ++){
-					ArrayList<Double> curWfTotalTime = new ArrayList<Double>();
+					ArrayList<Double> curWfOpTime = new ArrayList<Double>();
+					ArrayList<Double> curWfMovTime = new ArrayList<Double>();
+					// number of operating machines
 					for(int m = 0; m < numOfProcedure; m ++){
 						
 						// Get workload of machine m on workface k
 						double curMachineWorkload = workload.getWorkloadOfMachine(m).get(curPermList.get(k) - 1);
-						if(curMachineWorkload == 0){
-							curWfTotalTime.add(0.0);
-						}else{
-							double dist = 0;
-							if(k > 0){
-								int tmpi = k - 1; 
-								for(; tmpi >=0; tmpi -- ){
-									if(matrix.get(tmpi).get(m) == 0){
-										continue;
-									}else
-										break;
-								}
-								if(tmpi == -1){
-									//dist = data[0].get(curPermList.get(k) - 1).get(machineInitPos.getInitPosOfMachine(m));
-									//dist = 0;
-									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(k) - 1, machineInitPos.getInitPosOfMachine(m));
-								}
-								else
-//									dist = data[0].get(curPermList.get(tmpi) - 1).get(curPermList.get(k) - 1);
-									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(tmpi) - 1, curPermList.get(tmpi) - 1);
-							}
-							
-							double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
-							double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
-							double curTotalTime = curMachineWorkload / opRate + dist / moveRate ;
-							
-							curWfTotalTime.add(curTotalTime);
-						}
+						double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
+						curWfOpTime.add(curMachineWorkload / opRate);
 						
+						double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
+						double dist = 0;
+						if(k == 0){
+							if(sortGroups.size() == 0){
+								dist = distance.getDistBetweenTwoWorkfaces(machineInitPos.getInitPosOfMachine(m), curPermList.get(k) - 1);
+							}else{
+								ArrayList<Integer> lastSortedGroup = sortGroups.get(sortGroups.size() - 1);
+								dist = distance.getDistBetweenTwoWorkfaces(lastSortedGroup.get(lastSortedGroup.size() - 1) - 1, curPermList.get(k) - 1);
+							}
+						}
+						curWfMovTime.add(dist / moveRate);
+//						if(curMachineWorkload == 0){
+//							curWfTotalTime.add(0.0);
+//						}else{
+////							double dist = 0;
+//							if(k > 0){
+//								int tmpi = k - 1; 
+//								for(; tmpi >=0; tmpi -- ){
+//									if(opMatrix.get(tmpi).get(m) == 0){
+//										continue;
+//									}else
+//										break;
+//								}
+//								if(tmpi == -1){
+//									//dist = data[0].get(curPermList.get(k) - 1).get(machineInitPos.getInitPosOfMachine(m));
+//									//dist = 0;
+//									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(k) - 1, machineInitPos.getInitPosOfMachine(m));
+//								}
+//								else
+////									dist = data[0].get(curPermList.get(tmpi) - 1).get(curPermList.get(k) - 1);
+//									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(tmpi) - 1, curPermList.get(tmpi) - 1);
+//							}
+//							
+//							double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
+////							double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
+//							//double curTotalTime = curMachineWorkload / opRate + dist / moveRate ;
+//							
+//							curWfTotalTime.add(curMachineWorkload / opRate);
+//						}						
 					}
-					matrix.add(curWfTotalTime);
-				}
+					opMatrix.add(curWfOpTime);
+					movMatrix.add(curWfMovTime);
+				}// end of preparing matrix
+				
+				
 				
 				int flag = 0;
 //				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17))
 //					flag = 1;
-				double curMaxTime = computeMaxWfSeqTime(matrix, flag);
+				double curMaxTime = computeMaxWfSeqTime(opMatrix, movMatrix);
 				
 				if(curMaxTime < minTime){
 					minTime = curMaxTime;
@@ -788,30 +806,30 @@ public class SortTool {
 				}
 				
 				//Register log info -- Print out each workface permutation time info and cur maxtime and permutation
-				StringBuilder msgPerm = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgPerm.append("\n===================Print out workface time info for each permutation================\n");
-				msgPerm.append("cur matrix: \n");
-				for(int jj = 0; jj < matrix.size(); jj ++){
-					for(int kk = 0; kk < matrix.get(jj).size(); kk ++){
-						msgPerm.append(matrix.get(jj).get(kk) + "\t");
-					}
-					msgPerm.append("\n");
-				}
-				msgPerm.append("curPermList: \n");
-				for(int ii = 0; ii < curPermList.size(); ii ++){
-					msgPerm.append(curPermList.get(ii) + " ");
-				}
-				msgPerm.append("\n");
-				msgPerm.append("cur maxtime: " + curMaxTime + "\ncur mintime: " + minTime + "\n");
-				msgPerm.append("curMinList: \n");
-				for(int ii = 0; ii < minPermList.size(); ii ++){
-					msgPerm.append(minPermList.get(ii) + " ");
-				}
-				msgPerm.append("\n");
-				LogTool.log(LEVEL, msgPerm.toString());
-				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17)){
-					System.out.println(msgPerm);
-				}
+//				StringBuilder msgPerm = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//				msgPerm.append("\n===================Print out workface time info for each permutation================\n");
+//				msgPerm.append("cur matrix: \n");
+//				for(int jj = 0; jj < matrix.size(); jj ++){
+//					for(int kk = 0; kk < matrix.get(jj).size(); kk ++){
+//						msgPerm.append(matrix.get(jj).get(kk) + "\t");
+//					}
+//					msgPerm.append("\n");
+//				}
+//				msgPerm.append("curPermList: \n");
+//				for(int ii = 0; ii < curPermList.size(); ii ++){
+//					msgPerm.append(curPermList.get(ii) + " ");
+//				}
+//				msgPerm.append("\n");
+//				msgPerm.append("cur maxtime: " + curMaxTime + "\ncur mintime: " + minTime + "\n");
+//				msgPerm.append("curMinList: \n");
+//				for(int ii = 0; ii < minPermList.size(); ii ++){
+//					msgPerm.append(minPermList.get(ii) + " ");
+//				}
+//				msgPerm.append("\n");
+//				LogTool.log(LEVEL, msgPerm.toString());
+//				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17)){
+//					System.out.println(msgPerm);
+//				}
 				
 //				if(curPermList.contains(8)){
 //					msgPerm.append("\n===================Print out workface time info for each permutation================\n");
@@ -821,7 +839,8 @@ public class SortTool {
 //					System.out.println("cur maxtime: " + curMaxTime);
 //				}
 				
-			}
+			}// end of all permutations of workfaces
+			
 			// Print out minimum workface time
 //			System.out.println("\n===================minimum workface time permutation================\n" + minTime);
 //			for(int k = 0; k < minPermList.size(); k ++){

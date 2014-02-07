@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * then that means there are in total 3 dump sites with dump site ID 0, 1, 2.
  *  
  * @author Dong
- *
+ * @version 1.0
  */
 public class DumpSiteWorkfaceDistance {
 	

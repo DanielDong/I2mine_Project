@@ -996,7 +996,7 @@ public class I2MineMain extends Composite {
 						wfPriority.addWfPrioUnit(newUnit);
 					}
 					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>(); 
-					ClusterTool.getClustersOfWorkfaces_byPriority(numOfWf, "\t",wfPriority, opInfo, workload, distance, machineInitPos, wfProcList);
+					ClusterTool.getClustersOfWorkfaces_byPriority(numOfWf, wfPriority, opInfo, workload, distance, machineInitPos, wfProcList);
 					drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Workface Priority", "Workface Process", "Time Period", wfProcList.get(0));
 					// Set finalWfProcList for LHD usage
 					finalWfProcList = wfProcList.get(0);

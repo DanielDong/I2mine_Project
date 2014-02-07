@@ -52,8 +52,8 @@ public class WorkfaceDistance {
 	
 	/**
 	 * Get the distance between two workfaces
-	 * @param workface1 The index of one workface
-	 * @param workface2 The index of the other workface
+	 * @param workface1 The index of one workface (0-indexed)
+	 * @param workface2 The index of the other workface (0-indexed)
 	 * @return The distance between workface1 and workface2
 	 */
 	public double getDistBetweenTwoWorkfaces(int workface1, int workface2){
