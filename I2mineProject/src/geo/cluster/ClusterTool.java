@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.FileDialog;
+
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
@@ -259,12 +262,14 @@ public class ClusterTool {
 		
 		ArrayList<Integer> tmpRetList = null;
 		int i = wdList.size() - 1;
+		/** 4 indicates there are 3 workfaces in each sub-group*/
 		while(i >= 3){
 			tmpRetList = new ArrayList<Integer>();
-			tmpRetList.add(wdList.get(i).wfid);
+			tmpRetList.add(wdList.get(i - 0).wfid);
 			tmpRetList.add(wdList.get(i - 1).wfid);
 			tmpRetList.add(wdList.get(i - 2).wfid);
 			tmpRetList.add(wdList.get(i - 3).wfid);
+//			tmpRetList.add(wdList.get(i - 4).wfid);
 			retList.add(tmpRetList);
 			i -= 4;
 		}
@@ -277,8 +282,6 @@ public class ClusterTool {
 			}
 			retList.add(tmpRetList);
 		}
-		
-		
 		return retList;
 	}
 	
@@ -413,8 +416,8 @@ public class ClusterTool {
 			//Split workfaces into "numOfFirstMachine" groups.
 			ArrayList<ArrayList<Integer>> dss = null;
 			if(numOfFirstMachine == 1){
-				dss = ClusterTool.getClustersOfWorkfaces_zhen_new(20, "\t", tmpOpInfo, workload, distance, initPos, null);
-//				dss = getClustersOfWorkfaces_zhen_new2(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
+				dss = ClusterTool.getClustersOfWorkfacesSortByOne(20, "\t", tmpOpInfo, workload, distance, initPos, null);
+//				dss = getClustersOfWorkfacesSortByMore(3, "workface-distance.txt", 20, "\t", tmpOpInfo, workload, distance, initPos);
 				System.out.println("numOfFirstMachine == 1 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
@@ -569,7 +572,7 @@ public class ClusterTool {
 				// Update current machine to next un-processed one
 				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
 			}else if(numOfFirstMachine == 2){
-				dss = getClustersOfWorkfaces_zhen_new2(2, 20, "\t", tmpOpInfo, workload, distance, initPos, null, false);
+				dss = getClustersOfWorkfacesSortByMore(2, 20, "\t", tmpOpInfo, workload, distance, initPos, null, false);
 				System.out.println("numOfFirstMachine == 2 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
@@ -724,7 +727,7 @@ public class ClusterTool {
 				// Update current machine to next un-processed one
 				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
 			}else if(numOfFirstMachine == 3){
-				dss = getClustersOfWorkfaces_zhen_new2(3, 20, "\t", tmpOpInfo, workload, distance, initPos, null, false);
+				dss = getClustersOfWorkfacesSortByMore(3, 20, "\t", tmpOpInfo, workload, distance, initPos, null, false);
 				System.out.println("numOfFirstMachine == 3 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
@@ -947,7 +950,7 @@ public class ClusterTool {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 *///String fileName,
-	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_byDependancy( int numOfWorkfaces, String delimiter, WorkfaceDependancy wfDependancy, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalProcList) throws IOException, URISyntaxException{
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfacesByDependancy( int numOfWorkfaces, String delimiter, WorkfaceDependancy wfDependancy, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalProcList) throws IOException, URISyntaxException{
 		/* Load a dataset */
 //		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
 //		Dataset[] dataSets = new DefaultDataset[1];
@@ -1125,7 +1128,7 @@ public class ClusterTool {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_byPriority(int numOfWorkfaces, WorkfacePriority wfPriority, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalProcList) throws IOException, URISyntaxException{
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfacesByPriority(int numOfWorkfaces, WorkfacePriority wfPriority, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalProcList) throws IOException, URISyntaxException{
 		ArrayList<ArrayList<Integer>> finalRet = new ArrayList<ArrayList<Integer>>();
 //		/* Load a dataset */
 //		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
@@ -1136,7 +1139,10 @@ public class ClusterTool {
 		
 		System.out.println("priority list size: " + prioLists.size());
 		System.out.println("before sort workfaces....");
-		ArrayList<ArrayList<Integer>> sortedWfLists = SortTool.sortWorkfaces_new(distance, prioLists, opInfo, workload, initPos);
+		/** Sort workfaces by using time(operating time and moving time) matrix*/
+		ArrayList<ArrayList<Integer>> sortedWfLists = SortTool.sortWorkfacesByMatrix(distance, prioLists, opInfo, workload, initPos);
+		/** Sort workfaces by using traditional method*/
+//		ArrayList<ArrayList<Integer>> sortedWfLists = SortTool.sortWorkfacesByTradition(prioLists, opInfo, workload, distance);
 		System.out.println("after sort workfaces....");
 		for(int i = 0; i < sortedWfLists.size(); i ++){
 			for(int j = 0; j < sortedWfLists.get(i).size(); j ++){
@@ -1277,7 +1283,7 @@ public class ClusterTool {
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_zhen_new2(int numOfSet, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcListArray, boolean originCall) throws IOException, URISyntaxException{
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfacesSortByMore(int numOfSet, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcListArray, boolean originCall) throws IOException, URISyntaxException{
 		
 		ArrayList<ArrayList<Integer>> finalRet = new ArrayList<ArrayList<Integer>>();
 		/* Load a dataset */
@@ -1521,13 +1527,9 @@ public class ClusterTool {
 	 * @return
 	 */
 	private static ArrayList<Integer> sortWorkfacesByGroupOf4(ArrayList<Integer> wfGroup, WorkfaceDistance distance, MachineOpInfo opInfo, WorkfaceWorkload workload, MachineInitialPosition initPos){
-
 		ArrayList<ArrayList<Integer>> tmpGroups = new ArrayList<ArrayList<Integer>>(); 
 		System.out.println("wfGroup size: " + wfGroup.size());
 		tmpGroups = getGroupsby4Wf(wfGroup, distance);
-		
-//		Dataset[] dataSet = new DefaultDataset[1];
-//		dataSet[0] = data;
 		
 		// Set each 0 indexed workface value plus one.
 		for(int m = 0; m < tmpGroups.size(); m ++){
@@ -1541,8 +1543,10 @@ public class ClusterTool {
 		if(tmpGroups.size() > 1){
 			ArrayList<ArrayList<Integer>> firstGroupOfWf = new  ArrayList<ArrayList<Integer>>();
 			firstGroupOfWf.add(tmpGroups.get(tmpGroups.size() - 1));
-			
-			tmpSortRet = SortTool.sortWorkfaces_new(distance, firstGroupOfWf, opInfo, workload, initPos);
+			/** Sort workfaces by using time(operating time and moving time) matrix*/
+			tmpSortRet = SortTool.sortWorkfacesByMatrix(distance, firstGroupOfWf, opInfo, workload, initPos);
+			/** Sort workfaces by using traditional method*/
+//			tmpSortRet = SortTool.sortWorkfacesByTradition(firstGroupOfWf, opInfo, workload, distance);
 			for(int j = tmpGroups.size() - 2; j >= 0; j --){
 				firstGroupOfWf = new  ArrayList<ArrayList<Integer>>();
 				firstGroupOfWf.add(tmpSortRet.get(0));
@@ -1560,14 +1564,15 @@ public class ClusterTool {
 				}
 				tmpSortRet = new ArrayList<ArrayList<Integer>>();
 				tmpSortRet.add(tmp);
-				
 			}
 		}
 		// there is only one group
 		else{
-			tmpSortRet = SortTool.sortWorkfaces_new(distance, tmpGroups, opInfo, workload, initPos);
+			/** Sort workfaces by using time(operating time and moving time) matrix*/
+			tmpSortRet = SortTool.sortWorkfacesByMatrix(distance, tmpGroups, opInfo, workload, initPos);
+			/** Sort workfaces by using traditional method*/
+//			tmpSortRet = SortTool.sortWorkfacesByTradition(tmpGroups, opInfo, workload, distance);
 		}
-		
 		
 		ArrayList<Integer> tmpFinalRet = new ArrayList<Integer>();
 		for(int j = 0; j <tmpSortRet.size(); j ++){
@@ -1582,51 +1587,10 @@ public class ClusterTool {
 			System.out.print(tmpFinalRet.get(j) + " ");
 		}
 		System.out.println();
-		
 		return  tmpFinalRet;
-		
 	}
 	
-	/**
-	 * TO be finished.
-	 * @param fileName
-	 * @param numOfWorkfaces
-	 * @param delimiter
-	 * @param opInfo
-	 * @param workload
-	 * @param distance1
-	 * @return
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
-	@Deprecated
-	public static ArrayList<Integer> getClustersOfWorkfaces_zhen_new1(String fileName, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1) throws IOException, URISyntaxException{
-		
-		/* Load a dataset */
-		Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
-		// Get original distance list
-		ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();
-		for(int row = 0; row < data.size(); row ++){
-			for(int col = row + 1; col < data.get(row).size(); col ++){
-				 
-				DistanceUnit du = new DistanceUnit();
-				du.distance = data.get(row).get(col);
-				du.from = row + 1; // 0 based index in data, plus 1 to be consistent with workface index in text file, 
-				du.to = col + 1;
-				
-				originalDistanceList.add(du);
-			}
-		}
-		
-		// Sort distance list in ascending order
-		DUComparator comparator = new DUComparator();
-		Collections.sort(originalDistanceList, comparator);
-		
-		for(int i = 0; i < originalDistanceList.size(); i ++){
-			System.out.print(originalDistanceList.get(i).distance + " ");
-		}
-		return null;
-	}
+	
 	
 	/**
 	 * Cluster workfaces whose workface distances are stored in the <i>fileName</i> parameter.
@@ -1640,60 +1604,22 @@ public class ClusterTool {
 	 * Note: this algorithm is based on the tree structure.
 	 * </p>
 	 */
-	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_zhen_new(int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalWfProcList) throws IOException, URISyntaxException{
-		
-	    /* Load a dataset */
-        //Dataset data = FileHandler.loadDataset(new File("workphase.txt"), 5, "\t");
-		//Dataset data = FileHandler.loadDataset(new File(fileName), numOfWorkfaces, delimiter);
-		
-		
-		// Register log info
-//		StringBuilder msgDistMatrix = new StringBuilder();
-//		msgDistMatrix.append(Thread.currentThread().getStackTrace()[1].toString() + "\n=====Worface Distance Matrix======\n");
-//		for(int i = 0; i < data.size(); i ++){
-//			msgDistMatrix.append(data.get(i).toString() + "\n");
-//		}
-//		LogTool.log(LEVEL, msgDistMatrix.toString());
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfacesSortByOne(int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance1, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> finalWfProcList) throws IOException, URISyntaxException{
 		
 		// Get original distance list
-		ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();
-		
+		ArrayList<DistanceUnit> originalDistanceList = new ArrayList<DistanceUnit>();		
 		for(int row = 0; row < distance1.getNumOfWorkface(); row ++)
 			for(int col = row + 1; col < distance1.getNumOfWorkface(); col ++){
 				DistanceUnit du = new DistanceUnit();
 				du.distance = distance1.getDistBetweenTwoWorkfaces(row, col);//data.get(row).get(col);
 				du.from = row + 1; // 0 based index in data, plus 1 to be consistent with workface index in text file, 
-				du.to = col + 1;
-				
+				du.to = col + 1;			
 				originalDistanceList.add(du);
 			}
-		
-//		for(int row = 0; row < data.size(); row ++){
-//			for(int col = row + 1; col < data.get(row).size(); col ++){
-//				 
-//				DistanceUnit du = new DistanceUnit();
-//				du.distance = data.get(row).get(col);
-//				du.from = row + 1; // 0 based index in data, plus 1 to be consistent with workface index in text file, 
-//				du.to = col + 1;
-//				
-//				originalDistanceList.add(du);
-//			}
-//		}
-		
-		
 		
 		// Sort distance list in ascending order
 		DUComparator comparator = new DUComparator();
 		Collections.sort(originalDistanceList, comparator);
-		
-		// Register log info
-//		StringBuilder msgSortedDistList = new StringBuilder();
-//		msgSortedDistList.append(Thread.currentThread().getStackTrace()[1].toString() + "\n======Sorted Distance Unit======\n");
-//		for(int i = 0; i < originalDistanceList.size(); i++){
-//			msgSortedDistList.append(originalDistanceList.get(i).distance + " ");
-//		}
-//		msgSortedDistList.append("\n");
-//		LogTool.log(LEVEL, msgSortedDistList.toString());
 		
 		ArrayList<ArrayList<DistanceUnit>> groupDisList = new ArrayList<ArrayList<DistanceUnit>>();
 		int start = 0, end = 0;
@@ -1722,21 +1648,6 @@ public class ClusterTool {
 				start = end + 1;
 			}
 		}
-		
-		// Register log info
-//		StringBuilder msgGroupDistList = new StringBuilder();
-//		msgGroupDistList.append(Thread.currentThread().getStackTrace()[1].toString() + "'\n=======Display Grouped Distance Units=====\n");
-//		msgGroupDistList.append("Distance Unit Size:" + originalDistanceList.size() + "\n");
-//		msgGroupDistList.append("Group Size:" + groupDisList.size());
-//		for(int i = 0; i < groupDisList.size(); i ++){
-//			for(int j = 0; j < groupDisList.get(i).size(); j ++){
-//				msgGroupDistList.append(groupDisList.get(i).get(j).distance + "(" + (groupDisList.get(i).get(j).from) + "," + 
-//						(groupDisList.get(i).get(j).to) + ") ");
-//			}
-//			msgGroupDistList.append("\n");
-//		}
-//		LogTool.log(LEVEL, msgGroupDistList.toString());
-		
 		
 		// *****************Start to create workface grouping using brackets*****************
 		StringBuilder wfSeq = new StringBuilder();
@@ -1870,22 +1781,10 @@ public class ClusterTool {
 						}
 					}
 					groupOfWf[proWf] = groupOfWf[unProWf];
-					
-					//Register log info
-//					StringBuilder msgTwoWfProcessed = new StringBuilder();
-//					msgTwoWfProcessed.append(Thread.currentThread().getStackTrace()[1].toString() + "\n======Processed Two More Workfaces=======\n");
-//					msgTwoWfProcessed.append("WF1:" + wf1 + " WF2:" + wf2 + "\n");
-//					msgTwoWfProcessed.append(wfSeq + "\n");
-//					LogTool.log(LEVEL, msgTwoWfProcessed.toString());
-					
 					continue;
 				}
 				
 				// Both are processed already
-				
-				// Register log info
-//				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Both WFs are processed - WF1 : " + wf1 + " WF2 : " + wf2);
-				
 				if(groupOfWf[wf1] == groupOfWf[wf2]){
 					continue;
 				}
@@ -1896,50 +1795,29 @@ public class ClusterTool {
 				int startOf2 = ret2.get(0), endOf2 = ret2.get(1);
 				
 				
-				String subStr1 = wfSeq.substring(startOf1, endOf1 + 1);
-				
-				// Register log info
-//				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
-				
+				String subStr1 = wfSeq.substring(startOf1, endOf1 + 1);				
 				String subStr2 = wfSeq.substring(startOf2, endOf2 + 1);
-				
-				// Register log info
-//				LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
 				
 				// Get sub workface sequence to decide whether subStr1 and subStr2 on the same level or not
 				boolean isChanged = false;
 				
 				for(int tmpJ = 0; tmpJ < j; tmpJ ++){
 					
-					int tmpWorkface = groupDisList.get(i).get(tmpJ).from;
-					
-					// Register log info
-//					LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Temp WF(from) : " + tmpWorkface);
-					
+					int tmpWorkface = groupDisList.get(i).get(tmpJ).from;					
 					if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
 						isChanged = true;
 						if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
 							subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
-							
-							// Register log info
-//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-from) WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
 						}
 					}
 					if(isChanged == true){
 						break;
 					}
 					tmpWorkface = groupDisList.get(i).get(tmpJ).to;
-					
-					// Register log info
-//					LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Temp WF(to) : " + tmpWorkface);
-					
 					if(getWorkfaceIndex(new StringBuilder(subStr1), String.valueOf(tmpWorkface)) != -1){
 						isChanged = true;
 						if(subStr1.charAt(0) =='(' && subStr1.charAt(1) == '('){
 							subStr1 = wfSeq.substring(startOf1 + 1, endOf1);
-							
-							// Register log info
-//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-to) WF Seq for WF1 ( " + wf1 + " ) " + subStr1);
 						}
 					}
 					if(isChanged == true){
@@ -1954,9 +1832,6 @@ public class ClusterTool {
 						isChanged = true;
 						if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
 							subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
-							
-							// Register log info
-//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-from) WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
 						}
 					}
 					if(isChanged == true){
@@ -1967,9 +1842,6 @@ public class ClusterTool {
 						isChanged = true;
 						if(subStr2.charAt(0) == '(' && subStr2.charAt(1) == '('){
 							subStr2 = wfSeq.substring(startOf2 + 1, endOf2);
-							
-							// Register log info
-//							LogTool.log(LEVEL, Thread.currentThread().getStackTrace()[1].toString() + " Sub(cutted-to) WF Seq for WF2 ( " + wf2 + " ) " + subStr2);
 						}
 					}
 					if(isChanged == true){
@@ -2081,13 +1953,6 @@ public class ClusterTool {
 				break;
 			}
 		}// end for outer for
-		// Register log info -- print out workfaces based on distance sorting		
-		StringBuilder msgWf = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		msgWf.append("\n Workface Sequence based on distance sorting: " + wfSeq.toString() + "\n");
-		LogTool.log(LEVEL, msgWf.toString());
-		
-		
-		
 		// Try to eliminate parentheses
 		wfSeq = processParenLevel(wfSeq, parenClearLevel);
 		
@@ -2095,39 +1960,24 @@ public class ClusterTool {
 		StringBuilder msgWfProcessed = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
 		msgWfProcessed.append("\n Workface Sequence based on distance sorting(processed): " + wfSeq.toString() + "\n");
 		LogTool.log(LEVEL, msgWfProcessed.toString());
-		
-		
+				
 		System.out.println("=======Workface Sequence based on distance sorting(processed-exclude parenthesis)========\n" + wfSeq.toString());
-
 		Stack totalSortedGroup = new Stack();
 		// Iterate over each char in wfSeq
 		for(int ci = 0; ci < wfSeq.toString().length();){
-			
-			// Register log info
-//			StringBuilder msgCurCharCurSortedGroup = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//			msgCurCharCurSortedGroup.append("\nRead in next char, cur total sorted group is: " + totalSortedGroup.toString() + " cur len: " + totalSortedGroup.size() + "\n");
-//			LogTool.log(LEVEL, msgCurCharCurSortedGroup.toString());
-			
-			if(wfSeq.charAt(ci) == '('){
-				
+			if(wfSeq.charAt(ci) == '('){				
 				//bracketStack.push(ci);
 				totalSortedGroup.push('(');
-				ci ++;
-				
+				ci ++;				
 			}else if(wfSeq.charAt(ci) == ')'){
-
 				boolean isSortGroup = false;
 				ArrayList<Integer> curSortList = new ArrayList<Integer>();
-				ArrayList<ArrayList<Integer>> curSortGroup = new ArrayList<ArrayList<Integer>>();
-				
-				while(totalSortedGroup.empty() == false){
-					
+				ArrayList<ArrayList<Integer>> curSortGroup = new ArrayList<ArrayList<Integer>>();				
+				while(totalSortedGroup.empty() == false){					
 					Object tmpPopEle = totalSortedGroup.pop();
-					if(tmpPopEle instanceof Character){
-						
+					if(tmpPopEle instanceof Character){						
 						// left bracket is omitted
-						break;
-						
+						break;						
 					}else if(tmpPopEle instanceof Integer && isSortGroup == false){
 						curSortList.add(0, (Integer)tmpPopEle);
 					}else if(tmpPopEle instanceof Integer && isSortGroup == true){
@@ -2136,10 +1986,8 @@ public class ClusterTool {
 						curSortGroup.add(tmpList);
 					}
 					// sort group
-					else if(tmpPopEle instanceof ArrayList){
-						
-						isSortGroup = true;
-						
+					else if(tmpPopEle instanceof ArrayList){						
+						isSortGroup = true;						
 						if(curSortList.size() != 0){
 							
 							ArrayList<Integer> tmpList = null;
@@ -2149,8 +1997,7 @@ public class ClusterTool {
 								curSortGroup.add(tmpList);
 							} 
 							curSortList.clear();
-						}
-						
+						}						
 						curSortGroup.add((ArrayList<Integer>)tmpPopEle);
 					}// end for else if
 					
@@ -2160,12 +2007,8 @@ public class ClusterTool {
 				ArrayList<ArrayList<Integer>> tmpSortGroupRet = null;
 				// Sort workface group
 				if(isSortGroup == true){
-					
-					//Register log info
-					StringBuilder msgBeforeAfterGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-					msgBeforeAfterGroups.append("\nbefore sort groups: " + curSortGroup + "\n");
+
 					tmpSortGroupRet = SortTool.sortGroups_new(curSortGroup, opInfo, workload, distance1);
-					msgBeforeAfterGroups.append("\nafter sort groups: " + tmpSortGroupRet + "\n");
 					ArrayList<Integer> tmpSortedGroupRet = new ArrayList<Integer>();
 					
 					// After group is sorted, all workfaces should be in the same group
@@ -2174,26 +2017,16 @@ public class ClusterTool {
 							tmpSortedGroupRet.add(tmpSortGroupRet.get(iTmp).get(jTmp));
 						}
 					}
-					msgBeforeAfterGroups.append("before inserting the after-sorted groups,size of totalSortedGroup: " + totalSortedGroup.size() + "\n");
-					LogTool.log(LEVEL, msgBeforeAfterGroups.toString());
 					totalSortedGroup.push(tmpSortedGroupRet);
-					
 				}
 				// Sort workfaces
 				else{
-					
-					
-					//Register log info
-					StringBuilder msgBeforeAfterGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-					msgBeforeAfterGroups.append("before sort workfaces: " + curSortList + "\n");
-//					Dataset[] dataSet = new DefaultDataset[1];
-//					dataSet[0] = data;
 					ArrayList<ArrayList<Integer>> tmpPara = new ArrayList<ArrayList<Integer>>();
 					tmpPara.add(curSortList);
-//					tmpSortGroupRet = SortTool.sortWorkfaces_new1(dataSet, tmpPara, opInfo, workload, distance1);
-					tmpSortGroupRet = SortTool.sortWorkfaces_new(distance1, tmpPara, opInfo, workload, initPos);
-					msgBeforeAfterGroups.append("after sort workfaces: " + tmpSortGroupRet + "\n");
-					LogTool.log(LEVEL, msgBeforeAfterGroups.toString());
+					/** Sort workfaces by using time(operating time and moving time) matrix*/
+					tmpSortGroupRet = SortTool.sortWorkfacesByMatrix(distance1, tmpPara, opInfo, workload, initPos);
+					/** Sort workfaces by using traditional method*/
+//					tmpSortGroupRet = SortTool.sortWorkfacesByTradition(tmpPara, opInfo, workload, distance1);
 					totalSortedGroup.push(tmpSortGroupRet.get(0));
 				}
 				ci ++;
@@ -2204,11 +2037,6 @@ public class ClusterTool {
 						tmpIndex ++;
 					}
 					totalSortedGroup.push(Integer.valueOf(wfSeq.subSequence(ci, tmpIndex).toString()));
-					//Register log info
-//					StringBuilder msgReadinInt = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//					msgReadinInt.append("\nRead in another integer: " + totalSortedGroup + "\n");
-//					LogTool.log(LEVEL, msgReadinInt.toString());
-					
 					ci = tmpIndex;
 			}else{
 				// Current character is comma, advance ci one step forward
@@ -2253,16 +2081,13 @@ public class ClusterTool {
 	    		double curWfMachineMovTime = 0;
 	    		if(j < finalSortedWorkfaceRet.size() - 1){
 	    			curWfMachineMovTime = proTime.get(2 * j + 1);
-	    		}
-	    		
+	    		}	    		
 	    		double curWfMachineWaitTime = 0;
 	    		if(j < finalSortedWorkfaceRet.size() - 1){
 	    			curWfMachineWaitTime = waitTime.get(j);
-	    		}
-	    		
+	    		}	    		
 	    		// Current workface process unit
-	    		WorkfaceProcessUnit wpu = wfProcList.get(curWfNum);
-	    		
+	    		WorkfaceProcessUnit wpu = wfProcList.get(curWfNum);	    		
 	    		// This is the first operating machine (or procedure on this workface)
 	    		if(i == 0){
 	    			if(j == 0){
@@ -2323,15 +2148,6 @@ public class ClusterTool {
 		}
 		
 		fw.close();
-				
-//	    // Draw the gantt chart
-//        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", wfProcList);
-//        demo.pack();
-//        //RefineryUtilities.centerFrameOnScreen(demo);
-//        demo.setVisible(true);
-//        RefineryUtilities.centerFrameOnScreen(demo);
-//        System.out.println("by priority - draw Gantt finished!!!");
-
 		ArrayList<ArrayList<Integer>> finalRet = new ArrayList<ArrayList<Integer>>();
 		finalRet.add(finalSortedWorkfaceRet);
 		
@@ -2341,6 +2157,7 @@ public class ClusterTool {
 		
 		return finalRet;
 	}
+
 	/**
 	 * Allocate workface workload when there are multiple groups of operating machines
 	 * @param numOfMachines The number of operating machines
@@ -2493,7 +2310,7 @@ public class ClusterTool {
 	
 	
 	/**
-	 * @deprecated This method is currently obsolete. Please refer to {@link #getClustersOfWorkfaces_zhen_new(String fileName, int numOfWorkphases, String delimiter)}
+	 * @deprecated This method is currently obsolete. Please refer to {@link #getClustersOfWorkfacesSortByOne(String fileName, int numOfWorkphases, String delimiter)}
 	 * @param fileName
 	 * @param numOfWorkphases
 	 * @param delimiter
@@ -2890,7 +2707,7 @@ public class ClusterTool {
 		return false;
 	}
 	/**
-	 * @deprecated This method is currently obsolete. Please refer to {@link #getClustersOfWorkfaces_zhen_new(String, int, String, MachineOpInfo, WorkfaceWorkload, WorkfaceDistance)}
+	 * @deprecated This method is currently obsolete. Please refer to {@link #getClustersOfWorkfacesSortByOne(String, int, String, MachineOpInfo, WorkfaceWorkload, WorkfaceDistance)}
 	 * @param fileName
 	 * @param numOfWorkphases
 	 * @param delimiter
@@ -3077,7 +2894,7 @@ public class ClusterTool {
 		return workface;
 	}
 
-	// Using zhen's way to cluster
+	@SuppressWarnings("resource")
 	public static void main(String[] args) throws Exception {
 		
 		// Determine whether to output debug info or not
@@ -3086,30 +2903,23 @@ public class ClusterTool {
 		ClusterTool.LEVEL = LogTool.LEVEL_CLOSE;
 		SortTool.LEVEL = LogTool.LEVEL_CLOSE;
 		
-		//***************start the grouping workface process********************
-		//Dataset[] dss = ClusterTool.getClustersOfWorkfaces("workface-distance.txt", 20, "\t");
-		
-		
-		
-		
+		//***************start the grouping workface process***************		
 		// Read in workface distance information
 		WorkfaceDistance distance = new WorkfaceDistance(20);
 		BufferedReader br = null;
 		ArrayList<Double> singleWorkloadInfo = null;
 		try{
 			String curLine = null;
-			br = new BufferedReader(new FileReader("workface-distance.txt"));
-			while((curLine = br.readLine()) != null){
-				
+			String path = "Input_Data\\Workface_Distance.txt";
+			br = new BufferedReader(new FileReader(path));			
+			while((curLine = br.readLine()) != null){				
 				String[] distRet = curLine.split("\t");
 				singleWorkloadInfo = new ArrayList<Double>(); 
 				for(int i = 0; i < distRet.length; i ++){
 					singleWorkloadInfo.add(Double.valueOf(distRet[i]));
 				}
 				distance.addDistance(singleWorkloadInfo);
-			}
-			
-			
+			}				
 		}catch(IOException e){
 			e.printStackTrace();
 		}finally{
@@ -3119,38 +2929,33 @@ public class ClusterTool {
 		}
 		
 		// Read in machine operation information
-		MachineOpInfo opInfo = new MachineOpInfo(6); // there are in total 6 machines
+		MachineOpInfo opInfo = new MachineOpInfo(5); // there are in total 6 machines
 		ArrayList<Double> singleOpInfo = null;
 		try{
 			String curLine = null;
-			br = new BufferedReader(new FileReader("machine-op-info.txt"));
+			br = new BufferedReader(new FileReader("Input_Data\\Machine_Operating_Info.txt"));
 			while((curLine = br.readLine()) != null){
 				
 				String[] opRet = curLine.split("\t");
 				singleOpInfo = new ArrayList<Double>();
-				singleOpInfo.add(Double.valueOf(opRet[0]));
 				singleOpInfo.add(Double.valueOf(opRet[1]));
+				singleOpInfo.add(Double.valueOf(opRet[2]));
 				opInfo.addMachineOpInfo(singleOpInfo);
 				singleOpInfo = null;
-			}
-			
+			}			
 		}catch(IOException e){
 			e.printStackTrace();
 		}finally{
 			if(br != null)
 				br.close();
 		}
-		//Register log info -- Print out machine operation information
-//				StringBuilder msgOpInfo = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//				msgOpInfo.append(opInfo.outputMachineOpInfo());
-//				LogTool.log(LEVEL, msgOpInfo.toString());
 		
 		// Read in workface workload information
 		WorkfaceWorkload workload = new WorkfaceWorkload(6,20);
 		ArrayList<Double> singleWorkload = null;
 		try{
 			String curLine = null;
-			br = new BufferedReader(new FileReader("workface-workload.txt"));
+			br = new BufferedReader(new FileReader("Input_Data\\Workface_Workload.txt"));
 			while((curLine = br.readLine()) != null){
 				String[] workloadRet = curLine.split("\t");
 				singleWorkload = new ArrayList<Double>();
@@ -3165,22 +2970,18 @@ public class ClusterTool {
 		}finally{
 			if(br != null)
 				br.close();
-		}
-		
+		}		
 		
 		// Read in machine initial position values
 		MachineInitialPosition machineInitPos = new MachineInitialPosition();
 		br = null;
 		try{
 			String curLine = null;
-			br = new BufferedReader(new FileReader("machine-initial-location.txt"));
-			while((curLine = br.readLine()) != null){
-				
+			br = new BufferedReader(new FileReader("Input_Data\\Machine_Initial_Location.txt"));
+			while((curLine = br.readLine()) != null){			
 				String[] deArr = curLine.split("\t");
 				machineInitPos.addIniPosUnit(Integer.valueOf(deArr[0]), Integer.valueOf(deArr[1]));
-				
-			}
-			
+			}			
 		}catch(IOException e){
 			e.printStackTrace();
 		}finally{
@@ -3188,15 +2989,14 @@ public class ClusterTool {
 				br.close();
 			}
 		}
-		
-		
-		
-		System.out.println("Compute workface cluster by priority?[YES or NO]");
+
+//		System.out.println("Compute workface cluster by priority?[YES or NO]");
 		Scanner s = new Scanner(System.in);
-		String ret = s.nextLine();
+//		String ret = s.nextLine();
+		String ret = "no";
 		if(ret.equalsIgnoreCase("yes")){
 			WorkfacePriority wfPriority = new WorkfacePriority();
-			BufferedReader bReader = new BufferedReader(new FileReader("workface-priority.txt"));
+			BufferedReader bReader = new BufferedReader(new FileReader("Input_Data\\Workface_Priority.txt"));
 			try{
 				String curLine = null;
 				while((curLine = bReader.readLine()) != null){
@@ -3208,25 +3008,24 @@ public class ClusterTool {
 				System.out.println(e.getMessage());
 			}
 			
-			ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfaces_byPriority(20,wfPriority, opInfo, workload, distance, machineInitPos, null);
+			ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfacesByPriority(20,wfPriority, opInfo, workload, distance, machineInitPos, null);
 			for(int i = 0; i < finalRetList.size(); i ++){
 				printOutVisualInfo(finalRetList.get(i), workload, opInfo, distance);
 			}
-			
-			s.close();
-			
+//			s.close();
 		    System.exit(0);
 			
 		}else{
-			System.out.println("Compute workface cluster by sharing machines?[YES or NO]");
-			s = new Scanner(System.in);
-			ret = s.nextLine();
+//			System.out.println("Compute workface cluster by sharing machines?[YES or NO]");
+//			s = new Scanner(System.in);
+//			ret = s.nextLine();
+			ret = "no";
 			// Finish workload by sharing operating machines.
 			if(ret.equalsIgnoreCase("yes")){
 				System.out.println("Number of operating machine set?");
 				int numbOfMachineSet = Integer.valueOf(s.nextLine());
 				String curLine = null;
-				br = new BufferedReader(new FileReader("machine-set.txt"));
+				br = new BufferedReader(new FileReader("Input_Data\\Machine_Set.txt"));
 				LinkedList<String> q = new LinkedList<String>();
 				int cntOfLine = 0;
 				while((curLine = br.readLine()) != null){
@@ -3251,13 +3050,14 @@ public class ClusterTool {
 				
 				getClustersOfWorkfacesBySharedMachine(opInfo, workload, distance, machineInitPos, shareUnit);
 				
-				s.close();
+//				s.close();
 				System.out.println("another thread to show gantt!!!");
 				//System.exit(0);
 			}else{
-				System.out.println("Compute workface cluster by dependancy?[YES or NO]");
-				s = new Scanner(System.in);
-				ret = s.nextLine();
+//				System.out.println("Compute workface cluster by dependancy?[YES or NO]");
+//				s = new Scanner(System.in);
+//				ret = s.nextLine();
+				ret = "no";
 				if(ret.equalsIgnoreCase("yes")){
 					// Read in workface dependancy information
 					WorkfaceDependancy wfDependancy = new WorkfaceDependancy();
@@ -3265,7 +3065,7 @@ public class ClusterTool {
 					
 					try{
 						String curLine = null;
-						br = new BufferedReader(new FileReader("workface-dependancy.txt"));
+						br = new BufferedReader(new FileReader("Input_Data\\Workface_Dependancy.txt"));
 						while((curLine = br.readLine()) != null){
 							
 							String[] deArr = curLine.split("\t");
@@ -3273,7 +3073,7 @@ public class ClusterTool {
 							
 						}
 						
-						ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfaces_byDependancy( 20, "\t", wfDependancy, opInfo, workload, distance, machineInitPos, null);
+						ArrayList<ArrayList<Integer>> finalRetList = getClustersOfWorkfacesByDependancy(20, "\t", wfDependancy, opInfo, workload, distance, machineInitPos, null);
 						
 					}catch(IOException e){
 						e.printStackTrace();
@@ -3283,62 +3083,50 @@ public class ClusterTool {
 						}
 					}
 					
-					s.close();
+//					s.close();
 					System.exit(0);
 				}
 				
-				
-				
-			
-				
-				
 				int isSortedOrNot = 1;
-				System.out.println("Sort workfaces or not(1 for yes, 2 for No from 1 to 20, 3 for No from 20 to 1):");
+				System.out.println("Sort workfaces or not(1 for yes, 2 for self-defined sequence):");
 				s = new Scanner(System.in);
 				String str = s.nextLine();
 				if(str.equals("1")){
 					isSortedOrNot = 1;
 				}else if(str.equals("2")){
 					isSortedOrNot = 2;
-				}
-				else if(str.equals("3")){
-					isSortedOrNot = 3;
-				}
-				else{
-					System.err.println("Please choose 1, 2 or 3.");
+				}else{
+					System.err.println("Please choose 1 or 2.");
 					System.exit(-1);
 				}
 				
-				System.out.println("Choose the level of parentheses you want to exclude:\n" +
-						"	0 No parentheses excluded.\n" +
-						"	1 First level parentheses excluded.\n" +
-						"	2 Second level parentheses excluded.\n" +
-						"	3 Third level parentheses excluded.\n");
-				int level = -1;
-				level = s.nextInt();
-				switch(level){
-					case 0:
-						ClusterTool.parenClearLevel = ClusterTool.Parentheses.NONE;
-						break;
-					case 1:
-						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIRST_LEVEL;
-						break;
-					case 2:
-						ClusterTool.parenClearLevel = ClusterTool.Parentheses.SECOND_LEVEL;
-						break;
-					case 3:
-						ClusterTool.parenClearLevel = ClusterTool.Parentheses.THIRD_LEVEL;
-						break;
-//					case 4:
-//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FORTH_LEVEL;
+				/** The following block of code 
+				 * is to specify the parentheses level to exclude.
+				 */
+//				System.out.println("Choose the level of parentheses you want to exclude:\n" +
+//						"	0 No parentheses excluded.\n" +
+//						"	1 First level parentheses excluded.\n" +
+//						"	2 Second level parentheses excluded.\n" +
+//						"	3 Third level parentheses excluded.\n");
+//				int level = -1;
+//				level = s.nextInt();
+//				switch(level){
+//					case 0:
+//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.NONE;
 //						break;
-//					case 5:
-//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIFTH_LEVEL;
+//					case 1:
+//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.FIRST_LEVEL;
 //						break;
-					default:
-							System.out.println("Please choose a valid level number.");
-							System.exit(-1);
-				}
+//					case 2:
+//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.SECOND_LEVEL;
+//						break;
+//					case 3:
+//						ClusterTool.parenClearLevel = ClusterTool.Parentheses.THIRD_LEVEL;
+//						break;
+//					default:
+//							System.out.println("Please choose a valid level number.");
+//							System.exit(-1);
+//				}
 				System.out.println("Specify the number of machine sets(1, 2 or 3):\n");
 				int numOfSet = s.nextInt();
 				if(numOfSet < 0 || numOfSet > 3){
@@ -3348,7 +3136,10 @@ public class ClusterTool {
 				s.close();
 
 				
-				
+				/**
+				 * The following block of code specifies which workface 
+				 * has no workload for certain operating machines. 
+				 */
 				// Machine 1 and 2 has no workload on workface 5.
 //				workload.setWorkloadForMachineOnCertainWf(0, 4, 0);
 //				workload.setWorkloadForMachineOnCertainWf(1, 4, 0);
@@ -3358,40 +3149,66 @@ public class ClusterTool {
 //				workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
 				
 				// Machine 1 and 2 has no workload on workface 1.
-				workload.setWorkloadForMachineOnCertainWf(0, 0, 0);
-				workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
+//				workload.setWorkloadForMachineOnCertainWf(0, 0, 0);
+//				workload.setWorkloadForMachineOnCertainWf(1, 0, 0);
 				// Machine 1 and 2 has no workload on workface 6.
-				workload.setWorkloadForMachineOnCertainWf(0, 5, 0);
-				workload.setWorkloadForMachineOnCertainWf(1, 5, 0);
-				
-				
-				
-				// Print out workface workoad information
-//				StringBuilder msgOutputWorkload = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//				msgOutputWorkload.append("\n=========Workface Workload==========\n");
-//				msgOutputWorkload.append(workload.OutputWorkload());
-//				LogTool.log(LEVEL, msgOutputWorkload.toString());
+//				workload.setWorkloadForMachineOnCertainWf(0, 5, 0);
+//				workload.setWorkloadForMachineOnCertainWf(1, 5, 0);
 
-				// Start cluster & sort workface  *********************************************************
-//				ArrayList<Integer> ds = null;
+				/** Start cluster & sort workface */
 				ArrayList<ArrayList<Integer>> dss = null;
 				if(isSortedOrNot == 1){
 					if(numOfSet == 1){
-						dss = ClusterTool.getClustersOfWorkfaces_zhen_new(20, "\t", opInfo, workload, distance, machineInitPos, null);
+						dss = ClusterTool.getClustersOfWorkfacesSortByOne(20, "\t", opInfo, workload, distance, machineInitPos, null);
 					}else{
-						dss = ClusterTool.getClustersOfWorkfaces_zhen_new2(numOfSet, 20, "\t", opInfo, workload, distance, machineInitPos, null, true);
-					}
-					 
+						dss = ClusterTool.getClustersOfWorkfacesSortByMore(numOfSet, 20, "\t", opInfo, workload, distance, machineInitPos, null, true);
+					}					 
 				}else{
-//					ds = new ArrayList<Integer>();
-//					if(isSortedOrNot == 3)
-//						for(int iRandom = 0; iRandom < 20; iRandom ++){
-//							ds.add(20 - iRandom );
-//						}
-//					else
-//						for(int iRandom = 0; iRandom < 20; iRandom ++){
-//							ds.add(iRandom + 1);
-//						}
+					// Self-defined workface sequence is defined here
+					if(numOfSet == 1){
+						int[] arr = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+						dss = new ArrayList<ArrayList<Integer>>();
+						dss.add(new ArrayList<Integer>());
+						for(int i = 0; i < arr.length; i ++){
+							dss.get(0).add(arr[i]);
+						}
+					}else if(numOfSet == 2){
+						int[][] arr = {
+								{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+								{11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+						};
+						dss = new ArrayList<ArrayList<Integer>>();
+						dss.add(new ArrayList<Integer>());
+						dss.add(new ArrayList<Integer>());
+						for(int i = 0; i < arr[0].length; i ++){
+							dss.get(0).add(arr[0][i]);
+						}
+						
+						for(int i = 0; i < arr[1].length; i ++){
+							dss.get(1).add(arr[1][i]);
+						}
+					}else if(numOfSet == 3){
+						int[][] arr = {
+								{1, 2, 3, 4, 5, 6},
+								{7, 8, 9, 10, 11, 12, 13, 14},
+								{15, 16, 17, 18, 19, 20}
+						};
+						dss = new ArrayList<ArrayList<Integer>>();
+						dss.add(new ArrayList<Integer>());
+						dss.add(new ArrayList<Integer>());
+						dss.add(new ArrayList<Integer>());
+						for(int i = 0; i < arr[0].length; i ++){
+							dss.get(0).add(arr[0][i]);
+						}
+						
+						for(int i = 0; i < arr[1].length; i ++){
+							dss.get(1).add(arr[1][i]);
+						}
+						
+						for(int i = 0; i < arr[2].length; i ++){
+							dss.get(2).add(arr[2][i]);
+						}
+					}
 				}
 
 				for(int i = 0; i < dss.size(); i ++){
@@ -3399,10 +3216,7 @@ public class ClusterTool {
 				}
 			}
 		}
-		
-		
-    	
-	}// end of method main
+	}/** end of method main */
 	
 	/**
 	 * 

@@ -238,14 +238,6 @@ public class SortTool {
 			}
 		}
 		
-//		System.out.println("============minimum time=============\n" + minTotalTime + "\n");
-//		for(int i = 0; i < minGroupList.size(); i ++){
-//			for(int j =0; j < minGroupList.get(i).size(); j ++){
-//				System.out.print(minGroupList.get(i).get(j) + " ");
-//			}
-//			System.out.println();
-//		}
-		
 		return minGroupList;
 	}
 	
@@ -623,14 +615,13 @@ public class SortTool {
 	
 	/**
 	 *  Sort workfaces in traditional manner.
-	 * @param data
-	 * @param clusterGroups1
-	 * @param machineOpInfo
-	 * @param workload
-	 * @param distance
-	 * @return
+	 * @param clusterGroups1 Groups of sorted workfaces.
+	 * @param machineOpInfo Operating machines' information.
+	 * @param workload Workfaces' workloads.
+	 * @param distance Distances between workfaces.
+	 * @return sorted groups of workfaces.
 	 */
-	public static ArrayList<ArrayList<Integer>> sortWorkfacesByMatrix (Dataset[] data, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> sortWorkfacesByTradition (ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		
 		// The number of groups after clustering
@@ -713,13 +704,14 @@ public class SortTool {
 	 * @param machineInitPos <b>MachineInitialPosition</b> instance which stores all the initial position of all operating machines.
 	 * @return Sorted groups of workfaces.
 	 */
-	public static ArrayList<ArrayList<Integer>> sortWorkfaces_new (WorkfaceDistance distance, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
+	public static ArrayList<ArrayList<Integer>> sortWorkfacesByMatrix (WorkfaceDistance distance, ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, MachineInitialPosition machineInitPos){
 		
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();		
 		// The number of groups after clustering
 		int len = clusterGroups1.size();		
 		// The number of procedures in each work face
-		int numOfProcedure = machineOpInfo.getMachineNum();		
+		int numOfProcedure = machineOpInfo.getMachineNum();	
+		System.out.println("Num of procedure: " + numOfProcedure);
 		// Iterate through each cluster group, e.g. (w1, w2, w3), (w4, w6), (w5, w7)
 		for(int i = 0; i < len; i++){			
 			ArrayList<ArrayList<Integer>> permList = new ArrayList<ArrayList<Integer>>();
@@ -746,7 +738,7 @@ public class SortTool {
 						
 						// Get workload of machine m on workface k
 						double curMachineWorkload = workload.getWorkloadOfMachine(m).get(curPermList.get(k) - 1);
-						double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
+						double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
 						curWfOpTime.add(curMachineWorkload / opRate);
 						
 						double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
