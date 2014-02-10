@@ -1119,7 +1119,8 @@ public class I2MineMain extends Composite {
 							workload, 
 							distance, 
 							machineInitPos, 
-							wfProcList);
+							wfProcList,
+							true);
 				}
 				drawGanttGraph("I2Mine Operating Machine Scheduler", "Schedule by Sorting Workface", "Workface Process", "Time Period", wfProcList.get(0));
 				

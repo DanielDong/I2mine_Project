@@ -569,7 +569,7 @@ public class ClusterTool {
 				// Update current machine to next un-processed one
 				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
 			}else if(numOfFirstMachine == 2){
-				dss = getClustersOfWorkfaces_zhen_new2(2, 20, "\t", tmpOpInfo, workload, distance, initPos, null);
+				dss = getClustersOfWorkfaces_zhen_new2(2, 20, "\t", tmpOpInfo, workload, distance, initPos, null, false);
 				System.out.println("numOfFirstMachine == 2 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
@@ -724,7 +724,7 @@ public class ClusterTool {
 				// Update current machine to next un-processed one
 				curMachineIndex = curMachineIndex + toMachinewithSameNum + 1;
 			}else if(numOfFirstMachine == 3){
-				dss = getClustersOfWorkfaces_zhen_new2(3, 20, "\t", tmpOpInfo, workload, distance, initPos, null);
+				dss = getClustersOfWorkfaces_zhen_new2(3, 20, "\t", tmpOpInfo, workload, distance, initPos, null, false);
 				System.out.println("numOfFirstMachine == 3 dss size: " + dss.size());
 				// Store the operating, moving and waiting time for each sub-group.
 				for(int i = 0; i < dss.size(); i ++){
@@ -1272,11 +1272,12 @@ public class ClusterTool {
 	 * @param opInfo Machines' operating information.
 	 * @param workload All operating machines' workloads on all workfaces.
 	 * @param distance1 Workface distance object which stores distance in record manner.
+	 * @param originCall true if this method is called from UI; false otherwise.
 	 * @return
 	 * @throws IOException
 	 * @throws URISyntaxException
 	 */
-	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_zhen_new2(int numOfSet, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcListArray) throws IOException, URISyntaxException{
+	public static ArrayList<ArrayList<Integer>> getClustersOfWorkfaces_zhen_new2(int numOfSet, int numOfWorkfaces, String delimiter, MachineOpInfo opInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos, ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcListArray, boolean originCall) throws IOException, URISyntaxException{
 		
 		ArrayList<ArrayList<Integer>> finalRet = new ArrayList<ArrayList<Integer>>();
 		/* Load a dataset */
@@ -1472,26 +1473,30 @@ public class ClusterTool {
 		if(wfProcListArray != null){
 			wfProcListArray.add(finalWfProcList);
 		}
-		// Persist ordered workface data to disk.
-		File f = new File("SCHEDULE_BY_SORT_2_31.txt");
-		FileWriter fw = new FileWriter(f);
-//		fw.write("There are " + numOfSet + " sets of machines to be shared among the workfaces." +
-//				"All the workfaces would be grouped into " + numOfSet + " sub-groups. Each" +
-//						"sub-group would be processed separately. Then sub-groups are processed together as a whole.\n\n");
-		StringBuilder sb = null;
-		for(WorkfaceProcessUnit wfpu: wfProcList){
-			sb = new StringBuilder();
-			sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
-			ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
-			for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
-				sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
-							procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+		
+		if(originCall){
+			// Persist ordered workface data to disk.
+			File f = new File("SCHEDULE_BY_SORT_2_3.txt");
+			FileWriter fw = new FileWriter(f);
+//			fw.write("There are " + numOfSet + " sets of machines to be shared among the workfaces." +
+//					"All the workfaces would be grouped into " + numOfSet + " sub-groups. Each" +
+//							"sub-group would be processed separately. Then sub-groups are processed together as a whole.\n\n");
+			StringBuilder sb = null;
+			for(WorkfaceProcessUnit wfpu: wfProcList){
+				sb = new StringBuilder();
+				sb.append("<<<<Workface ID: " + wfpu.getWfId() + "\n");
+				ArrayList<WorkfaceProcessUnit.WorkfaceProcedureUnit> procedureList = wfpu.getWfProcList();
+				for(WorkfaceProcessUnit.WorkfaceProcedureUnit procedure: procedureList){
+					sb.append("\tOperating Machine ID: " + procedure.getMachineId() + " Start time: " + procedure.getStartTime() + " End time: " + 
+								procedure.getEndTime() + " Moving time: " + procedure.getMovTime() + "\n");
+				}
+				sb.append("\n");
+				fw.write(sb.toString());
 			}
-			sb.append("\n");
-			fw.write(sb.toString());
+			
+			fw.close();
 		}
 		
-		fw.close();
 				
 //		// Draw the gantt chart
 //        GanttRender demo = new GanttRender("Workface Process", "Workface Process", "Workface Id", "Time Period", finalWfProcList);
@@ -3374,7 +3379,7 @@ public class ClusterTool {
 					if(numOfSet == 1){
 						dss = ClusterTool.getClustersOfWorkfaces_zhen_new(20, "\t", opInfo, workload, distance, machineInitPos, null);
 					}else{
-						dss = ClusterTool.getClustersOfWorkfaces_zhen_new2(numOfSet, 20, "\t", opInfo, workload, distance, machineInitPos, null);
+						dss = ClusterTool.getClustersOfWorkfaces_zhen_new2(numOfSet, 20, "\t", opInfo, workload, distance, machineInitPos, null, true);
 					}
 					 
 				}else{
