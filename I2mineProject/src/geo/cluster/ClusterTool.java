@@ -963,14 +963,12 @@ public class ClusterTool {
 		// Get a workface list which rely on no body.
 		int cnt = 0;
 		while(iter.hasNext()){
-			System.out.println("in while..." + (cnt ++));
 			WorkfaceDependancy.WorkfaceDependancyUnit unit = iter.next();
 			System.out.println(unit.getDependancyNum() + " " + unit.getWfNum());
 			if(unit.getDependancyNum() == unit.getWfNum()){
 				tmpRetList.add(unit.getWfNum());
 				iter.remove();
 			}
-			System.out.println("in while end..." + (cnt));
 		}
 		
 		// 0-index based
@@ -1517,14 +1515,13 @@ public class ClusterTool {
 	}
 	
 	/**
-	 * 
-	 * @param wfGroup
-	 * @param data
-	 * @param distance
-	 * @param opInfo
-	 * @param workload
-	 * @param initPos
-	 * @return
+	 * Sort all workfaces in groups where each group has 4 workfaces.
+	 * @param wfGroup A group of all unsorted workfaces. 
+	 * @param distance Workface distances.
+	 * @param opInfo Operating machine information.
+	 * @param workload Workface workloads.
+	 * @param initPos Operating machine initial positions.
+	 * @return Sorted workfaces.
 	 */
 	private static ArrayList<Integer> sortWorkfacesByGroupOf4(ArrayList<Integer> wfGroup, WorkfaceDistance distance, MachineOpInfo opInfo, WorkfaceWorkload workload, MachineInitialPosition initPos){
 		ArrayList<ArrayList<Integer>> tmpGroups = new ArrayList<ArrayList<Integer>>(); 
@@ -1582,11 +1579,11 @@ public class ClusterTool {
 		}
 
 		// Print out sorted groups:
-		System.out.println("Cur final sort list:");
-		for(int j = 0; j < tmpFinalRet.size(); j ++){
-			System.out.print(tmpFinalRet.get(j) + " ");
-		}
-		System.out.println();
+//		System.out.println("Cur final sort list:");
+//		for(int j = 0; j < tmpFinalRet.size(); j ++){
+//			System.out.print(tmpFinalRet.get(j) + " ");
+//		}
+//		System.out.println();
 		return  tmpFinalRet;
 	}
 	

@@ -592,8 +592,9 @@ public class SortTool {
 			double sum2 = 0;
 			if(row - 1 >= 0){
 				sum2 = getMaxTime(opMatrix, movMatrix, col, row - 1);
+				sum2 += movMatrix.get(row).get(col);
 			}
-			sum2 += movMatrix.get(row).get(col);
+			
 //			if(flag == 1){
 //				if(sum1 > sum2)
 //					System.out.println((matrix.get(row).get(col - 1) + " " + matrix.get(row).get(col)));
@@ -745,7 +746,8 @@ public class SortTool {
 						double dist = 0;
 						if(k == 0){
 							if(sortGroups.size() == 0){
-								dist = distance.getDistBetweenTwoWorkfaces(machineInitPos.getInitPosOfMachine(m), curPermList.get(k) - 1);
+//								dist = distance.getDistBetweenTwoWorkfaces(machineInitPos.getInitPosOfMachine(m), curPermList.get(k) - 1);
+								dist = 0;
 							}else{
 								ArrayList<Integer> lastSortedGroup = sortGroups.get(sortGroups.size() - 1);
 								dist = distance.getDistBetweenTwoWorkfaces(lastSortedGroup.get(lastSortedGroup.size() - 1) - 1, curPermList.get(k) - 1);
@@ -844,11 +846,11 @@ public class SortTool {
 		}
 		
 		//Register log info -- Print out sorted workfaces
-		StringBuilder msgSortedGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		msgSortedGroups.append("\n===================Print out sorted workfaces================\n");
-		for (int i = 0; i < sortGroups.size(); i ++)
-			msgSortedGroups.append(sortGroups.get(i) + "\n");
-		LogTool.log(LEVEL, msgSortedGroups.toString());
+//		StringBuilder msgSortedGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
+//		msgSortedGroups.append("\n===================Print out sorted workfaces================\n");
+//		for (int i = 0; i < sortGroups.size(); i ++)
+//			msgSortedGroups.append(sortGroups.get(i) + "\n");
+//		LogTool.log(LEVEL, msgSortedGroups.toString());
 		
 		return sortGroups;
 	}
