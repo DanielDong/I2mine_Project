@@ -1,0 +1,5 @@
+machine1(scaler)	60	18000
+machine2(shotcreter)	36	15000
+machine3(bolter)	18	12000
+machine4(driller)	15	12000
+machine5(charger)	6	12000

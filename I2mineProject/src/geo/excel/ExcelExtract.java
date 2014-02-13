@@ -147,7 +147,6 @@ public class ExcelExtract {
 	
 	/**
 	 * Extract number matrix from current work sheet of the workbook
-	 * @deprecated
 	 */
 	public void extractNumber(){
 		int startRow = -1, endRow = -1, startCol = -1, endCol = -1, tmpStartCol = -1, tmpEndCol = -1, nonNum = -1;
@@ -246,7 +245,6 @@ public class ExcelExtract {
 	/**
 	 * Extract certain attribute in a certain row
 	 */
-	@Deprecated
 	public void extractCertainAttribute(){
 		
 		String instructMsg = "Choose the attribute: \n" +
@@ -319,7 +317,6 @@ public class ExcelExtract {
 	 * Check the unit value in the excel file.
 	 * @return A list of string values indicating the units.
 	 */
-	@Deprecated
 	public ArrayList<String> checkForUnit(String checkVal){
 		return getNumUnit(checkVal);
 	}
@@ -329,7 +326,6 @@ public class ExcelExtract {
 	 * @param searchStr Key value to search.
 	 * @return A list of string values containing <i>searchStr</i> keys.
 	 */
-	@Deprecated
 	public ArrayList<String> searchSheet(String searchStr){
 		
 		ArrayList<String> ret = new ArrayList<String>();
@@ -386,7 +382,6 @@ public class ExcelExtract {
 	 * Read in and return a unit list from a text file named "Unit.txt"
 	 * @return A list of unit values.
 	 */
-	@Deprecated
 	public static ArrayList<String> getUnitList(){
 		ArrayList<String> unitList = new ArrayList<String>();
 		
@@ -420,7 +415,6 @@ public class ExcelExtract {
 	 * @param str2 Another string to be compared.
 	 * @return float value to indicate whether str1 is bigger than str2 or vice versa.
 	 */
-	@Deprecated
 	public static float compareCellContent(String str1, String str2){
 		
 		if(str1 == null || str2 == null)
@@ -446,7 +440,6 @@ public class ExcelExtract {
 	 * @param cellVal cell contents
 	 * @return an ArrayList containing only two elements(first is the number and second is the unit) or null
 	 */
-	@Deprecated
 	public static ArrayList<String> getNumUnit(String cellVal){
 		ArrayList<String> ret = null;
 		ArrayList<String> unitList = getUnitList();
@@ -471,7 +464,6 @@ public class ExcelExtract {
 	 * Obtain the heading values from an excel file.
 	 * @return A list of string values indicating the heading values of an excel file.
 	 */
-	@Deprecated
 	public ArrayList<String> getColHeadings(){
 		int rowNum = getRowNum();
 		int colNum = getColNum();
@@ -479,7 +471,6 @@ public class ExcelExtract {
 		ArrayList<String> colHeadingList = null;
 		boolean isHeadingFound = false;
 		int row = 0, col = 0;
-		
 		for(row = 0; row < rowNum; row ++){
 			
 			if(isHeadingFound == true)
@@ -533,26 +524,4 @@ public class ExcelExtract {
 		}// end outter for
 		return colHeadingList;
 	}
-	
-	/**
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		ExcelExtract ee = new ExcelExtract();
-		//ee.initWorkbook("excelextract.xls");
-		ee.initWorkbook("Planning.xls");
-		ee.initSheet(0);
-		//System.out.println(ee.getColHeadings());
-		//ee.printAllCells(ee.getRowNum(), ee.getColNum());
-		//System.out.println(ee.getCellValue(2, 5, CellType.LABEL));
-		ee.extractCertainAttribute();
-		//Code block to extract certain attribute from excel
-		
-		
-//      // The following code block is to extract number matrix from excel file	
-//		ee.printSheetColRowNum();
-//		//ee.printAllCells(ee.getRowNum(), ee.getColNum());
-//		System.out.println("=====================================");
-//		ee.extractNumber();
-	}
-	*/
 }

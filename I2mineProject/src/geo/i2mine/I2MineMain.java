@@ -24,8 +24,6 @@ import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
@@ -42,10 +40,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
@@ -113,6 +109,9 @@ public class I2MineMain extends Composite {
 	
 	private boolean isDumpSiteCap = false, isTruckInfo = false,
 			isDumpWfDist = false, isWfMineralCap = false;
+	
+	private String ICON_CANCEL = "icon/cancel.png";
+	private String ICON_ACCEPT = "icon/accept.png";
 	
 	{
 		//Register as a resource user - SWTResourceManager will
@@ -184,10 +183,7 @@ public class I2MineMain extends Composite {
 							LWfDistNameLData.heightHint = 15;
 							LWfDistName = new Label(composite1, SWT.NONE);
 							LWfDistName.setLayoutData(LWfDistNameLData);
-//							LWfDistName.setOrientation(SWT.HORIZONTAL);
-//							LWfDistName.setText("label3");
-//							LWfDistName.setOrientation(SWT.HORIZONTAL);
-							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+							Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LWfDistName.setImage(new Image(parent.getDisplay(), imgData));
 						}
@@ -229,9 +225,7 @@ public class I2MineMain extends Composite {
 							LMachineOpInfoLData.heightHint = 15;
 							LMachineOpInfo = new Label(composite1, SWT.NONE);
 							LMachineOpInfo.setLayoutData(LMachineOpInfoLData);
-//							LMachineOpInfo.setOrientation(SWT.HORIZONTAL);
-//							LMachineOpInfo.setText("label2");
-							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+							Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LMachineOpInfo.setImage(new Image(parent.getDisplay(), imgData));
 						}
@@ -273,7 +267,7 @@ public class I2MineMain extends Composite {
 							LWfWorkloadLData.heightHint = 15;
 							LWfWorkload.setLayoutData(LWfWorkloadLData);
 //							LWfWorkload.setText("label1");
-							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+							Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LWfWorkload.setImage(new Image(parent.getDisplay(), imgData));
 							LWfWorkloadLData.horizontalSpan = 3;
@@ -304,7 +298,7 @@ public class I2MineMain extends Composite {
 							LMachineInitPos.setLayoutData(LMachineInitPosLData);
 //							LMachineInitPos.setText("label4");
 							LMachineInitPos.setSize(240, 15);
-							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+							Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LMachineInitPos.setImage(new Image(parent.getDisplay(), imgData));
 //							LMachineInitPos.setOrientation(SWT.HORIZONTAL);
@@ -313,77 +307,14 @@ public class I2MineMain extends Composite {
 				}
 				{
 					tabItem2 = new TabItem(mainTabfolder, SWT.NONE);
-//					tabItem2.addListener(SWT.MouseDoubleClick|SWT.MouseDown, new Listener(){
-//						@Override
-//						public void handleEvent(Event event) {
-//							if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
-//								MessageBox errorBox = new MessageBox(parent.getShell());
-//								errorBox.setMessage("You must read in the basic files first.");
-//								errorBox.open();
-//								
-////								composite1.forceFocus();
-//							}
-//						}
-//					});
-					
 					tabItem2.setText("Perform operations");
 					{
 					composite2 = new Composite(mainTabfolder, SWT.NONE);
-//					composite2.addFocusListener(new FocusListener(){
-//
-//						@Override
-//						public void focusGained(FocusEvent e) {
-//							System.out.println("tabItem2 focus gained: " + e);
-//							// TODO Auto-generated method stub
-//							if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
-//								MessageBox errorBox = new MessageBox(parent.getShell());
-//								errorBox.setMessage("You must read in the basic files first.");
-//								errorBox.open();
-//								
-////								composite1.forceFocus();
-//							}
-//						}
-//
-//						@Override
-//						public void focusLost(FocusEvent e) {
-//							
-//						}
-//						
-//					});
-//					composite2.addMouseListener(new  MouseListener(){
-//
-//						@Override
-//						public void mouseDoubleClick(MouseEvent e) {
-//							// TODO Auto-generated method stub
-//							
-//						}
-//
-//						@Override
-//						public void mouseDown(MouseEvent e) {
-//							// TODO Auto-generated method stub
-//							if(!isDistRead||!isOpInfoRead||!isWorkloadRead||!isInitPosRead){
-//								MessageBox errorBox = new MessageBox(parent.getShell());
-//								errorBox.setMessage("You must read in the basic files first.");
-//								errorBox.open();
-//								
-//								composite1.forceFocus();
-//							}
-//						}
-//
-//						@Override
-//						public void mouseUp(MouseEvent e) {
-//							// TODO Auto-generated method stub
-//							
-//						}
-//						
-//					});
-					
 					GridLayout composite2Layout = new GridLayout();
 						composite2Layout.numColumns = 4;
 						composite2.setLayout(composite2Layout);
 						tabItem2.setControl(composite2);
 						composite2.setSize(468, 80);
-//						tabItem2.setControl(table1);
 						{
 							RBtnByPriority = new Button(composite2, SWT.RADIO | SWT.LEFT);
 							GridData RBtnByPriorityLData = new GridData();
@@ -497,8 +428,7 @@ public class I2MineMain extends Composite {
 							LPoFileNameLData.widthHint = 172;
 							LPoFileNameLData.heightHint = 15;
 							LPoFileName.setLayoutData(LPoFileNameLData);
-//							LPoFileName.setText("File Name");
-							Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+							Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 							ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 							LPoFileName.setImage(new Image(parent.getDisplay(), imgData));
 						}
@@ -605,7 +535,6 @@ public class I2MineMain extends Composite {
 						{
 							LDumpWfDistIcon = new Label(composite3, SWT.NONE);
 							GridData LDumpWfDistIconLData = new GridData();
-//							LDumpWfDistIconLData.horizontalSpan = 3;
 							LDumpWfDistIconLData.widthHint = 31;
 							LDumpWfDistIconLData.heightHint = 15;
 							LDumpWfDistIcon.setLayoutData(LDumpWfDistIconLData);
@@ -672,9 +601,6 @@ public class I2MineMain extends Composite {
 				mainTabfolder.setToolTipText("Read Basic Files");
 				mainTabfolder.setSelection(0);
 			}
-			//this.setOrientation(SWT.VERTICAL);
-			
-
 			{
 				appTitleLable = new CLabel(this, SWT.NONE);
 				FormData statusClabelLData = new FormData();
@@ -731,7 +657,7 @@ public class I2MineMain extends Composite {
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LMachineInitPos.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -759,7 +685,7 @@ public class I2MineMain extends Composite {
 			}
 			
 		}else{
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LMachineInitPos.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -778,7 +704,7 @@ public class I2MineMain extends Composite {
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfWorkload.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -813,7 +739,7 @@ public class I2MineMain extends Composite {
 			}
 			
 		}else{
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfWorkload.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -837,7 +763,7 @@ public class I2MineMain extends Composite {
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LMachineOpInfo.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -870,7 +796,7 @@ public class I2MineMain extends Composite {
 					}
 			}
 		}else{
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LMachineOpInfo.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -894,7 +820,7 @@ public class I2MineMain extends Composite {
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfDistName.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -930,7 +856,7 @@ public class I2MineMain extends Composite {
 				}
 			}
 		}else{
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfDistName.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -945,15 +871,14 @@ public class I2MineMain extends Composite {
 		FileDialog fileDialog = new FileDialog(parent.getShell(), SWT.NULL);
 		String path = fileDialog.open();
 		if(path != null){
-//			LWfDistName.setText(path);
 			actionFilePath = path;
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LPoFileName.setImage(new Image(parent.getDisplay(), imgData));
 		}else if(actionChosen == WF_SORT){
 			// Workface sort does not need extra files.
 		}else{
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LPoFileName.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -1044,7 +969,7 @@ public class I2MineMain extends Composite {
 					finalWfProcList = wfProcList;
 					
 					// Set label to unused state when finishing gantte drawing
-					Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+					Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 					ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 					LMachineInitPos.setImage(new Image(parent.getDisplay(), imgData));
 					
@@ -1164,7 +1089,6 @@ public class I2MineMain extends Composite {
         demo.pack();
         demo.setVisible(true);
         RefineryUtilities.centerFrameOnScreen(demo);
-//        System.out.println("by priority - draw Gantt finished!!!");
 	}
 	
 	/**
@@ -1304,7 +1228,7 @@ public class I2MineMain extends Composite {
 		String path = fileDialog.open();
 		// User must choose the dump site capacity file.
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LDumpSiteCapInfo.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -1334,7 +1258,7 @@ public class I2MineMain extends Composite {
 			}
 		}else{
 			// Show an error if no file is chosen.
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LDumpSiteCapInfo.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -1364,14 +1288,13 @@ public class I2MineMain extends Composite {
 		String path = fileDialog.open();
 		// User must choose the truck information file
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LTruckInfoIcon.setImage(new Image(parent.getDisplay(), imgData));
 			
 			truckList = new ArrayList<Truck>();
 			// Read in truck information file
 			BufferedReader br = null;
-//			dumpSiteCapacity = new DumpSiteCapacity();
 			int truckCnt = 0;
 			try{
 				String curLine = null;
@@ -1400,7 +1323,7 @@ public class I2MineMain extends Composite {
 			}
 		}else{
 			// Show an error if no file is chosen.
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LTruckInfoIcon.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -1430,7 +1353,7 @@ public class I2MineMain extends Composite {
 		String path = fileDialog.open();
 		// User must choose the dump site - workface distance file
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LDumpWfDistIcon.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -1463,7 +1386,7 @@ public class I2MineMain extends Composite {
 			}
 		}else{
 			// Show an error if no distance file is chosen.
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LDumpWfDistIcon.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());
@@ -1483,7 +1406,7 @@ public class I2MineMain extends Composite {
 		String path = fileDialog.open();
 		// The user must choose the dump site capacity file.
 		if(path != null){
-			Image workIcon = new Image(parent.getDisplay(), "icon/accept.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_ACCEPT);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfMineralCapIcon.setImage(new Image(parent.getDisplay(), imgData));
 			
@@ -1512,7 +1435,7 @@ public class I2MineMain extends Composite {
 			}
 		}else{
 			// Show an error message if no file is chosen.
-			Image workIcon = new Image(parent.getDisplay(), "icon/cancel.png");
+			Image workIcon = new Image(parent.getDisplay(), ICON_CANCEL);
 			ImageData imgData = workIcon.getImageData().scaledTo(15, 15);
 			LWfMineralCapIcon.setImage(new Image(parent.getDisplay(), imgData));
 			MessageBox errorBox = new MessageBox(parent.getShell());

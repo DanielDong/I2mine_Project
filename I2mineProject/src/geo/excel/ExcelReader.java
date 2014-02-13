@@ -244,27 +244,4 @@ public class ExcelReader {
 		
 		return wd;
 	}
-	
-	/**
-	// Test code for ExcelReader
-	public static void main(String[] args) throws IOException{
-		ExcelReader er = new ExcelReader();
-//		boolean isLoadWorkbookSuccessful = er.getWorkbook("workphase-distance.xls");
-//		if(isLoadWorkbookSuccessful == true){
-//			er.initWorkSheet(0);
-//			for(int i = 0; i < er.sheet.getRows(); i++){
-//				for(int j = 0; j < er.sheet.getColumns(); j++){
-//					System.out.print(er.getCellValue(j, i, CellType.NUMBER)+" ");
-//				}
-//				System.out.println();
-//			}
-//		}
-		
-		er.convertExcelToText("DistanceMatrix.xls", "workface-distance.txt");
-//		er.convertExcelToText("workface-distance.xls", "workface-distance.txt");
-//		er.convertExcelToText("workface-state.xls", "workface-state.txt");
-//		er.convertExcelToText("workface-workload.xls", "workface-workload.txt");
-//		er.convertExcelToText("machine-op-info.xls", "machine-op-info.txt");
-	}
-	*/
 }

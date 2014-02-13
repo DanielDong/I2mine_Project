@@ -293,12 +293,6 @@ public class LHD {
 			}
 			truckLimit.add(truckNumLimit);
 		}
-//		
-//		System.out.println("<<<<<Workface order after performing operations:>>>>>");
-//		for(WorkfaceProcessUnit wfpu: wfProcList){
-//			System.out.print(wfpu.getWfId() + " ");
-//		}
-//		System.out.println();
 		
 		// Store TimeDuration instance for each workface
 		ArrayList<ArrayList<TimeDuration>> timeDurList = new ArrayList<ArrayList<TimeDuration>>();
@@ -325,13 +319,11 @@ public class LHD {
 				numOfLoaders = queue.size();
 			}
 			
-//			System.out.println("<<<<<WfId :");
 			// Nearest dump site for numOfLoaders workfaces
 			ArrayList<Float> dumpDistList = new ArrayList<Float>(); // minimum distance list
 			ArrayList<Integer> dumpSiteChosenList = new ArrayList<Integer>(); // chosen dump site id list
 			
 			for(int i = 0; i < numOfLoaders; i ++){
-//				System.out.print(queue.get(i) + " ");
 				ArrayList<Float> curDumpSiteDistances = dumpWfDistance.getDumpSiteDistance(queue.get(i));
 				int minIdx = 0;
 				float minDist = Float.MAX_VALUE;
@@ -344,7 +336,6 @@ public class LHD {
 				dumpDistList.add(minDist);
 				dumpSiteChosenList.add(minIdx);
 			}
-//			System.out.println();
 			
 			// Calculate how many trucks for each workface
 			ArrayList<Integer> truckNumList = new ArrayList<Integer>();
@@ -362,21 +353,8 @@ public class LHD {
 				}
 				sumOfTrucks += truckNumList.get(i);
 			}
-			
-//			System.out.println("Before allocation: ");
-//			for(int idx = 0; idx < numOfLoaders; idx ++){
-//				System.out.print(truckNumList.get(idx));
-//			}
-//			System.out.println();
-			
-//			System.out.println("\nSUM OF TRUCKS :" + sumOfTrucks + " diff: ");
-//			for(int idx = 0; idx < numOfLoaders; idx ++){
-//				System.out.print((dumpDistList.get(idx) - truckNumList.get(idx)) + " ");
-//			}
-//			System.out.println();
-			
+
 			if(sumOfTrucks < totalTruckNum){
-//				System.out.println("ALLOCATE---------");
 				boolean[] flag = new boolean[numOfLoaders];
 				for(int i = totalTruckNum - sumOfTrucks; i > 0; i --){
 					int curMaxIndex = 0;
@@ -411,14 +389,7 @@ public class LHD {
 					truckNumList.set(i, truckLimit.get(queue.get(i)));
 				}
 			}
-			
-//			System.out.println("<<<<<trucks allocated and wfId :");
-//			for(Integer t: truckNumList){
-//				System.out.print(t + " ");
-//			}
-//			System.out.println();
-			
-			
+
 			// Compute time duration
 			ArrayList<TimeDuration> curTimeDurList = new ArrayList<TimeDuration>(); 
 			for(int i = 0; i < numOfLoaders; i ++){
@@ -453,10 +424,7 @@ public class LHD {
 				w1.setTruckNum(truckNumList.get(i));
 				
 				curTimeDurList.add(w1);
-			}// end for - numOfLoaders
-			
-//			System.out.println("curTimeDurList size: " + curTimeDurList.size());
-			
+			}// end for - numOfLoaders			
 			
 			// Get the minimum end time of all numOfLoaders time durations
 			double minEndTime = Double.MAX_VALUE;
@@ -481,7 +449,6 @@ public class LHD {
 					curDur.setLevel(level);
 					wfMineralCapacity.setWorkfaceCapacity(curDur.getWorkfaceId(), 0);
 					curDur.setWorkLeft(wfMineralCapacity.getWorkfaceCapacity(curDur.getWorkfaceId()));
-//					System.out.println("QUEUE removed :" + curDur.getWorkfaceId());
 					timeDurList.get(curDur.getWorkfaceId()).add(curDur);
 					
 					dumpVolume.set(curDur.getDumpSiteId(), dumpVolume.get(curDur.getDumpSiteId()) + truckNumList.get(i) * truckList.get(0).getPayLoad());
@@ -507,9 +474,6 @@ public class LHD {
 					}
 				}
 			}
-//			if(queue.size() == 1){
-//				System.exit(0);
-//			}
 		}// end of queue
 		
 		ArrayList<TimeDuration> finTimeDurList = new ArrayList<TimeDuration>();
@@ -548,12 +512,6 @@ public class LHD {
 			System.out.print(timeDur.toString());
 			fw.write(timeDur.toString());
 		}
-//		for(int i = 0; i < timeDurList.size(); i ++){
-//			for(int j = 0; j < timeDurList.get(i).size(); j ++){
-//				System.out.print(timeDurList.get(i).get(j).toString());
-//				fw.write(timeDurList.get(i).get(j).toString());
-//			}
-//		}
 		fw.close();
 		return true;
 	}// end of lhd
