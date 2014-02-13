@@ -15,10 +15,17 @@ import java.util.ArrayList;
 public class DumpSiteCapacity {
 	private ArrayList<Float> siteCapacityList;
 	
+	/**
+	 * Create an empty DumpSiteCapacity instance.
+	 */
 	public DumpSiteCapacity(){
 		siteCapacityList = new ArrayList<Float>(); 
 	}
 	
+	/**
+	 * Add dump site capacity to the internal capacity list.
+	 * @param cap To be added capacity.
+	 */
 	public void addSiteCapacity(float cap){
 		siteCapacityList.add(cap);
 	}
@@ -31,6 +38,11 @@ public class DumpSiteCapacity {
 		return siteCapacityList.size();
 	}
 	
+	/**
+	 * Get the dump site capacity by specifying the site ID.
+	 * @param siteId The dump site ID.
+	 * @return The capacity of the dump site.
+	 */
 	public float getDumpSiteCapacity(int siteId){
 		return siteCapacityList.get(siteId);
 	}

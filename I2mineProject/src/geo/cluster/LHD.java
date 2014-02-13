@@ -32,7 +32,7 @@ public class LHD {
 	 * TimeDuration and a message indicating if the target dump site is overflown or not.
 	 * 
 	 * @author Dong
-	 *
+	 * @version 1.0
 	 */
 	public static class TimeDuration implements Comparable<TimeDuration>{
 		private int wfId;
@@ -48,58 +48,153 @@ public class LHD {
 		// Level value indicates how many shifts have been done on this working face.
 		private int level;
 		
+		/**
+		 * Create an empty TimeDuration instance.
+		 */
 		public TimeDuration(){};
+		
+		/**
+		 * Set the workface ID of the TimeDuration instance.
+		 * @param workfaceId The workface ID.
+		 */
 		public void setWfId(int workfaceId){
 			wfId = workfaceId;
 		}
 		
+		/**
+		 * Set the starting time of the time duration.
+		 * @param time The starting time.
+		 */
 		public void setStartTime(double time){
 			startTime = time;
 		}
 		
+		/**
+		 * Set the duration time of the TimeDuration instance.
+		 * @param dur The duration time.
+		 */
 		public void setDuration(double dur){
 			duration = dur;
 		}
 		
+		/**
+		 * Set the ending time of the TimeDuration instance.
+		 * @param time The ending time.
+		 */
 		public void setEndTime(double time){
 			endTime = time;
 		}
 		
+		/**
+		 * Set the truck number.
+		 * @param number The truck number.
+		 */
 		public void setTruckNum(int number){
 			truckNum = number;
 		}
 		
+		/**
+		 * Set the workload done during this TimeDuration instance.
+		 * @param workload The workload done.
+		 */
 		public void setWorkloadDone(double workload){
 			workloadDone = workload;
 		}
 		
+		/**
+		 * Set the dump site ID.
+		 * @param id The dump site ID.
+		 */
 		public void setDumpSiteId(int id){
 			dumpSiteId = id;
 		}
 		
+		/**
+		 * Set the dump site overflow message.
+		 * @param msg The overflow message.
+		 */
 		public void setDumpSiteOverflowMsg(String msg){
 			dumpSiteOverflowMsg = msg;
 		}
 		
+		/**
+		 * Set the level value.
+		 * @param l The level value.
+		 */
 		public void setLevel(int l){
 			level = l;
 		}
 		
+		/**
+		 * Set the left workload.
+		 * @param totalWorkLeft The left workload.
+		 */
 		public void setWorkLeft(double totalWorkLeft){
 			workLeft = totalWorkLeft;
 		}
 		
+		/**
+		 * Get the workface ID.
+		 * @return The workface ID.
+		 */
 		public int getWorkfaceId(){return wfId;}
+		
+		/**
+		 * Get the starting time.
+		 * @return The starting time.
+		 */
 		public double getStartTime(){return startTime;}
+		
+		/**
+		 * Get the duration time.
+		 * @return The duration time.
+		 */
 		public double getDuration(){return duration;}
+		
+		/**
+		 * Get the ending time.
+		 * @return The ending time.
+		 */
 		public double getEndTime(){return endTime;}
+		
+		/**
+		 * Get the truck number.
+		 * @return The truck number.
+		 */
 		public int getTruckNum(){return truckNum;}
+		
+		/**
+		 * Get the workload done.
+		 * @return The workload done.
+		 */
 		public double getWorkloadDone(){return workloadDone;}
+		/**
+		 * Get the dump site overflow message.
+		 * @return The dump site overflow message.
+		 */
 		public String getDumpSiteOverflowMsg(){return dumpSiteOverflowMsg; }
+		
+		/**
+		 * Get the dump site ID.
+		 * @return The dump site ID.
+		 */
 		public int getDumpSiteId(){return dumpSiteId;}
+		
+		/**
+		 * Get the level value.
+		 * @return The level value.
+		 */
 		public int getLevel(){return level;}
+		
+		/**
+		 * Get the workload left.
+		 * @return The left workload.
+		 */
 		public double getWorkLeft(){return workLeft;}
 		
+		/**
+		 * Get the string representation of the TimeDuration.
+		 */
 		@Override
 		public String toString(){
 			StringBuilder sb = new StringBuilder();
@@ -124,6 +219,7 @@ public class LHD {
 	/**
 	 * Compare two WorkfaceprocessUnits based on their end time.
 	 * @author Dong
+	 * @version 1.0
 	 *
 	 */
 	public static class WfProcUnitEndComparator implements Comparator<WorkfaceProcessUnit>{
@@ -141,7 +237,7 @@ public class LHD {
 	}
 	
 	/**
-	 * 
+	 * The implementation of LHD algorithm.
 	 * @param wfProcList A list of <b> WorkfaceProcessUnit</b> instances. Note: workface ID is indexed from 0.
 	 * @param distance The distance between all the workfaces.
 	 * @param workload The workload of all the procedures.
@@ -160,18 +256,18 @@ public class LHD {
 	public static boolean lhd(ArrayList<WorkfaceProcessUnit> wfProcList, WorkfaceDistance distance, WorkfaceWorkload workload, 
 			WorkfaceMineralCapacity wfMineralCapacity, ArrayList<Truck> truckList, MachineOpInfo opInfo, MachineInitialPosition initPos, 
 			DumpSiteWorkfaceDistance dumpWfDistance, DumpSiteCapacity dumpCapacity, int totalTruckNum, int numOfLoaders, int actionChosen) throws IOException{
-		
-		System.out.println("wfProcList size: " + wfProcList.size() + 
-						   "\ndistance wf num: " + distance.getNumOfWorkface() + 
-						   "\nworkload machine num: " + workload.getMachineNum() + 
-						   "\nwfmineralCapacity size: " + wfMineralCapacity.getWorkfaceCapacity(0) +
-						   "\ntruckList size: " + truckList.size() + 
-						   "\nopInfo machine num: " + opInfo.getMachineNum() + 
-						   "\ninitPos size: " + initPos.getInitPosOfMachine(0) + 
-						   "\ndumpWfDistance : " + dumpWfDistance.getDumpSiteDistance(0) + 
-						   "\ndumpCapacity :" + dumpCapacity.toString() + 
-						   "\ntotalTruckNum :" + totalTruckNum + 
-						   "\nnumOfLoaders : " + numOfLoaders);		
+//		
+//		System.out.println("wfProcList size: " + wfProcList.size() + 
+//						   "\ndistance wf num: " + distance.getNumOfWorkface() + 
+//						   "\nworkload machine num: " + workload.getMachineNum() + 
+//						   "\nwfmineralCapacity size: " + wfMineralCapacity.getWorkfaceCapacity(0) +
+//						   "\ntruckList size: " + truckList.size() + 
+//						   "\nopInfo machine num: " + opInfo.getMachineNum() + 
+//						   "\ninitPos size: " + initPos.getInitPosOfMachine(0) + 
+//						   "\ndumpWfDistance : " + dumpWfDistance.getDumpSiteDistance(0) + 
+//						   "\ndumpCapacity :" + dumpCapacity.toString() + 
+//						   "\ntotalTruckNum :" + totalTruckNum + 
+//						   "\nnumOfLoaders : " + numOfLoaders);		
 		// Sort the workface by their total ending time
 		WfProcUnitEndComparator cmp = new WfProcUnitEndComparator();
 		Collections.sort(wfProcList, cmp);
@@ -197,12 +293,12 @@ public class LHD {
 			}
 			truckLimit.add(truckNumLimit);
 		}
-		
-		System.out.println("<<<<<Workface order after performing operations:>>>>>");
-		for(WorkfaceProcessUnit wfpu: wfProcList){
-			System.out.print(wfpu.getWfId() + " ");
-		}
-		System.out.println();
+//		
+//		System.out.println("<<<<<Workface order after performing operations:>>>>>");
+//		for(WorkfaceProcessUnit wfpu: wfProcList){
+//			System.out.print(wfpu.getWfId() + " ");
+//		}
+//		System.out.println();
 		
 		// Store TimeDuration instance for each workface
 		ArrayList<ArrayList<TimeDuration>> timeDurList = new ArrayList<ArrayList<TimeDuration>>();
@@ -229,13 +325,13 @@ public class LHD {
 				numOfLoaders = queue.size();
 			}
 			
-			System.out.println("<<<<<WfId :");
+//			System.out.println("<<<<<WfId :");
 			// Nearest dump site for numOfLoaders workfaces
 			ArrayList<Float> dumpDistList = new ArrayList<Float>(); // minimum distance list
 			ArrayList<Integer> dumpSiteChosenList = new ArrayList<Integer>(); // chosen dump site id list
 			
 			for(int i = 0; i < numOfLoaders; i ++){
-				System.out.print(queue.get(i) + " ");
+//				System.out.print(queue.get(i) + " ");
 				ArrayList<Float> curDumpSiteDistances = dumpWfDistance.getDumpSiteDistance(queue.get(i));
 				int minIdx = 0;
 				float minDist = Float.MAX_VALUE;
@@ -248,7 +344,7 @@ public class LHD {
 				dumpDistList.add(minDist);
 				dumpSiteChosenList.add(minIdx);
 			}
-			System.out.println();
+//			System.out.println();
 			
 			// Calculate how many trucks for each workface
 			ArrayList<Integer> truckNumList = new ArrayList<Integer>();
@@ -267,20 +363,20 @@ public class LHD {
 				sumOfTrucks += truckNumList.get(i);
 			}
 			
-			System.out.println("Before allocation: ");
-			for(int idx = 0; idx < numOfLoaders; idx ++){
-				System.out.print(truckNumList.get(idx));
-			}
-			System.out.println();
+//			System.out.println("Before allocation: ");
+//			for(int idx = 0; idx < numOfLoaders; idx ++){
+//				System.out.print(truckNumList.get(idx));
+//			}
+//			System.out.println();
 			
-			System.out.println("\nSUM OF TRUCKS :" + sumOfTrucks + " diff: ");
-			for(int idx = 0; idx < numOfLoaders; idx ++){
-				System.out.print((dumpDistList.get(idx) - truckNumList.get(idx)) + " ");
-			}
-			System.out.println();
+//			System.out.println("\nSUM OF TRUCKS :" + sumOfTrucks + " diff: ");
+//			for(int idx = 0; idx < numOfLoaders; idx ++){
+//				System.out.print((dumpDistList.get(idx) - truckNumList.get(idx)) + " ");
+//			}
+//			System.out.println();
 			
 			if(sumOfTrucks < totalTruckNum){
-				System.out.println("ALLOCATE---------");
+//				System.out.println("ALLOCATE---------");
 				boolean[] flag = new boolean[numOfLoaders];
 				for(int i = totalTruckNum - sumOfTrucks; i > 0; i --){
 					int curMaxIndex = 0;
@@ -316,11 +412,11 @@ public class LHD {
 				}
 			}
 			
-			System.out.println("<<<<<trucks allocated and wfId :");
-			for(Integer t: truckNumList){
-				System.out.print(t + " ");
-			}
-			System.out.println();
+//			System.out.println("<<<<<trucks allocated and wfId :");
+//			for(Integer t: truckNumList){
+//				System.out.print(t + " ");
+//			}
+//			System.out.println();
 			
 			
 			// Compute time duration
@@ -359,7 +455,7 @@ public class LHD {
 				curTimeDurList.add(w1);
 			}// end for - numOfLoaders
 			
-			System.out.println("curTimeDurList size: " + curTimeDurList.size());
+//			System.out.println("curTimeDurList size: " + curTimeDurList.size());
 			
 			
 			// Get the minimum end time of all numOfLoaders time durations
@@ -385,7 +481,7 @@ public class LHD {
 					curDur.setLevel(level);
 					wfMineralCapacity.setWorkfaceCapacity(curDur.getWorkfaceId(), 0);
 					curDur.setWorkLeft(wfMineralCapacity.getWorkfaceCapacity(curDur.getWorkfaceId()));
-					System.out.println("QUEUE removed :" + curDur.getWorkfaceId());
+//					System.out.println("QUEUE removed :" + curDur.getWorkfaceId());
 					timeDurList.get(curDur.getWorkfaceId()).add(curDur);
 					
 					dumpVolume.set(curDur.getDumpSiteId(), dumpVolume.get(curDur.getDumpSiteId()) + truckNumList.get(i) * truckList.get(0).getPayLoad());

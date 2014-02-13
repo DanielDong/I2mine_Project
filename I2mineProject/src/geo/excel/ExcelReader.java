@@ -131,9 +131,9 @@ public class ExcelReader {
 	}
 	
 	/**
-	 * 
-	 * @param fileName
-	 * @return
+	 * Read in the operating machines' information.
+	 * @param fileName File storing operating mahcines' information.
+	 * @return A MachineOpInfo instance storing operating mahcines' information.
 	 */
 	public MachineOpInfo readMachineOpInfo(String fileName){
 		
@@ -161,9 +161,9 @@ public class ExcelReader {
 	}
 	
 	/**
-	 * 
-	 * @param fileName
-	 * @return
+	 * Read in workface state information.
+	 * @param fileName File storing workface state information.
+	 * @return A WorkfaceState instance storing workface state information.
 	 */
 	public WorkfaceState readWorkfaceState(String fileName){
 		
@@ -184,9 +184,9 @@ public class ExcelReader {
 	}
 	
 	/**
-	 * 
-	 * @param fileName
-	 * @return
+	 * Read in worface workload information.
+	 * @param fileName File storing workface workload information.
+	 * @return A WorkfaceWorkload intance storing workface workload information.
 	 */
 	public WorkfaceWorkload readWorkfaceWorkload(String fileName){
 		
@@ -213,9 +213,9 @@ public class ExcelReader {
 		return ww;
 	}
 	/**
-	 * 
-	 * @param fileName
-	 * @return
+	 * Read in Workface distance information.
+	 * @param fileName File storing workface distance values.
+	 * @return A WorkfaceDistance instance storing workface distance values.
 	 */
 	public WorkfaceDistance readWorkfaceDistance(String fileName){
 		
@@ -245,6 +245,7 @@ public class ExcelReader {
 		return wd;
 	}
 	
+	/**
 	// Test code for ExcelReader
 	public static void main(String[] args) throws IOException{
 		ExcelReader er = new ExcelReader();
@@ -264,8 +265,6 @@ public class ExcelReader {
 //		er.convertExcelToText("workface-state.xls", "workface-state.txt");
 //		er.convertExcelToText("workface-workload.xls", "workface-workload.txt");
 //		er.convertExcelToText("machine-op-info.xls", "machine-op-info.txt");
-		
-		
 	}
-	
+	*/
 }

@@ -14,8 +14,9 @@ public class WorkfaceWorkload {
 	private int numOfMachine = 0, numOfWorkface = 0;
 	
 	/**
-	 * @param machineNum The number of machines
-	 * @param workfaceNum The number of workfaces
+	 * Create a WorkfaceWorkload instance by specifying the machine number and workface nubmer.
+	 * @param machineNum The number of machines.
+	 * @param workfaceNum The number of workfaces.
 	 */
 	public WorkfaceWorkload(int machineNum, int workfaceNum){
 		this.numOfMachine = machineNum;
@@ -26,34 +27,34 @@ public class WorkfaceWorkload {
 	
 	/**
 	 * Set <i>wIndex</i> workface's workload for <i>mIndex</i> machine to value.
-	 * @param mIndex
-	 * @param wIndex
-	 * @param value
+	 * @param mIndex The ID of workface.
+	 * @param wIndex The ID of operaing machine.
+	 * @param value The workload value of operating machine with ID of <i>mIndex</i> on workface with ID of <i>wIndex</i>.
 	 */
 	public void setWorkloadForMachineOnCertainWf(int mIndex, int wIndex, double value){
 		workload.get(mIndex).set(wIndex, value);
 	}
 	
 	/**
-	 * Get the total machine number
-	 * @return the number of machine
+	 * Get the total machine number.
+	 * @return the number of machine.
 	 */
 	public int getMachineNum(){
 		return this.numOfMachine;
 	}
 	
 	/**
-	 * Get total workface number
-	 * @return the number of workface
+	 * Get total workface number.
+	 * @return the number of workface.
 	 */
 	public int getWorkfaceNum(){
 		return this.numOfWorkface;
 	}
 	
 	/**
-	 * Insert workloads for all machines from one workface into machine workload array
-	 * @param curWorkload workloads for all work machines from one workface
-	 * @return false machine workload array is already complete; true workloads are added successfully
+	 * Insert workloads for all machines on one workface into machine workload array.
+	 * @param curWorkload Workloads for all work machines on one workface.
+	 * @return false machine's workload array is already complete; true workloads are added successfully.
 	 */
 	public boolean addMachineWorkload(ArrayList<Double> curWorkload){
 		
@@ -65,17 +66,17 @@ public class WorkfaceWorkload {
 		return true;
 	}
 	
-	/***
-	 * Get the total workload from all workfaces of a machine (machine indexed from 0)
-	 * @param index The index of a machine
-	 * @return The workload in all workfaces of a machine
+	/**
+	 * Get the total workload from all workfaces of a machine (machine indexed from 0).
+	 * @param index The index of a machine.
+	 * @return The workload in all workfaces of a machine.
 	 */
 	public ArrayList<Double> getWorkloadOfMachine (int index){
 		return this.workload.get(index);
 	}
 	
 	/**
-	 * Output workface workload information
+	 * Obtain workface workload information.
 	 */
 	public String OutputWorkload(){
 		StringBuilder msgWorkload = new StringBuilder();

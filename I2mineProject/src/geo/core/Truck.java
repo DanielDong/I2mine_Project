@@ -20,6 +20,14 @@ public class Truck {
 	// amount of mineral one truck can load (ton)
 	private float payload;
 	
+	/**
+	 * Create a Truck instance by specifying the truck ID, name, velocity, loading time and payload
+	 * @param i The ID of the truck.
+	 * @param n The name of the truck.
+	 * @param v The velocity of the truck.
+	 * @param l The loading time of the truck.
+	 * @param p The payload of the truck.
+	 */
 	public Truck(int i, String n, float v, float l, float p){
 		id = i;
 		name = n;
@@ -28,18 +36,34 @@ public class Truck {
 		payload = p;
 	}
 	
+	/**
+	 * Get the velocity of the truck.
+	 * @return The velocity of the truck.
+	 */
 	public float getVelocity(){
 		return velocity;
 	}
 	
+	/**
+	 * Get the loading time of the truck.
+	 * @return The loading time of the truck.
+	 */
 	public float getLoadingTime(){
 		return loadingTime;
 	}
 	
+	/**
+	 * Get the payload of the truck.
+	 * @return The payload of the truck.
+	 */
 	public float getPayLoad(){
 		return payload;
 	}
 	
+	/**
+	 * Get the truck name of the truck.
+	 * @return
+	 */
 	public String getTruckName(){
 		return name;
 	}

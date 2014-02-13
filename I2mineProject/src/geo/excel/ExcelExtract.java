@@ -316,7 +316,8 @@ public class ExcelExtract {
 	}
 	
 	/**
-	 * 
+	 * Check the unit value in the excel file.
+	 * @return A list of string values indicating the units.
 	 */
 	@Deprecated
 	public ArrayList<String> checkForUnit(String checkVal){
@@ -324,7 +325,9 @@ public class ExcelExtract {
 	}
 	
 	/**
-	 * 
+	 * Search excel files for certain values.
+	 * @param searchStr Key value to search.
+	 * @return A list of string values containing <i>searchStr</i> keys.
 	 */
 	@Deprecated
 	public ArrayList<String> searchSheet(String searchStr){
@@ -376,13 +379,12 @@ public class ExcelExtract {
 			if(foundRow != -1 && foundCol != -1)
 				break;
 		}
-		
 		return ret;
 	}
 	
 	/**
 	 * Read in and return a unit list from a text file named "Unit.txt"
-	 * @return
+	 * @return A list of unit values.
 	 */
 	@Deprecated
 	public static ArrayList<String> getUnitList(){
@@ -412,6 +414,12 @@ public class ExcelExtract {
 		return unitList;
 	}
 	
+	/**
+	 * Compare two string values.
+	 * @param str1 One string to be compared.
+	 * @param str2 Another string to be compared.
+	 * @return float value to indicate whether str1 is bigger than str2 or vice versa.
+	 */
 	@Deprecated
 	public static float compareCellContent(String str1, String str2){
 		
@@ -459,6 +467,10 @@ public class ExcelExtract {
 		return ret;
 	}
 	
+	/**
+	 * Obtain the heading values from an excel file.
+	 * @return A list of string values indicating the heading values of an excel file.
+	 */
 	@Deprecated
 	public ArrayList<String> getColHeadings(){
 		int rowNum = getRowNum();
@@ -522,6 +534,7 @@ public class ExcelExtract {
 		return colHeadingList;
 	}
 	
+	/**
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		ExcelExtract ee = new ExcelExtract();
@@ -541,5 +554,5 @@ public class ExcelExtract {
 //		System.out.println("=====================================");
 //		ee.extractNumber();
 	}
-
+	*/
 }

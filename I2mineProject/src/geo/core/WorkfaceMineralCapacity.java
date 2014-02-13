@@ -17,6 +17,10 @@ public class WorkfaceMineralCapacity {
 	
 	// Workface mineral capacity list
 	ArrayList<Float> wfCapList;
+	
+	/**
+	 * Create an empty WorkfaceMineralCapacity instance.
+	 */
 	public WorkfaceMineralCapacity(){
 		wfCapList = new ArrayList<Float>(); 
 	}
@@ -24,7 +28,7 @@ public class WorkfaceMineralCapacity {
 	/** 
 	 * Add mineral capacity for all the workfaces in order from 0 
 	 * to N - 1(N is the total number of workfaces)
-	 * @param cap
+	 * @param cap The capacity value.
 	 */
 	public void addCapacity(float cap){
 		wfCapList.add(cap);

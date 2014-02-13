@@ -18,6 +18,10 @@ public class WorkfaceDistance {
 	// The distance matrix
 	private ArrayList<ArrayList<Double>> distance = null;
 	
+	/**
+	 * Create a WorkfaceDistance instance by specifying the total number of workfaces.
+	 * @param workfaceNum
+	 */
 	public WorkfaceDistance(int workfaceNum){
 		this.numOfWorkface = workfaceNum;
 		this.distance = new ArrayList<ArrayList<Double>> (this.numOfWorkface);
@@ -61,7 +65,7 @@ public class WorkfaceDistance {
 	}
 	
 	/**
-	 * Print out workface distance matrix
+	 * Print out workface distance matrix through command line.
 	 */
 	public void printDistance(){
 		System.out.println("============START -- PRINT OUT DISTANCE MATRIX============");

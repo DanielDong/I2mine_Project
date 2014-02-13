@@ -7,8 +7,6 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 public class FileBrowser {
-//	  Display display = new Display();
-//	  Shell shell = new Shell(display);
 	  Display display;
 	  Shell shell;
 	  Text text;
@@ -60,8 +58,4 @@ public class FileBrowser {
 		  text.setEditable(true);
 		  }
 	 }
-	 
-//	 public static void main(String[] args){
-//		 FileBrowser f = new FileBrowser();
-//	 }
  }

@@ -16,6 +16,7 @@ public class MachineOpInfo {
 	private List<ArrayList<Double>> opInfo = null;
 	
 	/**
+	 * Create a MachineOpInfo instance by specifying the total number of machines.
 	 * @param machineNum The number of machines
 	 */
 	public MachineOpInfo (int machineNum){
@@ -23,12 +24,19 @@ public class MachineOpInfo {
 		opInfo = new ArrayList<ArrayList<Double>>();
 	}
 	
-	
+	/**
+	 * Create a MachineOpInfo instance by providing the operating machines' operating information.
+	 * @param opInfoList The list of operating machines' operating information.
+	 */
 	public MachineOpInfo(List<ArrayList<Double>> opInfoList){
 		opInfo = opInfoList;
 		numOfMachine = opInfoList.size();
 	}
 	
+	/**
+	 * Get the total number of operating machines.
+	 * @return The total number of operating machines.
+	 */
 	public int getMachineNum (){
 		return this.numOfMachine;
 	}
@@ -55,6 +63,10 @@ public class MachineOpInfo {
 		return true;
 	}
 	
+	/**
+	 * Get the list of operating machines' information.
+	 * @return The list of operating machines' information.
+	 */
 	public List<ArrayList<Double>> getOpInfoList(){
 		return opInfo;
 	}

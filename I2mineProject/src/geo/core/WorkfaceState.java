@@ -13,7 +13,8 @@ public class WorkfaceState {
 	private ArrayList<Integer> workfaceState = null;
 	private int numOfWorkface = 0;
 	/**
-	 * @param workfaceNum The number of workfaces
+	 * Create a WorkfaceState instance by specifying the number of workfaces.
+	 * @param workfaceNum The number of workfaces.
 	 */
 	public WorkfaceState(int workfaceNum){
 		
@@ -22,9 +23,9 @@ public class WorkfaceState {
 	}
 	
 	/**
-	 * Add workface state into the workface state array
-	 * @param state State of current workface Note: workface state needs to be added in order
-	 * @return false if workface state array is complete; true if State is inserted into the workface state array successfully
+	 * Add workface state into the workface state array.
+	 * @param state State of current workface Note: workface state needs to be added in order.
+	 * @return false if workface state array is complete; true if State is inserted into the workface state array successfully.
 	 */
 	public boolean addWorkfaceState(int state){
 		
@@ -36,9 +37,9 @@ public class WorkfaceState {
 	}
 	
 	/**
-	 * Get the workface state of a certain workface specified by <i>index</i>
-	 * @param index The index of a workface
-	 * @return the state of the workface specified by <i>index</i>
+	 * Get the workface state of a certain workface specified by <i>index</i>.
+	 * @param index The index of a workface.
+	 * @return the state of the workface specified by <i>index</i>.
 	 */
 	public int getCerntainWorkfaceState(int index){
 		return this.workfaceState.get(index);

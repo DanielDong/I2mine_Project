@@ -35,18 +35,20 @@ public class SortTool {
 	
 	/**
 	 * Given one sorted workfaces in a region (w1, w2, w3), compute the machine time interval for each machine. 
-	 * @param sortedWorkfacesInOneRegion orted workfaces in one region
-	 * @param machineOpInfo Machine operating information
-	 * @param workload Workload for each machine in each workface
-	 * @param distance Distances between each pair of workfaces
-	 * @return Time interval for all machines in current region
+	 * @param sortedWorkfacesInOneRegion orted workfaces in one region.
+	 * @param machineOpInfo Machine operating information.
+	 * @param workload Workload for each machine in each workface.
+	 * @param distance Distances between each pair of workfaces.
+	 * @param initPos Initial positions for all operating machines.
+	 * @return Time interval for all machines in current region.
 	 */
 	
-	public static ArrayList<ArrayList<Double>> computeMachineTimeIntervalInOneRegion(ArrayList<Integer> sortedWorkfacesInOneRegion, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Double>> computeMachineTimeIntervalInOneRegion(ArrayList<Integer> sortedWorkfacesInOneRegion, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos){
 		int numberOfMachine = machineOpInfo.getMachineNum();
 		// storing time intervals for all machines e.g. w1, w1->w3, w3, w3->w2, w2
 		ArrayList<ArrayList<Double>> machineTimeInterval = new ArrayList<ArrayList<Double>>(); 
 		// compute time interval for each machine in all workfaces in current region
+		
 		for(int m = 0; m < numberOfMachine;m++){
 			// OR and MR
 			ArrayList<Double> curOpInfo = machineOpInfo.getCertainMachineOpInfo(m);
@@ -54,31 +56,13 @@ public class SortTool {
 			ArrayList<Double> curTimeInterval = new ArrayList<Double>();
 			ArrayList<Double> curWaitTime = new ArrayList<Double>();
 			
-			// time interval of previous machine in current region
-			// in the format of "pro_time, mov_time [, WAIT_time], pro_time, mov_time[, WAIT_time] ..." 
-//			ArrayList<Double> preMachineTimeInterval = null;
-//			ArrayList<Double> preWaitTime = null;
-//			if(m != 0){
-//				preMachineTimeInterval = machineTimeInterval.get((m - 1) * 2);
-//				preWaitTime = machineTimeInterval.get((m - 1) * 2 + 1);
-//			}
-			
-			// Register log info
-			StringBuilder msgSortedWf = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-			msgSortedWf.append("\n=============SORTED workfaces:=============\n");
-			for(int sw = 0; sw < sortedWorkfacesInOneRegion.size(); sw++)
-				msgSortedWf.append(sortedWorkfacesInOneRegion.get(sw)+"  ");
-			msgSortedWf.append("\n");
-			LogTool.log(LEVEL, msgSortedWf.toString());
-			
 			for(int w = 0; w < sortedWorkfacesInOneRegion.size() - 1; w++){
-				
 				// sortedWorkfacesInOneRegion.get(w) gets the real index for workface, e.g., 1, 2, 3, ..., 20
 				// The needed index is 0 based
 				double curProTime = curWorkload.get(sortedWorkfacesInOneRegion.get(w) - 1)/curOpInfo.get(0);
 				double curMovTime = distance.getDistBetweenTwoWorkfaces(
 						sortedWorkfacesInOneRegion.get(w) - 1, sortedWorkfacesInOneRegion.get(w + 1) - 1)/curOpInfo.get(1);
-//				double timeOfCur = curProTime + curMovTime;
+				
 				// processing time from 1st procedure to last - 1 procedure
 				curTimeInterval.add(curProTime);
 				// moving time
@@ -87,59 +71,56 @@ public class SortTool {
 				if(m == 0){
 					curWaitTime.add(0.0);
 				}else{
-					// No wait time before first workface of a permutation
-//					if(w != 0){
-						
-						// Compute previous machines' time
-						double timeOfPres = 0, timeOfCurs = 0;
-						for(int k = 0; k < m; k ++){
-							// Only take the first 
-							if(k != m - 1){
-								timeOfPres += machineTimeInterval.get(2 * k).get(0); // Only add the operational time for first workface
-							}else{
-								ArrayList<Double> preMachineTimeInterval = machineTimeInterval.get(2 * k); // Get operational time of machine k
-								ArrayList<Double> preWaitTime = machineTimeInterval.get(2 * k + 1); // Get wait time of machine k
-								for(int j = 0; j <= w + 1; j ++){
-									if(j != w + 1){
-										timeOfPres += preMachineTimeInterval.get(j * 2); // Operational time
-										
-										if(j == 0){
-											timeOfCurs = timeOfPres;
-										}
-										
-										timeOfPres += preMachineTimeInterval.get(j * 2 + 1); // Moving time
-										timeOfPres += preWaitTime.get(j); // Wait time
+					// No wait time before first workface of a permutation		
+					// Compute previous machines' time
+					double timeOfPres = 0, timeOfCurs = 0;
+					for(int k = 0; k < m; k ++){
+						// Only take the first 
+						if(k != m - 1){
+							timeOfPres += machineTimeInterval.get(2 * k).get(0); // Only add the operational time for first workface
+						}else{
+							ArrayList<Double> preMachineTimeInterval = machineTimeInterval.get(2 * k); // Get operational time of machine k
+							ArrayList<Double> preWaitTime = machineTimeInterval.get(2 * k + 1); // Get wait time of machine k
+							for(int j = 0; j <= w + 1; j ++){
+								if(j != w + 1){
+									timeOfPres += preMachineTimeInterval.get(j * 2); // Operational time
+									
+									if(j == 0){
+										timeOfCurs = timeOfPres;
 									}
-									// Only add operational time, no move time, no wait time added
-									else{
-										timeOfPres +=  preMachineTimeInterval.get(j * 2); // Operational time
-									}
-								}// end for
-							}
-						}// end for
-						
-						// Compute current machines' time
-						for(int k = 0; k <= w; k ++){
-							if(k != w){
-//								System.out.println("k:" + k + " w:" + w + " m:" + m);
-								timeOfCurs += curTimeInterval.get(k * 2); // Add operational time
-								timeOfCurs += curTimeInterval.get(k * 2 + 1); // Add moving time
-								timeOfCurs += curWaitTime.get(k); // Add waiting time
-							}
-							else{
-								timeOfCurs += curTimeInterval.get(k * 2); // Add operational time
-								timeOfCurs += curTimeInterval.get(k * 2 + 1); // Add moving time
-							}
+									
+									timeOfPres += preMachineTimeInterval.get(j * 2 + 1); // Moving time
+									timeOfPres += preWaitTime.get(j); // Wait time
+								}
+								// Only add operational time, no move time, no wait time added
+								else{
+									timeOfPres +=  preMachineTimeInterval.get(j * 2); // Operational time
+								}
+							}// end for
 						}
+					}// end for
 						
-						//Wait time is needed
-						if(timeOfPres > timeOfCurs){
-							curWaitTime.add(timeOfPres - timeOfCurs);
+					// Compute current machines' time
+					for(int k = 0; k <= w; k ++){
+						if(k != w){
+							timeOfCurs += curTimeInterval.get(k * 2); // Add operational time
+							timeOfCurs += curTimeInterval.get(k * 2 + 1); // Add moving time
+							timeOfCurs += curWaitTime.get(k); // Add waiting time
 						}
-						// No wait time is needed
 						else{
-							curWaitTime.add(0.0);
+							timeOfCurs += curTimeInterval.get(k * 2); // Add operational time
+							timeOfCurs += curTimeInterval.get(k * 2 + 1); // Add moving time
 						}
+					}
+					
+					//Wait time is needed
+					if(timeOfPres > timeOfCurs){
+						curWaitTime.add(timeOfPres - timeOfCurs);
+					}
+					// No wait time is needed
+					else{
+						curWaitTime.add(0.0);
+					}
 				}
 				
 			}// end for(w)
@@ -150,19 +131,6 @@ public class SortTool {
 			machineTimeInterval.add(curTimeInterval);
 			machineTimeInterval.add(curWaitTime);
 		}// end for(m)
-		
-		// Register log info -- print out machineTimeInterval in the format of "time_interval, wait_time [, time_interval, wait_time]"
-		StringBuilder msgMachineTimeInterval = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		for(int n = 0; n < machineTimeInterval.size(); n++){
-			
-			if(n % 2 == 0){
-				msgMachineTimeInterval.append("MACHINE: "+ n / 2 +"\nTime_interval: \n");
-			}else{
-				msgMachineTimeInterval.append("Wait_time:\n");
-			}
-			msgMachineTimeInterval.append(machineTimeInterval.get(n) + "\n");
-		}
-		LogTool.log(LEVEL, msgMachineTimeInterval.toString());
 		return machineTimeInterval;
 	}
 	
@@ -175,7 +143,7 @@ public class SortTool {
 	 * @param distance Distance matrix of all workfaces.
 	 * @return The list of sorted groups of workfaces with the minimum operating time.
 	 */
-	public static ArrayList<ArrayList<Integer>> sortGroups_new(ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> sortGroups_new(ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos){
 		
 		ArrayList<WorkfaceGroup> wgList = new ArrayList<WorkfaceGroup>();
 		for(int i = 0; i < sortedWorkfaces.size(); i ++){
@@ -187,16 +155,6 @@ public class SortTool {
 		// Get all the permutations of all the groups
 		ArrayList<ArrayList<WorkfaceGroup>> retList = new ArrayList<ArrayList<WorkfaceGroup>>();
 		permuteGroup(wgList, 0, wgList.size() - 1, retList);
-//		System.out.println("=========permutated group of workface=======");
-//		for(int i = 0; i < retList.size(); i ++){
-//			for(int j = 0; j < retList.get(i).size(); j ++){
-//				for(int k = 0; k < retList.get(i).get(j).groupOfSortedWorkfaces.size(); k ++){
-//					System.out.print(retList.get(i).get(j).groupOfSortedWorkfaces.get(k) + " ");
-//				}
-//				System.out.println();
-//			}
-//		}
-		
 		// Compute all the operating time (optionally with waiting time) for each permutation
 		double minTotalTime = Double.MAX_VALUE;
 		ArrayList<ArrayList<Integer>> minGroupList = new ArrayList<ArrayList<Integer>>();
@@ -213,76 +171,36 @@ public class SortTool {
 			
 			// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
 			ArrayList<ArrayList<Double>> curRegionTime = computeMachineTimeIntervalInOneRegion
-					(curWorkfaceList, machineOpInfo, workload, distance);
-			
-
+					(curWorkfaceList, machineOpInfo, workload, distance, initPos);
 			curTotalTime = computeOperatingTimeOfWorkfaceList(curRegionTime);
-			
-			//System.out.println();			
-			//Log information
-			StringBuilder msgMachineTimeInterval = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-			msgMachineTimeInterval.append("<sortGroups_new>cur total time:" + curTotalTime + "\n<sortGroups_new>cur sort group:");
-			for(int k = 0; k < curWorkfaceList.size(); k ++){
-				msgMachineTimeInterval.append(curWorkfaceList.get(k) + " ");
-			}
-			LogTool.log(LEVEL, msgMachineTimeInterval.toString());
-			
-			
 			if(curTotalTime < minTotalTime){
 				minTotalTime = curTotalTime;
 				minGroupList.clear();
 				for(int l = 0; l < curGroupPerm.size(); l ++){
-					
 					minGroupList.add(curGroupPerm.get(l).groupOfSortedWorkfaces);
 				}
 			}
 		}
-		
 		return minGroupList;
 	}
 	
 	/**
-	 * 
-	 * @param curRegionTime
-	 * @return
+	 * Compute the total time of a workface list.
+	 * @param curRegionTime The workface list.
+	 * @return The total operating time of the specified workface list.
 	 */
 	public static double computeOperatingTimeOfWorkfaceList(ArrayList<ArrayList<Double>> curRegionTime){
 		double curTotalTime = 0.0;
-		//============================================================================
-//		if(curWorkfaceList.size() == 20){
-//			System.out.println("20 workfaces:");
-//			for(int kk = 0; kk < curWorkfaceList.size(); kk ++){
-//				System.out.print(curWorkfaceList.get(kk) + " ");
-//			}
-//		}System.out.println();
-		
-		
 		// Sum each machine's first operating time on each workface
 		for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
 			curTotalTime += curRegionTime.get(k * 2).get(0);
-			
-//			//============================================================================
-//			if(curWorkfaceList.size() == 20){
-//				if(k == 0)
-//					System.out.print("op time: ");
-//				System.out.print(curRegionTime.get(k * 2).get(0) + " ");
-//			}
 		}
-		//System.out.println();
 		
 		// Sum last machine's operating time
 		ArrayList<Double> lastMachineTimeInterval = curRegionTime.get(curRegionTime.size() - 2);
 		for(int m = 0; m < lastMachineTimeInterval.size(); m ++){
 			curTotalTime += lastMachineTimeInterval.get(m);
-			
-//			//============================================================================
-//			if(curWorkfaceList.size() == 20){
-//				if(m == 0)
-//					System.out.print("last op/mv time: ");
-//				System.out.print(lastMachineTimeInterval.get(m) + " ");
-//			}
 		}
-		//System.out.println();
 		
 		// Sum last machine's waiting time
 		ArrayList<Double> lastMachineWaitTime = curRegionTime.get(curRegionTime.size() - 1);
@@ -292,7 +210,12 @@ public class SortTool {
 		return curTotalTime;
 	}
 		
-	
+	/**
+	 * Swap two groups of workfaces.
+	 * @param wgList A list of workface groups.
+	 * @param from To be swapped group of workfaces.
+	 * @param to To be swapped group of workfaces.
+	 */
 	private static void swapGroup(ArrayList<WorkfaceGroup> wgList, int from, int to){
 		WorkfaceGroup tmp = wgList.get(from);
 		wgList.set(from, wgList.get(to));
@@ -328,7 +251,7 @@ public class SortTool {
 	 * @return The list of sorted groups of workfaces with the minimum operating time.
 	 */
 	@Deprecated
-	public static ArrayList<ArrayList<Integer>> sortGroups(ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> sortGroups(ArrayList<ArrayList<Integer>> sortedWorkfaces, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos){
 		
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		int numberOfMachine = machineOpInfo.getMachineNum();
@@ -337,16 +260,7 @@ public class SortTool {
 		for(int region11 = 0; region11 < sortedWorkfaces.size() - 1; region11 ++){
 			// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
 			ArrayList<ArrayList<Double>> regionTimeInfo11 = computeMachineTimeIntervalInOneRegion
-					(sortedWorkfaces.get(region11), machineOpInfo, workload, distance);
-			
-			System.out.println("=======region time info======");
-			System.out.println(regionTimeInfo11.size());
-			
-			// Register log info
-			StringBuilder msgCurSortWf1 = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-			msgCurSortWf1.append("==========current sorted workfaces 1 in <sortGroups>==========\n");
-			msgCurSortWf1.append("workfaces(ArrayList<Integer>) -- region11 value: " + region11 + ": " + sortedWorkfaces.get(region11) + "\n");
-			LogTool.log(LEVEL, msgCurSortWf1.toString());
+					(sortedWorkfaces.get(region11), machineOpInfo, workload, distance, initPos);
 			
 			// ***************compute MACHINE TIME for region11***************
 			ArrayList<Double> regionTime11 = new ArrayList<Double>(numberOfMachine);
@@ -363,25 +277,10 @@ public class SortTool {
 				regionTime11.add(tmpMachineTime);
 			}
 			
-			
-			// Register log info
-			StringBuilder msgCurRegionTime1 = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString()); 
-			msgCurRegionTime1.append("=================current regionTime 1 ==============\n");
-			msgCurRegionTime1.append("Original region time number:"+regionTimeInfo11.size() + "\n");
-			msgCurRegionTime1.append(regionTime11 + "\n");
-			LogTool.log(LEVEL, msgCurRegionTime1.toString());
-			
 			for(int region12 = region11 + 1; region12 < sortedWorkfaces.size(); region12 ++){
 				// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
 				ArrayList<ArrayList<Double>> regionTimeInfo12 = computeMachineTimeIntervalInOneRegion
-						(sortedWorkfaces.get(region12), machineOpInfo, workload, distance);
-				
-				// Register log info
-				StringBuilder msgCurSortedWf2 = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgCurSortedWf2.append("==========current sorted workfaces 2 in <sortGroups>==========\n");
-				msgCurSortedWf2.append("Original region time number:"+regionTimeInfo12.size() + "\n");
-				msgCurSortedWf2.append(sortedWorkfaces.get(region12) + "\n");
-				LogTool.log(LEVEL, msgCurSortedWf2.toString());
+						(sortedWorkfaces.get(region12), machineOpInfo, workload, distance, initPos);
 				
 				// ***************compute MACHINE TIME for region12***************
 				ArrayList<Double> regionTime12 = new ArrayList<Double>(numberOfMachine);
@@ -398,26 +297,10 @@ public class SortTool {
 					regionTime12.add(tmpMachineTime);
 				}
 				
-				// Register log info
-				StringBuilder msgCurRegionTime2 = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgCurRegionTime2.append("=================current regionTime 2 ==============\n");
-				msgCurRegionTime2.append(regionTime12 + "\n");
-				LogTool.log(LEVEL, msgCurRegionTime2.toString());
-				
 				// ************** start processing region1 -> region2********************
 				int lastWorkfaceOfRegion11 = sortedWorkfaces.get(region11).get(sortedWorkfaces.get(region11).size() - 1);
 				int firstWorkfaceOfRegion12 = sortedWorkfaces.get(region12).get(0);
 				double dist11_12 = distance.getDistBetweenTwoWorkfaces(lastWorkfaceOfRegion11, firstWorkfaceOfRegion12);
-				
-				// Register log info
-				StringBuilder msgDistRegionTime1 = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgDistRegionTime1.append("DISTANCE between(1->2): "+lastWorkfaceOfRegion11+"------->"+firstWorkfaceOfRegion12 + "\n");
-				msgDistRegionTime1.append("Distance is(1->2): "+ dist11_12 + "\n");
-				msgDistRegionTime1.append("Region11 time: "+regionTime11 + "\n");
-				
-				msgDistRegionTime1.append("tmpTotalTime11_12 value: ");
-				msgDistRegionTime1.append("\nEach step of each tmpTotalTime11_12: " + "\n");
-				LogTool.log(LEVEL, msgDistRegionTime1.toString());
 				
 				double maxTotalTime11_12 = 0, tmpTotalTime11_12 = 0;
 				for(int sep1 = 0; sep1 < numberOfMachine; sep1 ++){
@@ -437,24 +320,12 @@ public class SortTool {
 					maxTotalTime11_12 = (maxTotalTime11_12 > tmpTotalTime11_12) ? maxTotalTime11_12 : tmpTotalTime11_12; 
 					tmpTotalTime11_12 = 0;
 				}// sep1
-				System.out.println();
 				
 				// ************** start processing region2 -> region1********************
 				int lastWorkfaceOfRegion21 = sortedWorkfaces.get(region12).get(sortedWorkfaces.get(region12).size() - 1);
 				int firstWorkfaceOfRegion22 = sortedWorkfaces.get(region11).get(0);
 				double dist21_22 = distance.getDistBetweenTwoWorkfaces(lastWorkfaceOfRegion21, firstWorkfaceOfRegion22);
-				
-				// Register log info
-				StringBuilder msgDistRegionTime2 = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgDistRegionTime2.append("\nDISTANCE between(2->1): "+lastWorkfaceOfRegion21+"------->"+firstWorkfaceOfRegion22 + "\n");
-				msgDistRegionTime2.append("Distance is(2->1): "+ dist21_22 + "\n");
-				msgDistRegionTime2.append("Region12 time: "+regionTime12 + "\n");
-				
-				msgDistRegionTime2.append("tmpTotalTime12_11 value: ");
 				double maxTotalTime12_11 = 0, tmpTotalTime12_11 = 0;
-				msgDistRegionTime2.append("\nEach step of each tmpTotalTime12_11: \n");
-				LogTool.log(LEVEL, msgDistRegionTime2.toString());
-				
 				for(int sep2 = 0; sep2 < numberOfMachine; sep2 ++){
 					
 					tmpTotalTime12_11 += regionTime12.get(0);
@@ -470,20 +341,10 @@ public class SortTool {
 					maxTotalTime12_11 = (maxTotalTime12_11 > tmpTotalTime12_11) ? maxTotalTime12_11 : tmpTotalTime12_11;
 					tmpTotalTime12_11 = 0;
 				}
-				System.out.println();
-				
-				StringBuilder msgCurRegionPair = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-				msgCurRegionPair.append("\n===============================current region pair===============================\n");
-				msgCurRegionPair.append("WORKFACE: "+sortedWorkfaces.get(region11)+"------>"+sortedWorkfaces.get(region12) + "\n");
-				msgCurRegionPair.append("TIME DURATION: "+maxTotalTime11_12+"------->"+maxTotalTime12_11 + "\n");
 				
 				// region2 should be ahead of region1
 				boolean containsRegion11 = sortGroups.contains(sortedWorkfaces.get(region11));
 				boolean containsRegion12 = sortGroups.contains(sortedWorkfaces.get(region12));
-				msgCurRegionPair.append("containsRegion11: " + containsRegion11 + " containsRegion12: " + containsRegion12 + "\n");
-				msgCurRegionPair.append("indexOf region11: " + sortGroups.indexOf(sortedWorkfaces.get(region11)) + 
-						" indexOf region12: " + sortGroups.indexOf(sortedWorkfaces.get(region12)) + "\n");
-				LogTool.log(LEVEL, msgCurRegionPair.toString());
 				
 				if(maxTotalTime12_11 < maxTotalTime11_12){
 					if(containsRegion11 == true){
@@ -530,19 +391,8 @@ public class SortTool {
 				}// for - region12
 			}
 		}// for - region11
-		
-		// Register log info
-		StringBuilder msgPrintSortGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		msgPrintSortGroups.append("\n=============print out sort groups===============\n");
-		for(int sg = 0; sg < sortGroups.size(); sg ++){
-			msgPrintSortGroups.append(sortGroups.get(sg) + "\n");
-		}
-		LogTool.log(LEVEL, msgPrintSortGroups.toString());
-		
-		
 		return sortGroups;
 	}
-	
 	
 	/**
 	 * A utility function to swap two workfaces in a list of workfaces.
@@ -554,7 +404,6 @@ public class SortTool {
 		int tmp = arr.get(j);
 		arr.set(j, arr.get(i));
 		arr.set(i, tmp);
-		
 	}
 	
 	/**
@@ -593,14 +442,7 @@ public class SortTool {
 			if(row - 1 >= 0){
 				sum2 = getMaxTime(opMatrix, movMatrix, col, row - 1);
 				sum2 += movMatrix.get(row).get(col);
-			}
-			
-//			if(flag == 1){
-//				if(sum1 > sum2)
-//					System.out.println((matrix.get(row).get(col - 1) + " " + matrix.get(row).get(col)));
-//				else
-//					System.out.println((matrix.get(row - 1).get(col) + " " + matrix.get(row).get(col)));
-//			}			
+			}		
 			return Math.max(sum1,  sum2) + opMatrix.get(row).get(col);
 		}
 	}
@@ -620,9 +462,10 @@ public class SortTool {
 	 * @param machineOpInfo Operating machines' information.
 	 * @param workload Workfaces' workloads.
 	 * @param distance Distances between workfaces.
+	 * @param initPos operating machines' initial positions(workfaces).
 	 * @return sorted groups of workfaces.
 	 */
-	public static ArrayList<ArrayList<Integer>> sortWorkfacesByTradition (ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance){
+	public static ArrayList<ArrayList<Integer>> sortWorkfacesByTradition (ArrayList<ArrayList<Integer>> clusterGroups1, MachineOpInfo machineOpInfo, WorkfaceWorkload workload, WorkfaceDistance distance, MachineInitialPosition initPos){
 		ArrayList<ArrayList<Integer>> sortGroups = new ArrayList<ArrayList<Integer>>();
 		
 		// The number of groups after clustering
@@ -644,7 +487,7 @@ public class SortTool {
 				double curTotalTime = 0;
 				// regionTimeInfo in the form of "M1TimeInterval, M1WaitTime, M2TimeInterval, M2WaitTime,...."
 				ArrayList<ArrayList<Double>> curRegionTime = computeMachineTimeIntervalInOneRegion
-						(curPermList, machineOpInfo, workload, distance);
+						(curPermList, machineOpInfo, workload, distance, initPos);
 				
 				// Sum each machine's first operating time on each workface
 				for(int k = 0; k * 2 < curRegionTime.size() - 2; k ++){
@@ -660,31 +503,6 @@ public class SortTool {
 				for(int n = 0; n < lastMachineWaitTime.size(); n ++){
 					curTotalTime += lastMachineWaitTime.get(n);
 				}
-				
-//				if(curPermList.contains(17) && curPermList.contains(18) && curPermList.contains(19) && curPermList.contains(20)){
-//					System.out.println("------------&&&&&-------------");
-//					for(int k = 0; k < curPermList.size(); k ++)
-//						System.out.print(curPermList.get(k) + " ");
-//					System.out.println("\n cur total time: " + curTotalTime);
-//				}
-//				if(curPermList.contains(12) && curPermList.contains(10) && curPermList.contains(11)){
-//					System.out.println("------------&&&&&-------------");
-//					for(int k = 0; k < curPermList.size(); k ++)
-//						System.out.print(curPermList.get(k) + " ");
-//					System.out.println("\n cur total time: " + curTotalTime);
-//				}
-//				if(curPermList.contains(12) && curPermList.contains(10) && curPermList.contains(11) && curPermList.contains(9) && curPermList.contains(8) && curPermList.contains(7) && curPermList.contains(6) && curPermList.contains(5) && curPermList.contains(4)){
-////					System.out.println("------------&&&&&-------------");
-//					StringBuilder sb = new StringBuilder();
-//					for(int k = 0; k < curPermList.size(); k ++)
-//						//System.out.print(curPermList.get(k) + " ");
-//						sb.append(curPermList.get(k) + " ");
-//					if(sb.toString().equals("5 6 7 4 8 9 12 10 11 ") || sb.toString().equals("6 5 4 9 8 7 12 10 11 ") || sb.toString().equals("4 6 5 7 8 9 10 11 12 ") || sb.toString().equals("4 6 5 7 8 9 11 10 12 ")){
-//						System.out.println(sb.toString() + "\n cur total time: " + curTotalTime);
-//					}
-//					
-//				}
-				
 				if(curTotalTime < minTotalTime){
 					minTotalTime = curTotalTime;
 					minPermList.clear();
@@ -746,42 +564,13 @@ public class SortTool {
 						double dist = 0;
 						if(k == 0){
 							if(sortGroups.size() == 0){
-//								dist = distance.getDistBetweenTwoWorkfaces(machineInitPos.getInitPosOfMachine(m), curPermList.get(k) - 1);
 								dist = 0;
 							}else{
 								ArrayList<Integer> lastSortedGroup = sortGroups.get(sortGroups.size() - 1);
 								dist = distance.getDistBetweenTwoWorkfaces(lastSortedGroup.get(lastSortedGroup.size() - 1) - 1, curPermList.get(k) - 1);
 							}
 						}
-						curWfMovTime.add(dist / moveRate);
-//						if(curMachineWorkload == 0){
-//							curWfTotalTime.add(0.0);
-//						}else{
-////							double dist = 0;
-//							if(k > 0){
-//								int tmpi = k - 1; 
-//								for(; tmpi >=0; tmpi -- ){
-//									if(opMatrix.get(tmpi).get(m) == 0){
-//										continue;
-//									}else
-//										break;
-//								}
-//								if(tmpi == -1){
-//									//dist = data[0].get(curPermList.get(k) - 1).get(machineInitPos.getInitPosOfMachine(m));
-//									//dist = 0;
-//									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(k) - 1, machineInitPos.getInitPosOfMachine(m));
-//								}
-//								else
-////									dist = data[0].get(curPermList.get(tmpi) - 1).get(curPermList.get(k) - 1);
-//									dist = distance.getDistBetweenTwoWorkfaces(curPermList.get(tmpi) - 1, curPermList.get(tmpi) - 1);
-//							}
-//							
-//							double opRate = machineOpInfo.getCertainMachineOpInfo(m).get(0);
-////							double moveRate = machineOpInfo.getCertainMachineOpInfo(m).get(1);
-//							//double curTotalTime = curMachineWorkload / opRate + dist / moveRate ;
-//							
-//							curWfTotalTime.add(curMachineWorkload / opRate);
-//						}						
+						curWfMovTime.add(dist / moveRate);						
 					}
 					opMatrix.add(curWfOpTime);
 					movMatrix.add(curWfMovTime);
@@ -790,68 +579,15 @@ public class SortTool {
 				
 				
 				int flag = 0;
-//				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17))
-//					flag = 1;
 				double curMaxTime = computeMaxWfSeqTime(opMatrix, movMatrix);
 				
 				if(curMaxTime < minTime){
 					minTime = curMaxTime;
 					minPermList = curPermList;
 				}
-				
-				//Register log info -- Print out each workface permutation time info and cur maxtime and permutation
-//				StringBuilder msgPerm = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//				msgPerm.append("\n===================Print out workface time info for each permutation================\n");
-//				msgPerm.append("cur matrix: \n");
-//				for(int jj = 0; jj < matrix.size(); jj ++){
-//					for(int kk = 0; kk < matrix.get(jj).size(); kk ++){
-//						msgPerm.append(matrix.get(jj).get(kk) + "\t");
-//					}
-//					msgPerm.append("\n");
-//				}
-//				msgPerm.append("curPermList: \n");
-//				for(int ii = 0; ii < curPermList.size(); ii ++){
-//					msgPerm.append(curPermList.get(ii) + " ");
-//				}
-//				msgPerm.append("\n");
-//				msgPerm.append("cur maxtime: " + curMaxTime + "\ncur mintime: " + minTime + "\n");
-//				msgPerm.append("curMinList: \n");
-//				for(int ii = 0; ii < minPermList.size(); ii ++){
-//					msgPerm.append(minPermList.get(ii) + " ");
-//				}
-//				msgPerm.append("\n");
-//				LogTool.log(LEVEL, msgPerm.toString());
-//				if(curPermList.contains(20) && curPermList.contains(19) && curPermList.contains(18) && curPermList.contains(17)){
-//					System.out.println(msgPerm);
-//				}
-				
-//				if(curPermList.contains(8)){
-//					msgPerm.append("\n===================Print out workface time info for each permutation================\n");
-//					for(int ii = 0; ii < curPermList.size(); ii ++){
-//						System.out.print(curPermList.get(ii) + " ");
-//					}
-//					System.out.println("cur maxtime: " + curMaxTime);
-//				}
-				
 			}// end of all permutations of workfaces
-			
-			// Print out minimum workface time
-//			System.out.println("\n===================minimum workface time permutation================\n" + minTime);
-//			for(int k = 0; k < minPermList.size(); k ++){
-//				System.out.print(minPermList.get(k) + " ");
-//			}
-//			System.out.println();
-			
 			sortGroups.add(minPermList);
 		}
-		
-		//Register log info -- Print out sorted workfaces
-//		StringBuilder msgSortedGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-//		msgSortedGroups.append("\n===================Print out sorted workfaces================\n");
-//		for (int i = 0; i < sortGroups.size(); i ++)
-//			msgSortedGroups.append(sortGroups.get(i) + "\n");
-//		LogTool.log(LEVEL, msgSortedGroups.toString());
-		
 		return sortGroups;
 	}
 	
@@ -871,19 +607,15 @@ public class SortTool {
 		int numOfProcedure = machineOpInfo.getMachineNum();
 		// Iterate through each cluster group, e.g. (w1, w2, w3), (w4, w6), (w5, w7)
 		for(int i = 0; i < clusterGroups1.size(); i++){
-			
 			ArrayList<Integer> workfaceSeq  =new ArrayList<Integer>();
 			for(int w1 = 0; w1 < clusterGroups1.get(i).size() - 1; w1++){
 				for(int w2 = w1 + 1; w2 < clusterGroups1.get(i).size(); w2 ++ ){
-					
 					// id of first workface (real value minus 1)
 					int id1 = clusterGroups1.get(i).get(w1) - 1; 
 					// id of second workface (real value minus 1)
 					int id2 = clusterGroups1.get(i).get(w2) - 1;
 					// distance between workface 1 and 2
 					double dist12 = data[i].get(id1).value(id2);
-					
-					
 					// ********* compute workface id1-id2******************
 					double tmpTotalTime1 = 0, maxTotalTime1 = 0;
 					// sorting algorithm
@@ -925,7 +657,6 @@ public class SortTool {
 					
 					// maxTotalTime1 indidates (w-id1, w-id2)
 					// now sequecnce should be (w-id2, w-id1)
-					
 					boolean containId1 = workfaceSeq.contains(id1);
 					boolean containId2 = workfaceSeq.contains(id2);
 					
@@ -976,21 +707,10 @@ public class SortTool {
 							}
 						}
 					}
-					//Register log info
-					StringBuilder msgCurSortGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-					msgCurSortGroups.append("\ncurrent sort groups: " + workfaceSeq + "\n");
-					LogTool.log(LEVEL, msgCurSortGroups.toString());
 				}// end w2
 			}// end w1
 			sortGroups.add(workfaceSeq);
 		}
-		
-		//Register log info -- Print out sorted workfaces
-		StringBuilder msgSortedGroups = new StringBuilder(Thread.currentThread().getStackTrace()[1].toString());
-		msgSortedGroups.append("\n===================Print out sorted workfaces================\n");
-		for (int i = 0; i < sortGroups.size(); i ++)
-			msgSortedGroups.append(sortGroups.get(i) + "\n");
-		LogTool.log(LEVEL, msgSortedGroups.toString());
 		
 		for(int i = 0; i < sortGroups.size(); i ++){
 			for(int j = 0; j < sortGroups.get(i).size(); j ++){
@@ -1070,7 +790,6 @@ public class SortTool {
 					
 					// maxTotalTime1 indidates (w-id1, w-id2)
 					// now sequecnce should be (w-id2, w-id1)
-					
 					boolean containId1 = workfaceSeq.contains(id1);
 					boolean containId2 = workfaceSeq.contains(id2);
 					

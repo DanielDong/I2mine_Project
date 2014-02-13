@@ -1086,7 +1086,7 @@ public class I2MineMain extends Composite {
 					
 					ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>();
 					System.out.println("number_of_procedure:" + opInfo.getMachineNum());
-					ClusterTool.getClustersOfWorkfacesByDependancy(numOfWf, "\t", wfDependancy, opInfo, workload, distance, machineInitPos, wfProcList);
+					ClusterTool.getClustersOfWorkfacesByDependancy(numOfWf, wfDependancy, opInfo, workload, distance, machineInitPos, wfProcList);
 					
 					// Set finalWfProcList for LHD usage
 					finalWfProcList = wfProcList.get(0);
@@ -1112,9 +1112,9 @@ public class I2MineMain extends Composite {
 				ArrayList<ArrayList<WorkfaceProcessUnit>> wfProcList = new ArrayList<ArrayList<WorkfaceProcessUnit>>(); 
 				int numbOfMachineSet = Integer.valueOf(comboDropDownSet.getItem(comboDropDownLevel.getSelectionIndex()));
 				if(numbOfMachineSet == 1){
-					ClusterTool.getClustersOfWorkfacesSortByOne(20, "\t", opInfo, workload, distance, machineInitPos, wfProcList);
+					ClusterTool.getClustersOfWorkfacesSortByOne(20, opInfo, workload, distance, machineInitPos, wfProcList);
 				}else{
-					ClusterTool.getClustersOfWorkfacesSortByMore(numbOfMachineSet, 20, "\t", 
+					ClusterTool.getClustersOfWorkfacesSortByMore(numbOfMachineSet, 20, 
 							opInfo, 
 							workload, 
 							distance, 

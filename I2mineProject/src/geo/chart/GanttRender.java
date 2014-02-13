@@ -19,13 +19,27 @@ import org.jfree.ui.RefineryUtilities;
 
 import java.awt.event.WindowEvent;
 
+/**
+ * This class instance is used to draw Gantt graphs.
+ * @author Dong
+ * @version 1.0
+ */
 public class GanttRender extends ApplicationFrame{
 
 	/**
-	 * 
+	 * Serial version UID used when serializing class instances.
 	 */
 	private static final long serialVersionUID = -7404694263273528640L;
 
+	/**
+	 * Create a GanttRender instance by specifying window title, chart title, domain name, range name, 
+	 * a list of sorted {@link WorkfaceProcessUnit} instances to draw Gantt graphs.
+	 * @param winTitle The window title.
+	 * @param charTitle The chart title.
+	 * @param domain The domain name.
+	 * @param range The range name.
+	 * @param wfProcList The list of sorted {@link WorkfaceProcessUnit} instances.
+	 */
 	public GanttRender(String winTitle, String charTitle, String domain, String range,  ArrayList<WorkfaceProcessUnit> wfProcList) {
 
         super(winTitle);
@@ -33,7 +47,7 @@ public class GanttRender extends ApplicationFrame{
         final IntervalCategoryDataset dataset = createDataset(wfProcList);
         final JFreeChart chart = createChart(charTitle, domain, range, dataset);
 
-        // add the chart to a panel...
+        // add the chart to a panel
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(1500, 840));
         setContentPane(chartPanel);
@@ -49,7 +63,6 @@ public class GanttRender extends ApplicationFrame{
 
     /**
      * Creates a sample dataset for a Gantt chart.
-     *
      * @return The dataset.
      */
     public static IntervalCategoryDataset createDataset(ArrayList<WorkfaceProcessUnit> wfProcList) {
@@ -79,25 +92,21 @@ public class GanttRender extends ApplicationFrame{
     /**
      * Utility method for creating <code>Date</code> objects to .
      * insert into the gantchart. 
-     * 
-     * @param day  the date.
-     * @param month  the month.
-     * @param year  the year.
-     *
+     * @param day  The date.
+     * @param month  The month.
+     * @param year  The year.
      * @return a date.
      */
     private static Date date(final int day, final int month, final int year) {
-
         final Calendar calendar = Calendar.getInstance();
         calendar.set(year, month, day);
         final Date result = calendar.getTime();
         return result;
-
     }
         
     /**
      * Creates a chart.
-     * @param dataset  the dataset.
+     * @param dataset  The dataset.
      * @return The chart.
      */
     private JFreeChart createChart(String chartTitle, String domain, String range, IntervalCategoryDataset dataset) {
@@ -116,7 +125,6 @@ public class GanttRender extends ApplicationFrame{
     
     /**
      * Starting point for the demonstration application.
-     *
      * @param args  ignored.
      */
     public static void main(final String[] args) {

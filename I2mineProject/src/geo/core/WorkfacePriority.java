@@ -12,6 +12,10 @@ import java.util.Collections;
 public class WorkfacePriority {
 	private ArrayList<WorkfacePrioUnit> wfPrioUnitList = new ArrayList<WorkfacePrioUnit>();
 	
+	/**
+	 * Add a WorkfacePrioUnit instance to the internal priority list. 
+	 * @param newUnit A WorkfacePrioUnit instance storing a mapping between a workface its corresponding priority value.
+	 */
 	public void addWfPrioUnit(WorkfacePrioUnit newUnit){
 		wfPrioUnitList.add(newUnit);
 	}
@@ -66,18 +70,47 @@ public class WorkfacePriority {
 		// Priority level, possible values are 1, 2, 3 (1 > 2 > 3)
 		private int priority;
 		
+		/**
+		 * Create a WorkfacePrioUnit instance by specifying the Workface ID and its corresponding priority value.
+		 * @param wf Workface ID.
+		 * @param prio Priority value of the workface.
+		 */
 		public WorkfacePrioUnit(int wf, int prio){
 			wfNum = wf;
 			priority = prio;
 		}
+		
+		/**
+		 * Compare two WorkfacePrioUnit instances based on their priority values.
+		 * Workfaces with smaller priority values come before worfaces with bigger priority values.
+		 */
 		@Override
 		public int compareTo(WorkfacePrioUnit o) {
 			return priority - o.getPriority();
 		}
 		
+		/**
+		 * Set the workface ID.
+		 * @param wf The ID of the workface.
+		 */
 		public void setWfNum(int wf){wfNum = wf;}
+		
+		/**
+		 * Get the total of workfaces.
+		 * @return The number of workfaces.
+		 */
 		public int getWfNum(){return wfNum;}
+		
+		/**
+		 * Set the priority value of current workface.
+		 * @param prio The priority value.
+		 */
 		public void setPriority(int prio){priority = prio;}
+		
+		/**
+		 * Get the priority value of current workface.
+		 * @return The priority value.
+		 */
 		public int getPriority(){return priority;}
 	}
 }

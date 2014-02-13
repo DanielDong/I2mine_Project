@@ -27,7 +27,18 @@ public class WorkfaceProcessUnit{
 		private int machineId;
 		private double startTime, endTime, movTime;
 		
+		/**
+		 * Create an empty WorkfaceProcedureUnit instance. 
+		 */
 		public WorkfaceProcedureUnit(){}
+		
+		/**
+		 * Create an empty WorkfaceProcedureUnit instance by specifying the machine ID, starting time, ending time and moving time.
+		 * @param id The ID of the operating machine.
+		 * @param start The starting time of the workface procedure.
+		 * @param end The ending time of the workface procedure.
+		 * @param mov The moving time of the workface procedure.
+		 */
 		public WorkfaceProcedureUnit(int id, double start, double end, double mov){
 			machineId = id;
 			startTime = start;
@@ -35,12 +46,46 @@ public class WorkfaceProcessUnit{
 			movTime = mov;
 		}
 		
+		/**
+		 * Get the starting time of the workface procedure unit.
+		 * @return The starting time.
+		 */
 		public double getStartTime(){return startTime;}
+		
+		/**
+		 * Get the ending time of the workface procedure unit.
+		 * @return The ending time.
+		 */
 		public double getEndTime(){return endTime;}
+		
+		/**
+		 * Set the starting time of the workface procedure unit.
+		 * @param start The starting time.
+		 */
 		public void setStartTime(double start){startTime = start;}
+		
+		/**
+		 * Set the ending time of the workface procedure unit.
+		 * @param end The ending time.
+		 */
 		public void setEndTime(double end){endTime = end;}
+		
+		/**
+		 * Get the operating machine's ID. 
+		 * @return The ID of the operating machine.
+		 */
 		public int getMachineId(){return machineId;}
+		
+		/**
+		 *  Get the moving time of the workface procedure unit.
+		 * @return The moving time.
+		 */
 		public double getMovTime(){return movTime;}
+		
+		/**
+		 * Set the moving time of the workface procedure unit.
+		 * @param mov The moving time.
+		 */
 		public void setMovTime(double mov){
 			movTime = mov;
 		}
@@ -54,7 +99,9 @@ public class WorkfaceProcessUnit{
 	private ArrayList<WorkfaceProcedureUnit> wfProcList;
 	
 	
-	
+	/**
+	 * Create an empty WorkfaceProcessUnit instance.
+	 */
 	public WorkfaceProcessUnit(){
 		wfProcList = new ArrayList<WorkfaceProcedureUnit>();
 	}
